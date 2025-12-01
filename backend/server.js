@@ -5,7 +5,12 @@ const uri = process.env.MONGO_URI;
 import mongoose from 'mongoose';
 import dotenv from 'dotenv'
 // Routes Imports
+import authRoutes from './routes/AuthRoutes.js';
+import userRoutes from './routes/UserRoutes.js';
+import categoryRoutes from './routes/CategoryRoutes.js';
 import productRoutes from './routes/ProductRoutes.js';
+import orderRoutes from './routes/OrderRoutes.js';
+import reviewRoutes from './routes/ReviewRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -30,9 +35,18 @@ mongoose.connect(uri, {
 app.get('/', (req, res) => {
     res.json({ msg: 'Hello World!' });
 });
+// Auth Routes
+app.use('/api/auth', authRoutes);
+// User Routes
+app.use('/api/users', userRoutes);
+// Category Routes
+app.use('/api/categories', categoryRoutes);
 // Product Routes
 app.use('/api/products', productRoutes);
-
+// Order Routes
+app.use('/api/orders', orderRoutes);
+// Review Routes
+app.use('/api/reviews', reviewRoutes);
 
 // CORS Middleware
 app.use(cors());

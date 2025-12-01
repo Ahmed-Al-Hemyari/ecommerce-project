@@ -27,19 +27,19 @@ export const getCategoryById = async (req, res) => {
 
 // Create a new product
 export const createCategory = async (req, res) => {
-    try {
-        if (!req.body.name) {   
-            return res.status(400).json({ message: 'Name is required' });
-        }
-        const newCategory = Category({
-            name: req.body.name,
-        });
-        const category = await Category.create(newCategory);
-        res.status(201).json(category);
-    } catch (error) {
-        console.error('Error creating category:', error);
-        res.status(500).json({ message: 'Server error' });
-    }
+  try {
+      if (!req.body.name) {   
+          return res.status(400).json({ message: 'Name is required' });
+      }
+      const newCategory = Category({
+          name: req.body.name,
+      });
+      const category = await Category.create(newCategory);
+      res.status(201).json(category);
+  } catch (error) {
+      console.error('Error creating category:', error);
+      res.status(500).json({ message: 'Server error' });
+  }
 };
 
 // Update an existing product
