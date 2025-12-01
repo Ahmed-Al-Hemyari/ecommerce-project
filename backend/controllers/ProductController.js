@@ -44,7 +44,7 @@ export const createProduct = async (req, res) => {
       description: req.body.description,
       price: req.body.price,
       category: req.body.category,
-      images: req.body.images || [req.body.image || ''],
+      images: req.body.images || [],
     });
     const product = await Product.create(newProduct);
     res.status(201).json(product);

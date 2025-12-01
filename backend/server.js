@@ -20,10 +20,7 @@ const app = express();
 app.use(express.json());
 
 // Connect to MongoDB
-mongoose.connect(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-})
+mongoose.connect(uri)
 .then(() => {
     console.log('Connected to MongoDB database');
 })
@@ -33,7 +30,7 @@ mongoose.connect(uri, {
 
 // // Routes
 app.get('/', (req, res) => {
-    res.json({ msg: 'Hello World!' });
+    res.json('This is ecommerce project api');
 });
 // Auth Routes
 app.use('/api/auth', authRoutes);

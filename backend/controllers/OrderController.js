@@ -1,6 +1,6 @@
-import Order from "../models/Order";
-import Product from "../models/Product";
-import User from "../models/User";
+import Order from "../models/Order.js";
+import Product from "../models/Product.js";
+import User from "../models/User.js";
 
 // Get all orders
 export const getAllOrders = async (req, res) => {
