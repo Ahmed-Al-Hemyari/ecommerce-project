@@ -28,6 +28,14 @@ mongoose.connect(uri)
     console.error('Error connecting to MongoDB database:', error);
 });
 
+// CORS Middleware
+app.use(cors(
+    {
+        origin: 'http://localhost:3000',
+        methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    }
+));
+
 // // Routes
 app.get('/', (req, res) => {
     res.json('This is ecommerce project api');
@@ -45,8 +53,6 @@ app.use('/api/orders', orderRoutes);
 // Review Routes
 app.use('/api/reviews', reviewRoutes);
 
-// CORS Middleware
-app.use(cors());
 
 // Start the server
 app.listen(PORT, () => {
