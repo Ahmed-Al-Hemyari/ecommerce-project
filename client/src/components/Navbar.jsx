@@ -40,7 +40,7 @@ const Navbar = ({ page }) => {
         ))}
       </div>
       {/* Desktop Links */}
-      <div className="flex gap-3 items-center">
+      <div className="hidden md:flex gap-3 items-center">
         <Link to={'/login'} className="px-4 py-2 rounded-md bg-(--color-light-gray) border qb-border">Login</Link>
         <Link to={'/cart'} className="px-4 py-2 rounded-md bg-(--color-green)">Cart</Link>
       </div>  
@@ -83,9 +83,16 @@ const Navbar = ({ page }) => {
           <Link
             to="/login"
             onClick={() => setIsOpen(false)}
-            className="text-(--color-dark-gray) bg-(--color-green) text-lg font-semibold py-2 px-6 rounded-full transition-all duration-300"
+            className="text-(--color-dark-gray) bg-(--color-light-gray) text-lg font-semibold py-2 px-6 rounded-full transition-all duration-300"
           >
             Login
+          </Link>
+          <Link
+            to="/cart"
+            onClick={() => setIsOpen(false)}
+            className="text-(--color-dark-gray) bg-(--color-green) text-lg font-semibold py-2 px-6 rounded-full transition-all duration-300"
+          >
+            Cart
           </Link>
         </div>
       )}
