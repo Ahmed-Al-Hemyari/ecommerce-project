@@ -28,11 +28,13 @@ export const getCategoryById = async (req, res) => {
 // Create a new product
 export const createCategory = async (req, res) => {
   try {
-      if (!req.body.name) {   
-          return res.status(400).json({ message: 'Name is required' });
+      if (!req.body.name || !req.body.slug || !req.body.icon) {   
+          return res.status(400).json({ message: 'Name, slug, and icon are required' });
       }
       const newCategory = Category({
           name: req.body.name,
+          slug: req.body.slug,
+          icon: req.body.icon
       });
       const category = await Category.create(newCategory);
       res.status(201).json(category);

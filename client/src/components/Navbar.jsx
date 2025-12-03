@@ -15,16 +15,17 @@ const Navbar = ({ page }) => {
 
   const links = [
     { name: "Home", to: "/", key: "home" },
-    { name: "Products", to: "/products", key: "products" },
+    { name: "Shop", to: "/products", key: "products" },
     { name: "About", to: "/about", key: "about" },
+    // { name: "Contact", to: "/contact", key: "contact" }
   ];
 
   return (
     <nav className="w-full bg-(--color-dark-gray) flex items-center justify-between px-6 md:px-10 h-20 relative">
       {/* Logo */}
-      <img src={logo} alt="QuickBuy Logo" className="w-36 md:w-40" />
-
-      {/* Desktop Links */}
+      <Link to={'/'}>
+        <img src={logo} alt="QuickBuy Logo" className="w-36 md:w-40" />
+      </Link>
       <div className="hidden md:flex items-center gap-10">
         {links.map((link) => (
           <Link
@@ -37,13 +38,21 @@ const Navbar = ({ page }) => {
             {link.name}
           </Link>
         ))}
+      </div>
+      {/* Desktop Links */}
+      <div className="flex gap-3 items-center">
+        <Link to={'/login'} className="px-4 py-2 rounded-md bg-(--color-light-gray) border qb-border">Login</Link>
+        <Link to={'/cart'} className="px-4 py-2 rounded-md bg-(--color-green)">Cart</Link>
+      </div>  
+      {/* <div className="hidden md:flex items-center gap-10">
         <Link
           to="/login"
           className="text-(--color-dark-gray) bg-(--color-green) text-lg font-semibold py-2 px-6 rounded-full transition-all duration-300"
         >
           Login
         </Link>
-      </div>
+      </div> */}
+
 
       {/* Mobile Menu Button */}
       <div className="md:hidden flex items-center">

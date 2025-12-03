@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import MainLayout from "../layouts/MainLayout";
-import { fetchProducts } from "@/services/products-calls";
+import { fetchProducts } from "@/services/api-calls";
+
+import Spinner from "../components/Spinner";
+import ProductCard from "../components/ProductCard";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -23,19 +26,13 @@ const Products = () => {
 
   return (
     <MainLayout page="products">
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <div>
-          {products.map((product) => (
-            <div key={product._id}>
-              <h2>{product.title}</h2>
-              <p>{product.description}</p>
-              <p>Price: ${product.price}</p>
-            </div>
-          ))}
-        </div>
-      )}
+      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 px-5">
+          {loading ? (<Spinner />) : (
+            products.map(product => (
+              <ProductCard key={product._id} product={product} />
+            ))
+          )}
+      </div>
     </MainLayout>
   );
 };
