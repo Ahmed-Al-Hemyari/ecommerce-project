@@ -3,34 +3,78 @@ import defaultProductImage from '@/assets/default-product-image.png'
 import MainLayout from "@/layouts/MainLayout";
 import { AiOutlineDelete } from "react-icons/ai";
 import { Link } from "react-router-dom";
+import {
+    readLocalStorageItem,
+    addToLocalStorage,
+    updateLocalStorageItem,
+    removeFromLocalStorage,
+} from '@/services/LocalStorageFunctions'
+import {
+    fetchProductById
+} from '@/services/api-calls'
 
 const Cart = () => {
+    const [cartItems, setCartItems] = useState([]);
+
     useEffect(() => {
-    const root = document.documentElement;
-    root.style.setProperty('--color-dark-gray', '#333333');
-    root.style.setProperty('--color-light-gray', '#CDCDCD');
-    root.style.setProperty('--color-green', '#82E2BB');
+        const root = document.documentElement;
+        root.style.setProperty('--color-dark-gray', '#333333');
+        root.style.setProperty('--color-light-gray', '#CDCDCD');
+        root.style.setProperty('--color-green', '#82E2BB');
+
+        const loadCart = async () => {
+            const items = readLocalStorageItem('cart') || [];
+
+            const fullCart = await Promise.all(items.map(async (item) => {
+                try {
+                    const product = await fetchProductById(item._id);
+                    return { ...product, quantity: item.quantity };
+                } catch (error) {
+                    console.error("Error fetching product:", error);
+                    return null; // skip failed items
+                }
+            }));
+
+            setCartItems(fullCart.filter(item => item !== null));
+        };
+
+        loadCart();
     }, []);
 
-
-    // Dummy cart items
-    const [cartItems, setCartItems] = useState([
-    { id: 1, title: 'Wireless Headphones', price: 79.99, quantity: 1, img: defaultProductImage },
-    { id: 2, title: 'Classic Sneakers', price: 59.99, quantity: 2, img: defaultProductImage },
-    ]);
-
-
     const handleQuantity = (id, type) => {
-    setCartItems(prev => prev.map(item => item.id === id ? { ...item, quantity: type === 'inc' ? item.quantity + 1 : Math.max(1, item.quantity - 1) } : item));
-    };
+        setCartItems(prevCart => {
+            let updatedCart;
 
+            if (type === 'inc') {
+                updatedCart = prevCart.map(item =>
+                    item._id === id ? { ...item, quantity: item.quantity + 1 } : item
+                );
+            } else {
+                // Decrement: remove item if quantity becomes 0
+                updatedCart = prevCart
+                    .map(item =>
+                        item._id === id ? { ...item, quantity: item.quantity - 1 } : item
+                    )
+                    .filter(item => item.quantity > 0);
+            }
+
+            localStorage.setItem('cart', JSON.stringify(updatedCart));
+            return updatedCart;
+        });
+    };
 
     const handleRemove = (id) => {
-    setCartItems(prev => prev.filter(item => item.id !== id));
+        setCartItems(prevCart => {
+            const updatedCart = prevCart.filter(item => item._id !== id);
+
+            localStorage.setItem('cart', JSON.stringify(updatedCart));
+
+            return updatedCart;
+        });
     };
 
-
     const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+
     return (
         <MainLayout page='products'>
 
@@ -42,28 +86,32 @@ const Cart = () => {
                 <div className="text-center py-20">
                     <div className="text-6xl mb-4">🛒</div>
                     <p className="text-lg mb-4">Your cart is empty.</p>
-                    <button className="px-6 py-3 rounded-md bg-(--color-green) text-(--color-dark-gray) font-semibold">Start Shopping</button>
+                    <Link to={'/products'}>
+                        <button className="px-6 py-3 rounded-md bg-(--color-green) text-(--color-dark-gray) font-semibold cursor-pointer">
+                            Start Shopping
+                        </button>
+                    </Link>
                 </div>
                 ) : (
                 <div className="grid md:grid-cols-3 gap-6">
                     {/* Cart Items List */}
                     <div className="md:col-span-2 space-y-4">
                     {cartItems.map(item => (
-                        <div key={item.id} className="flex items-center bg-white p-4 rounded-lg shadow-sm">
-                        <img src={item.img} alt={item.title} className="w-24 h-24 object-cover rounded" />
-                        <div className="ml-4 flex-1">
-                            <h2 className="font-medium text-(--color-dark-gray)">{item.title}</h2>
-                            <p className="text-gray-500">${item.price.toFixed(2)}</p>
-                            <div className="flex items-center mt-2 gap-2">
-                            <button className="px-2 py-1 border border-(--color-light-gray) rounded" onClick={() => handleQuantity(item.id, 'dec')}>-</button>
-                            <span className="px-3 py-1 border border-(--color-light-gray) rounded">{item.quantity}</span>
-                            <button className="px-2 py-1 border border-(--color-light-gray) rounded" onClick={() => handleQuantity(item.id, 'inc')}>+</button>
+                        <div key={item._id} className="flex items-center bg-white p-4 rounded-lg shadow-sm">
+                            <img src={item.img ?? defaultProductImage} alt={item.title} className="w-24 h-24 object-cover rounded" />
+                            <div className="ml-4 flex-1">
+                                <h2 className="font-medium text-(--color-dark-gray)">{item.title}</h2>
+                                <p className="text-gray-500">${item.price.toFixed(2) ?? '0.00'}</p>
+                                <div className="flex items-center mt-2 gap-2">
+                                <button className="px-2 py-1 border border-(--color-light-gray) rounded" onClick={() => handleQuantity(item._id, 'dec')}>-</button>
+                                    <span className="px-3 py-1 border border-(--color-light-gray) rounded">{item.quantity}</span>
+                                <button className="px-2 py-1 border border-(--color-light-gray) rounded" onClick={() => handleQuantity(item._id, 'inc')}>+</button>
+                                </div>
                             </div>
-                        </div>
-                        <div className="ml-4 text-right">
-                            <p className="font-semibold">${(item.price * item.quantity).toFixed(2)}</p>
-                            <button className="mt-2 text-red-500 hover:underline cursor-pointer" onClick={() => handleRemove(item.id)}><AiOutlineDelete size={20}/></button>
-                        </div>
+                            <div className="ml-4 text-right">
+                                <p className="font-semibold">${(item.price * item.quantity)?.toFixed(2) ?? '0.00'}</p>
+                                <button className="mt-2 text-red-500 hover:underline cursor-pointer" onClick={() => handleRemove(item._id)}><AiOutlineDelete size={20}/></button>
+                            </div>
                         </div>
                     ))}
                     </div>

@@ -16,11 +16,11 @@ const About = () => {
       </section>
 
       {/* Mission */}
-      <section className="max-w-7xl mx-auto p-6 grid md:grid-cols-2 gap-10 items-center">
-        <img src={mission} alt="Mission" className="rounded-xl" />
+      <section className="max-w-7xl mx-auto py-6 px-4 grid md:grid-cols-2 gap-10 items-center">
+        <img src={mission} alt="Mission" className="rounded-xl w-36 mx-auto" />
         <div>
           <h3 className="text-2xl font-semibold mb-3">Our Mission</h3>
-          <p className="text-gray-600 leading-relaxed">
+          <p className="text-gray-600 leading-relaxed text-justify">
             At QuickBuy, our mission is to provide a seamless shopping experience that saves you time and effort.
             We focus on fast delivery, verified quality, and the best deals online — all wrapped in a smooth interface
             designed to help you find what you need instantly.

@@ -7,40 +7,50 @@ import { fetchProducts, fetchCategories } from '@/services/api-calls'
 import { Link } from 'react-router-dom'
 import CategoryCard from '../components/CategoryCard'
 import Hero from '@/components/Hero'
+import GoToCartButton from '../components/GoToCartButton'
+import {readLocalStorageItem} from '../services/LocalStorageFunctions'
 
 const Home = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isCartEmpty, setIsCartEmpty] = useState(true);
   
-    useEffect(() => {
-      const getProducts = async () => {
-        try {
-          const data = await fetchProducts();
-          setProducts(data);
-        } catch (error) {
-          console.error(error);
-        } finally {
-          setLoading(false);
-        }
-      };
-      const getCategories = async () => {
-        try {
-          const data = await fetchCategories();
-          setCategories(data);
-        } catch (error) {
-          console.error(error);
-        } finally {
-          setLoading(false);
-        }
-      };
-  
-      getProducts();
-      getCategories();
-    }, []);
+  useEffect(() => {
+    const getProducts = async () => {
+      try {
+        const data = await fetchProducts();
+        setProducts(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    const getCategories = async () => {
+      try {
+        const data = await fetchCategories();
+        setCategories(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const checkCart = () => {
+      const cart = readLocalStorageItem('cart') || [];
+      setIsCartEmpty(cart.length === 0);
+    }
+
+    checkCart();
+    getProducts();
+    getCategories();
+  }, []);
   
   return (
     <MainLayout page="home">
+      {!isCartEmpty && <GoToCartButton/>}
       {/* Hero */}
       <Hero/>
 
@@ -63,6 +73,8 @@ const Home = () => {
 
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
           {loading ? (<Spinner />) : (
+            products.length === 0 ?
+              <h1 className='text-lg'>No Products Found</h1> :
             products.map(product => (
               <ProductCard key={product._id} product={product} />
             ))
