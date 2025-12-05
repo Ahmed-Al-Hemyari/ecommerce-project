@@ -9,12 +9,14 @@ import CategoryCard from '../components/CategoryCard'
 import Hero from '@/components/Hero'
 import GoToCartButton from '../components/GoToCartButton'
 import {readLocalStorageItem} from '../services/LocalStorageFunctions'
+import {useSnackbar} from 'notistack'
 
 const Home = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isCartEmpty, setIsCartEmpty] = useState(true);
+  const { enqueueSnackbar } = useSnackbar();
   
   useEffect(() => {
     const getProducts = async () => {

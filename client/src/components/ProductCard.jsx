@@ -5,8 +5,10 @@ import {
   readLocalStorageItem,
   updateLocalStorageItem
 } from '@/services/LocalStorageFunctions';
+import {useSnackbar} from 'notistack'
 
 const ProductCard = ({product, onCartChange}) => {
+  const {enqueueSnackbar} = useSnackbar();
 
   const handleAddToCart = () => {
     const storageItems = readLocalStorageItem('cart');
@@ -24,6 +26,7 @@ const ProductCard = ({product, onCartChange}) => {
       addToLocalStorage('cart', cartProduct);
     }
 
+    enqueueSnackbar("Added to cart", {variant: "success"});
     onCartChange();
   };
 

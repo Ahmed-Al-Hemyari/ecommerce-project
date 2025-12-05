@@ -12,6 +12,7 @@ import {
 import {
     fetchProductById
 } from '@/services/api-calls'
+import Swal from 'sweetalert2'
 
 const Cart = () => {
     const [cartItems, setCartItems] = useState([]);
@@ -63,7 +64,18 @@ const Cart = () => {
         });
     };
 
-    const handleRemove = (id) => {
+    const handleRemove = async (id) => {
+        const result = await Swal.fire({
+            title: "Are you sure you want to delete this product?",
+            text: "You won’t be able to undo this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, delete it!",
+            confirmButtonColor: "#82E2BB"
+        });
+
+        if (!result.isConfirmed) return;
+
         setCartItems(prevCart => {
             const updatedCart = prevCart.filter(item => item._id !== id);
 

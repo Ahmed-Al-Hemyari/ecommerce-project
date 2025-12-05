@@ -1,9 +1,26 @@
-import React from 'react'
+import React, { useState } from 'react'
 import logo from "@/assets/quickbuylogo.svg";
 import { Link } from 'react-router-dom';
 import AuthLayout from "@/layouts/AuthLayout";
+import {
+  login
+} from '@/services/api-calls'
+
 
 const Login = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const data = await login(email, password);
+      console.log("Logged in: ", data);
+      localStorage.setItem('token', data.token);
+    } catch (error) {
+      console.error(error.message);
+    }
+  }
   return (
     <AuthLayout>
         {/* Logo */}
@@ -15,13 +32,14 @@ const Login = () => {
 
         <p className="text-center text-gray-600 mb-8">Welcome back! Log in to continue.</p>
 
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
             <label className="block mb-1 font-medium">Email</label>
             <input
               type="email"
               placeholder="example@mail.com"
               className="w-full px-4 py-2 rounded-lg border border-(--color-light-gray) focus:outline-none focus:ring-2 focus:ring-(--color-green)"
+              onChange={(e) => setEmail(e.target.value)}
             />
           </div>
 
@@ -31,6 +49,7 @@ const Login = () => {
               type="password"
               placeholder="••••••••"
               className="w-full px-4 py-2 rounded-lg border border-(--color-light-gray) focus:outline-none focus:ring-2 focus:ring-(--color-green)"
+              onChange={(e) => setPassword(e.target.value)}
             />
           </div>
 
@@ -46,7 +65,7 @@ const Login = () => {
 
           <button
             type="submit"
-            className="w-full py-3 mt-2 rounded-lg bg-(--color-green) text-(--color-dark-gray) font-semibold hover:opacity-90"
+            className="w-full cursor-pointer py-3 mt-2 rounded-lg bg-(--color-green) text-(--color-dark-gray) font-semibold hover:opacity-90"
           >
             Login
           </button>
@@ -60,7 +79,7 @@ const Login = () => {
         </div>
 
         <Link to={'/'}>
-            <button className="w-full py-3 rounded-lg border border-(--color-dark-gray) font-medium hover:bg-gray-100">
+            <button className="w-full cursor-pointer py-3 rounded-lg border border-(--color-dark-gray) font-medium hover:bg-gray-100">
               Continue as Guest
             </button>
         </Link> 

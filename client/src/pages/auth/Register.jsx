@@ -52,6 +52,15 @@ const Register = () => {
             />
           </div>
 
+          <div>
+            <label className="block mb-1 font-medium">Password Confirmation</label>
+            <input
+              type="password_confirmation"
+              placeholder="••••••••"
+              className="w-full px-4 py-2 rounded-lg border border-(--color-light-gray) focus:outline-none focus:ring-2 focus:ring-(--color-green)"
+            />
+          </div>
+
           {/* <div className="flex justify-between items-center text-sm">
             <label className="flex items-center gap-2">
               <input type="checkbox" className="h-4 w-4" />
