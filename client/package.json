@@ -13,6 +13,7 @@
     "@omit/react-confirm-dialog": "^1.2.4",
     "@tailwindcss/vite": "^4.1.17",
     "axios": "^1.13.2",
+    "country-telephone-data": "^0.6.3",
     "notistack": "^3.0.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

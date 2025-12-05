@@ -41,7 +41,7 @@ app.get('/', (req, res) => {
     res.json('This is ecommerce project api');
 });
 // Auth Routes
-app.use('/api/auth', authRoutes);
+app.use('/api', authRoutes);
 // User Routes
 app.use('/api/users', userRoutes);
 // Category Routes

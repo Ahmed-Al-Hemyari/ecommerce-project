@@ -2,9 +2,21 @@ import axios from 'axios';
 const API_URL = import.meta.env.VITE_BACKEND_URL;
 
 // Auth
-export const login = async (email, password) => {
+export const loginByEmail = async (email, password) => {
     try {
-        const response = await axios.post(`${API_URL}/login`, {email, password});
+        const response = await axios.post(`${API_URL}/login-email`, {email, password});
+        return response.data;
+    } catch (error) {
+        if (error.response) {
+            throw new Error(error.response.data.message || "Login failed");
+        }
+        throw new Error("Something went wrong. Please try again");
+    }
+}
+
+export const loginByPhone = async (phone, password) => {
+    try {
+        const response = await axios.post(`${API_URL}/login-phone`, {phone, password});
         return response.data;
     } catch (error) {
         if (error.response) {
