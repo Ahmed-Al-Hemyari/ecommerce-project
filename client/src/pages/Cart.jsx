@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import defaultProductImage from '@/assets/default-product-image.png'
 import MainLayout from "@/layouts/MainLayout";
 import { AiOutlineDelete } from "react-icons/ai";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
     readLocalStorageItem,
     addToLocalStorage,
@@ -13,34 +13,49 @@ import {
     fetchProductById
 } from '@/services/api-calls'
 import Swal from 'sweetalert2'
+import { useSnackbar } from 'notistack';
+import { createOrder } from '../services/api-calls';
 
 const Cart = () => {
     const [cartItems, setCartItems] = useState([]);
+    const {enqueueSnackbar} = useSnackbar();
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const navigate = useNavigate();
+    
+    const checkAuth = async () => {
+        // 1. Check token
+        if (!isAuth()) {
+            setIsAuthenticated(false);
+            return;
+        }
 
-    useEffect(() => {
-        const root = document.documentElement;
-        root.style.setProperty('--color-dark-gray', '#333333');
-        root.style.setProperty('--color-light-gray', '#CDCDCD');
-        root.style.setProperty('--color-green', '#82E2BB');
+        // 2. Load profile
+        try {
+            const data = await profile();
+            setUser(data);
+            setIsAuthenticated(true);
+        } catch (error) {
+            console.log("Profile error:", error);
+            setIsAuthenticated(false);
+            setUser(null);
+        }
+    };
 
-        const loadCart = async () => {
-            const items = readLocalStorageItem('cart') || [];
+    const loadCart = async () => {
+        const items = readLocalStorageItem('cart') || [];
 
-            const fullCart = await Promise.all(items.map(async (item) => {
-                try {
-                    const product = await fetchProductById(item._id);
-                    return { ...product, quantity: item.quantity };
-                } catch (error) {
-                    console.error("Error fetching product:", error);
-                    return null; // skip failed items
-                }
-            }));
+        const fullCart = await Promise.all(items.map(async (item) => {
+            try {
+                const product = await fetchProductById(item._id);
+                return { ...product, quantity: item.quantity };
+            } catch (error) {
+                console.error("Error fetching product:", error);
+                return null; // skip failed items
+            }
+        }));
 
-            setCartItems(fullCart.filter(item => item !== null));
-        };
-
-        loadCart();
-    }, []);
+        setCartItems(fullCart.filter(item => item !== null));
+    };
 
     const handleQuantity = (id, type) => {
         setCartItems(prevCart => {
@@ -84,6 +99,53 @@ const Cart = () => {
             return updatedCart;
         });
     };
+
+    // const handleSubmitOrder = async () => {
+    //     checkAuth();
+
+    //     if (!isAuthenticated) {
+    //         navigate('/login');
+    //         return;
+    //     }
+
+    //     try {
+    //         const order = await createOrder(subtotal);
+    //         // Clear cart after successful order
+    //         localStorage.removeItem("cart");
+
+    //         // Give user feedback
+    //         Swal.fire({
+    //             title: "Order placed!",
+    //             text: `Your order #${order._id} has been successfully created.`,
+    //             icon: "success",
+    //         });
+
+    //         // Optionally navigate to order confirmation page
+    //         navigate(`/orders/${order._id}`);
+    //     } catch (error) {
+    //         Swal.fire({
+    //             title: "Error",
+    //             text: error.response?.data?.message || error.message || "Failed to create order",
+    //             icon: "error",
+    //         });
+    //     }
+    // };
+
+
+    useEffect(() => {
+        const root = document.documentElement;
+        root.style.setProperty('--color-dark-gray', '#333333');
+        root.style.setProperty('--color-light-gray', '#CDCDCD');
+        root.style.setProperty('--color-green', '#82E2BB');
+
+        if(location.state?.message)
+        {
+            enqueueSnackbar(location.state.message, {variant: location.state.status});
+        }
+
+        loadCart();
+    }, [location.state]);
+
 
     const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
@@ -145,7 +207,7 @@ const Cart = () => {
                     </div>
 
                     <div className="mt-4 flex flex-col gap-2">
-                        <Link to={''}>
+                        <Link to={'/checkout'}>
                             <button className="px-4 w-full py-3 rounded-md bg-(--color-green) text-(--color-dark-gray) font-semibold">Proceed to Checkout</button>
                         </Link>
                         <Link to={'/products'}>

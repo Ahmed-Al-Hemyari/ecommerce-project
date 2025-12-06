@@ -21,6 +21,11 @@ const ProductCard = ({product, onCartChange}) => {
     } else {
       const cartProduct = {
         _id: product._id,
+        title: product.title,
+        description: product.description,
+        price: product.price,
+        category: product.category,
+        images: product.images,
         quantity: 1,
       }
       addToLocalStorage('cart', cartProduct);

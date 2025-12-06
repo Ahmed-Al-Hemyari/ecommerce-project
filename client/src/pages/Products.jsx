@@ -8,11 +8,13 @@ import {
   readLocalStorageItem
 } from '../services/LocalStorageFunctions'
 import GoToCartButton from "../components/GoToCartButton";
+import { useSnackbar } from "notistack";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isCartEmpty, setIsCartEmpty] = useState(true);
+  const {enqueueSnackbar} = useSnackbar();
 
   useEffect(() => {
     const getProducts = async () => {
@@ -31,9 +33,14 @@ const Products = () => {
       setIsCartEmpty(cart.length === 0);
     };
     
+    if(location.state?.message)
+    {
+      enqueueSnackbar(location.state.message, {variant: location.state.status});
+    }
+
     checkCart();
     getProducts();
-  }, []);
+  }, [location.state]);
 
   const handleCartChange = () => {
     const cart = readLocalStorageItem('cart') || [];

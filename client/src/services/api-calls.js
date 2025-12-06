@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { readLocalStorageItem } from './LocalStorageFunctions';
+import { useNavigate } from 'react-router-dom';
 const API_URL = import.meta.env.VITE_BACKEND_URL;
 
 // Auth
@@ -40,6 +42,39 @@ export const register = async (name, email, phone, password) => {
     }
 }
 
+export const isAuth = async () => {
+    const token = localStorage.getItem('token');
+
+    if (!token) return false;
+
+    try {
+        const res = await axios.get(`${API_URL}/check-auth`, {
+            headers: { Authorization: `Bearer ${token}`}
+        });
+
+        return res.data.authenticated || false;
+
+    } catch (error) {
+        return false;
+    }
+}
+
+export const profile = async () => {
+    const token = localStorage.getItem('token');
+
+    if (!token) return null;
+    try {
+        const res = await axios.get(`${API_URL}/profile`, {
+            headers: { Authorization: `Bearer ${token}`}
+        });
+
+        return res.data.user || null;
+
+    } catch (error) {
+        return null;
+    }
+}
+
 // Products
 export const fetchProducts = async () => {
     try {
@@ -71,3 +106,36 @@ export const fetchCategories = async () => {
         return [];
     }
 };
+
+// Orders
+export const createOrder = async (userId, cartItems, shipping) => {
+    const token = localStorage.getItem('token');
+
+    const orderItems = cartItems.map((item) => ({
+        product: item._id,
+        quantity: item.quantity,
+        price: item.price
+    }))
+
+    try {
+        const response = await axios.post(
+            `${API_URL}/orders`,
+            { 
+                orderItems: orderItems, 
+                user: userId,
+                shipping: shipping,
+            },
+            {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+            }
+        );
+
+        return response.data; // return created order
+    } catch (error) {
+        console.error("Error creating order:", error.response || error.message);
+        throw error; // propagate error to caller
+    }
+};
+

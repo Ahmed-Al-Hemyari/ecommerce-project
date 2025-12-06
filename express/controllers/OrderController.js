@@ -32,7 +32,7 @@ export const getOrderById = async (req, res) => {
 // Create a new order
 export const createOrder = async (req, res) => {
   try {
-    const { user, orderItems, paymentMethod } = req.body;
+    const { user, orderItems, shipping } = req.body;
 
     // Validate user exists
     const existingUser = await User.findById(user);
@@ -50,12 +50,14 @@ export const createOrder = async (req, res) => {
       }
       totalAmount += product.price * item.quantity;
     }
-
+    
+    totalAmount += 5; // Shipping
+    
     const order = await Order.create({
       user,
       orderItems,
       totalAmount,
-      paymentMethod
+      shipping,
     });
 
     res.status(201).json(order);

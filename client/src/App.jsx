@@ -7,6 +7,8 @@ import About from '@/pages/About'
 import Cart from '@/pages/Cart'
 import Login from '@/pages/auth/Login'
 import Register from '@/pages/auth/Register'
+import Checkout from '@/pages/Checkout'
+import ProtectedRoute from '@/components/ProtectedRoute'
 
 const App = () => {
   return (
@@ -18,6 +20,12 @@ const App = () => {
       {/* Auth */}
       <Route path="/login" element={<Login/>} />
       <Route path="/register" element={<Register/>} />
+      {/* Orders */}
+      <Route path="/checkout" element={
+        <ProtectedRoute>
+          <Checkout/>
+        </ProtectedRoute>
+      } />
     </Routes>
   )
 }

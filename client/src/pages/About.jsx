@@ -1,10 +1,20 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import Navbar from '../components/Navbar'
 import MainLayout from '../layouts/MainLayout'
 import { Link } from 'react-router-dom'
 import mission from '@/assets/mission.png'
+import { useSnackbar } from 'notistack'
 
 const About = () => {
+  const { enqueueSnackbar } = useSnackbar();
+  useEffect(() => {
+      if(location.state?.message)
+      {
+        enqueueSnackbar(location.state.message, {variant: location.state.status});
+      }
+    }, [location.state])
+
+
   return (
     <MainLayout page="about">
       {/* Hero */}

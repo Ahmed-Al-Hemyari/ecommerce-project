@@ -28,6 +28,7 @@ const Login = () => {
   
   const location = useLocation();
   const { enqueueSnackbar } = useSnackbar();
+  
   useEffect(() => {
     if(location.state?.message)
     {
@@ -89,9 +90,10 @@ const Login = () => {
 
       console.log(data);
       localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
       enqueueSnackbar("Logged in successfully!", { variant: "success" });
       resetForm();
-      // navigate("/dashboard");
+      navigate("/");
     } catch (error) {
       console.error(error.message);
       setFormError(error.message || "Login failed. Please try again.");
