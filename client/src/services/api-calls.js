@@ -126,9 +126,9 @@ export const createOrder = async (userId, cartItems, shipping) => {
                 shipping: shipping,
             },
             {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
             }
         );
 
@@ -139,3 +139,33 @@ export const createOrder = async (userId, cartItems, shipping) => {
     }
 };
 
+export const getOrders = async () => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    const userId = user.id;
+    
+    try {
+        const response = await axios.get(`${API_URL}/orders/user/${userId}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching orders: ', error);
+        return [];
+    }
+}
+
+export const cancelOrderById = async (orderId) => {
+    const token = localStorage.getItem('token');
+
+    try {
+        const response = await axios.put(
+            `${API_URL}/orders/${orderId}/cancel`,
+            {},
+            {
+                headers: { Authorization: `Bearer ${token}`},
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error("Error cancelling order:", error.response || error.message);
+        throw error;
+    }
+}

@@ -14,7 +14,7 @@ const Hero = ({ user }) => {
         </h2>
 
         <p className="mt-4 text-gray-600 max-w-xl mx-auto md:mx-0">
-          Find great deals, fast delivery and trusted quality. QuickBuy makes online
+          Find great deals, fast delivery and trusted quality. <br /> QuickBuy makes online
           shopping effortless.
         </p>
 

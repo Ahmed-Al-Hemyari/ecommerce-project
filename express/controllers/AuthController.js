@@ -30,7 +30,7 @@ export const loginByEmail = async (req, res) => {
             return res.status(400).json({ message: "Invalid email or password" });
         }
         const token = generateToken(user._id);
-        res.status(200).json({ message: "Login successful", user: { id: user._id, name: user.name, email: user.email, phone: user.phone, role: user.role }, token });
+        res.status(200).json({ message: "Login successful", user: { id: user._id, name: user.name, email: user.email, phone: user.phone, role: user.role, createdAt: user.createdAt }, token });
     } catch (error) {
         res.status(500).json({ message: "Error logging in", error });
     }
@@ -48,7 +48,7 @@ export const loginByPhone = async (req, res) => {
             return res.status(400).json({ message: "Invalid phone or password" });
         }
         const token = generateToken(user._id);
-        res.status(200).json({ message: "Login successful", user: { id: user._id, name: user.name, email: user.email, phone: user.phone, role: user.role }, token });
+        res.status(200).json({ message: "Login successful", user: { id: user._id, name: user.name, email: user.email, phone: user.phone, role: user.role, createdAt: user.createdAt }, token });
     } catch (error) {
         res.status(500).json({ message: "Error logging in", error });
     }

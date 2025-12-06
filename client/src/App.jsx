@@ -9,6 +9,8 @@ import Login from '@/pages/auth/Login'
 import Register from '@/pages/auth/Register'
 import Checkout from '@/pages/Checkout'
 import ProtectedRoute from '@/components/ProtectedRoute'
+import Profile from '@/pages/Profile'
+import Orders from '@/pages/Orders'
 
 const App = () => {
   return (
@@ -20,10 +22,20 @@ const App = () => {
       {/* Auth */}
       <Route path="/login" element={<Login/>} />
       <Route path="/register" element={<Register/>} />
+      <Route path="/profile" element={
+        <ProtectedRoute>
+          <Profile/>
+        </ProtectedRoute>
+      } />
       {/* Orders */}
       <Route path="/checkout" element={
         <ProtectedRoute>
           <Checkout/>
+        </ProtectedRoute>
+      } />
+      <Route path="/orders" element={
+        <ProtectedRoute>
+          <Orders/>
         </ProtectedRoute>
       } />
     </Routes>

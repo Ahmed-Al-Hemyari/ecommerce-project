@@ -3,7 +3,7 @@ import MainLayout from '@/layouts/MainLayout';
 import Spinner from '../components/Spinner';
 import ProductCard from '../components/ProductCard';
 import { fetchProducts, fetchCategories } from '@/services/api-calls';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import CategoryCard from '../components/CategoryCard';
 import Hero from '@/components/Hero';
 import GoToCartButton from '../components/GoToCartButton';
@@ -16,44 +16,54 @@ const Home = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isCartEmpty, setIsCartEmpty] = useState(true);
+
   const { enqueueSnackbar } = useSnackbar();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const handleCartChange = () => {
     const cart = readLocalStorageItem('cart') || [];
     setIsCartEmpty(cart.length === 0);
   };
 
+  // Initial load
   useEffect(() => {
-    const fetchData = async () => {
+    const load = async () => {
       setLoading(true);
 
-      // Fetch products and categories
       try {
         const [productsData, categoriesData] = await Promise.all([
           fetchProducts(),
           fetchCategories()
         ]);
+
         setProducts(productsData);
         setCategories(categoriesData);
       } catch (error) {
         console.error(error);
       }
 
-      // Read user from localStorage
+      // User from localStorage
       const storedUser = readLocalStorageItem('user');
       setUser(storedUser || null);
 
-      // Check local cart
+      // Cart
       handleCartChange();
 
       setLoading(false);
     };
 
-    fetchData();
+    load();
+  }, []);
 
-    // Show snackbar if coming from another page
+  // Snackbar listener
+  useEffect(() => {
     if (location.state?.message) {
-      enqueueSnackbar(location.state.message, { variant: location.state.status });
+      enqueueSnackbar(location.state.message, {
+        variant: location.state.status,
+      });
+
+      // Clear state to prevent showing again
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.state]);
@@ -62,8 +72,7 @@ const Home = () => {
     <MainLayout page="home">
       {!isCartEmpty && <GoToCartButton />}
 
-      {/* Hero section */}
-      <Hero/>
+      <Hero />
 
       {/* Categories */}
       <section className="max-w-7xl mx-auto p-6">
@@ -77,7 +86,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Trending products */}
+      {/* Products */}
       <section className="max-w-7xl mx-auto p-6">
         <div className="flex items-center justify-between">
           <h3 className="text-2xl font-semibold" style={{ color: 'var(--color-dark-gray)' }}>

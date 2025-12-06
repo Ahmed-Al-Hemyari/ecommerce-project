@@ -14,6 +14,19 @@ export const getAllOrders = async (req, res) => {
     }
 };
 
+// Get orders for user
+export const getOrdersForUser = async (req, res) => {
+    try {
+      const userId = req.params.id;
+      const orders = await Order.find({user: userId})
+          .populate('orderItems.product', "title price");
+      res.status(200).json(orders);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Error fetching orders', error });
+    }
+};
+
 // Get order by ID
 export const getOrderById = async (req, res) => {
     try {
@@ -72,6 +85,27 @@ export const updateOrder = async (req, res) => {
     const updatedOrder = await Order.findByIdAndUpdate(
       req.params.id,
       req.body,
+      { new: true }
+    )
+      .populate("user", "name email")
+      .populate("orderItems.product", "name price");
+
+    if (!updatedOrder) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    res.status(200).json(updatedOrder);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Cancel order
+export const cancelOrder = async (req, res) => {
+  try {
+    const updatedOrder = await Order.findByIdAndUpdate(
+      req.params.id,
+      {status: "Cancelled"},
       { new: true }
     )
       .populate("user", "name email")

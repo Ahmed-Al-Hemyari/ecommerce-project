@@ -1,12 +1,27 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import Navbar from '../components/Navbar'
 import MainLayout from '../layouts/MainLayout'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import mission from '@/assets/mission.png'
 import { useSnackbar } from 'notistack'
+import GoToCartButton from '../components/GoToCartButton';
+import { readLocalStorageItem } from "../services/LocalStorageFunctions";
 
 const About = () => {
+  const [isCartEmpty, setIsCartEmpty] = useState(true);
   const { enqueueSnackbar } = useSnackbar();
+  const location = useLocation();
+
+  const handleCartChange = () => {
+      const cart = readLocalStorageItem('cart') || [];
+      setIsCartEmpty(cart.length === 0);
+    };
+
+    
+  useEffect(() => {
+    handleCartChange();
+  }, []);
+
   useEffect(() => {
       if(location.state?.message)
       {
@@ -17,6 +32,7 @@ const About = () => {
 
   return (
     <MainLayout page="about">
+      {!isCartEmpty && <GoToCartButton />}
       {/* Hero */}
       <section className="max-w-7xl mx-auto p-6 text-center">
         <h2 className="text-4xl font-extrabold">About QuickBuy</h2>

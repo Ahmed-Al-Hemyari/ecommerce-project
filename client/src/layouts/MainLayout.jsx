@@ -57,7 +57,6 @@ const MainLayout = ({ page, children }) => {
   return (
     <div>
       <Navbar page={page} user={user} logout={handleLogout} />
-
       <div className="bg-gray-50 text-gray-800 min-h-[calc(100vh-5rem)]">
         {children}
       </div>

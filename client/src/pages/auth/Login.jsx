@@ -91,9 +91,13 @@ const Login = () => {
       console.log(data);
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
-      enqueueSnackbar("Logged in successfully!", { variant: "success" });
       resetForm();
-      navigate("/");
+      navigate("/", {
+        state: {
+          message: "Logged in successfully",
+          status: "success"
+        }
+      });
     } catch (error) {
       console.error(error.message);
       setFormError(error.message || "Login failed. Please try again.");
