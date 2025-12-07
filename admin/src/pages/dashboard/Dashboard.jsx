@@ -1,8 +1,13 @@
 import React from 'react'
+import { Button } from '@/components/UI/button'
 
 const Dashboard = () => {
   return (
-    <div>Dashboard</div>
+    <div>
+      Dashboard
+    
+      <Button>Clcik</Button>
+    </div>
   )
 }
 
