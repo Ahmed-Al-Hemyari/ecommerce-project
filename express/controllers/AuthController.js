@@ -53,3 +53,69 @@ export const loginByPhone = async (req, res) => {
         res.status(500).json({ message: "Error logging in", error });
     }
 };
+
+// Update Profile
+export const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user._id; // TRUST THE TOKEN ONLY
+    const { name, email, phone } = req.body;
+
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { name, email, phone },
+      { new: true }
+    ).select("-password");
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json({
+      message: "User updated successfully",
+      user: updatedUser
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Error updating user",
+      error: error.message
+    });
+  }
+};
+
+// Change Password
+export const changePassword = async (req, res) => {
+  try {
+    const userId = req.user._id; // TRUST THE TOKEN ONLY
+    const { oldPassword, newPassword } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const isMatch = await user.comparePassword(oldPassword);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Wrong old password" });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    return res.status(200).json({
+      message: "Password updated successfully",
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        createdAt: user.createdAt
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Error updating password",
+      error: error.message
+    });
+  }
+};

@@ -6,6 +6,7 @@ import {
     updateProduct, 
     deleteProduct 
 } from '../controllers/ProductController.js';
+import { requireAuth } from '../middlewares/auth.js'
 
 const productRouter = express.Router();
 
@@ -16,12 +17,12 @@ productRouter.get('/', getAllProducts);
 productRouter.get('/:id', getProductById);
 
 // Create a new product
-productRouter.post('/', createProduct);
+productRouter.post('/', requireAuth , createProduct);
 
 // Update an existing product
-productRouter.put('/:id', updateProduct);
+productRouter.put('/:id', requireAuth , updateProduct);
 
 // Delete a product
-productRouter.delete('/:id', deleteProduct);
+productRouter.delete('/:id', requireAuth , deleteProduct);
 
 export default productRouter;

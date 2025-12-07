@@ -8,22 +8,23 @@ import {
     getOrdersForUser,
     cancelOrder
  } from "../controllers/OrderController.js";
+import { requireAuth } from '../middlewares/auth.js'
 
 const orderRoutes = express.Router();
 
 // Get all orders
-orderRoutes.get('/', getAllOrders);
+orderRoutes.get('/', requireAuth , getAllOrders);
 // Get all orders
-orderRoutes.get('/user/:id', getOrdersForUser);
+orderRoutes.get('/user/:id', requireAuth , getOrdersForUser);
 // Get order by ID
-orderRoutes.get('/:id', getOrderById);
+orderRoutes.get('/:id', requireAuth , getOrderById);
 // Create new order
-orderRoutes.post('/', createOrder);
+orderRoutes.post('/', requireAuth , createOrder);
 // Update order
-orderRoutes.put('/:id', updateOrder);
+orderRoutes.put('/:id', requireAuth , updateOrder);
 // Cancel order
-orderRoutes.put('/:id/cancel', cancelOrder);
+orderRoutes.put('/:id/cancel', requireAuth , cancelOrder);
 // Delete order
-orderRoutes.delete('/:id', deleteOrder);
+orderRoutes.delete('/:id', requireAuth , deleteOrder);
 
 export default orderRoutes;

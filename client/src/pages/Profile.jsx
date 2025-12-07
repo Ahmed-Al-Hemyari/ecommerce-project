@@ -1,12 +1,15 @@
 import MainLayout from "@/layouts/MainLayout";
 import { useEffect, useState } from "react";
 import { readLocalStorageItem } from "@/services/LocalStorageFunctions";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import defaultAvatar from "@/assets/default-avatar.png";
 import Swal from "sweetalert2";
+import { useSnackbar } from 'notistack'
 
 const Profile = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { enqueueSnackbar } = useSnackbar();
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -14,6 +17,18 @@ const Profile = () => {
     if (!storedUser) navigate("/login");
     setUser(storedUser);
   }, []);
+
+  // Snackbar listener
+  useEffect(() => {
+    if (location.state?.message) {
+      enqueueSnackbar(location.state.message, {
+        variant: location.state.status,
+      });
+
+      // Clear state to prevent showing again
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state]);
 
   if (!user) return null;
 
@@ -82,7 +97,9 @@ const Profile = () => {
           <div>
             <p className="text-sm text-gray-500">Joined</p>
             <p className="text-(--color-dark-gray) font-medium">
-              {new Date(user.createdAt).toLocaleDateString()}
+              {
+                new Date(user.createdAt).toLocaleDateString('utc', { month: 'long', day: '2-digit', year: 'numeric'})
+              }
             </p>
           </div>
         </div>

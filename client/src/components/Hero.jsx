@@ -9,7 +9,7 @@ const Hero = ({ user }) => {
           className="text-4xl md:text-5xl font-extrabold leading-tight"
           style={{ color: 'var(--color-dark-gray)' }}
         >
-          Shop Smarter.{' '}
+          Shop Smarter.{' '} <br />
           <span style={{ color: 'var(--color-green)' }}>Shop Faster.</span>
         </h2>
 

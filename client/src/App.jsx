@@ -11,6 +11,8 @@ import Checkout from '@/pages/Checkout'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import Profile from '@/pages/Profile'
 import Orders from '@/pages/Orders'
+import EditProfile from './pages/EditProfile'
+import ChangePassword from './pages/ChangePassword'
 
 const App = () => {
   return (
@@ -25,6 +27,16 @@ const App = () => {
       <Route path="/profile" element={
         <ProtectedRoute>
           <Profile/>
+        </ProtectedRoute>
+      } />
+      <Route path="/profile/edit" element={
+        <ProtectedRoute>
+          <EditProfile/>
+        </ProtectedRoute>
+      } />
+      <Route path="/profile/change-password" element={
+        <ProtectedRoute>
+          <ChangePassword/>
         </ProtectedRoute>
       } />
       {/* Orders */}

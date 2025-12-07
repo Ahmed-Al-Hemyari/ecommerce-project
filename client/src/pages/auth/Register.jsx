@@ -134,7 +134,7 @@ const Register = () => {
                 className="px-3 py-2 rounded-l-lg border border-(--color-light-gray) focus:outline-none focus:ring-2 focus:ring-(--color-green)"
               >
                 {allCountries.map((c) => (
-                  <option key={c.dialCode} value={c.dialCode}>
+                  <option key={c.iso2} value={c.dialCode}>
                     {c.iso2.toUpperCase()} ({c.dialCode})
                   </option>
                 ))}

@@ -49,10 +49,10 @@ export const createUser = async (req, res) => {
 // Update user
 export const updateUser = async (req, res) => {
     try {
-        const { name, email, phone, address } = req.body;
+        const { name, email, phone } = req.body;
         const user = await User.findByIdAndUpdate(
             req.params.id,
-            { name, email, phone, address },
+            { name, email, phone },
             { new: true }
         ).select('-password');
         if (!user) {

@@ -75,6 +75,42 @@ export const profile = async () => {
     }
 }
 
+export const editProfile = async (name, email, phone) => {
+    const token = localStorage.getItem('token');
+    try {
+        const response = await axios.put(
+            `${API_URL}/profile/update`,
+            { name, email, phone },
+            { headers: { Authorization: `Bearer ${token}`} }
+        );
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+        return response.data;
+    } catch (error) {
+        if (error.response) {
+            throw new Error(error.response.data.message || "Update Failed");
+        }
+        throw new Error("Something went wrong. Please try again");
+    }
+}
+
+export const changePassword = async (oldPassword, newPassword) => {
+    const token = localStorage.getItem('token');
+    try {
+        const response = await axios.put(
+            `${API_URL}/profile/change-password`,
+            { oldPassword, newPassword },
+            { headers: { Authorization: `Bearer ${token}`} }
+        );
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+        return response.data;
+    } catch (error) {
+        if (error.response) {
+            throw new Error(error.response.data.message || "Update Failed");
+        }
+        throw new Error("Something went wrong. Please try again");
+    }
+}
+
 // Products
 export const fetchProducts = async () => {
     try {

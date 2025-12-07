@@ -1,5 +1,5 @@
 import express from 'express';
-import { register, loginByEmail, loginByPhone } from "../controllers/AuthController.js";
+import { register, loginByEmail, loginByPhone, updateProfile, changePassword } from "../controllers/AuthController.js";
 import { requireAuth } from '../middlewares/auth.js';
 
 const authRoutes = express.Router();
@@ -17,5 +17,9 @@ authRoutes.get('/check-auth', requireAuth, (req, res) => {
 authRoutes.get('/profile', requireAuth, (req, res) => {
     res.json({ user: req.user });
 });
+// Update Profile
+authRoutes.put('/profile/update', requireAuth, updateProfile);
+// Change Password
+authRoutes.put('/profile/change-password', requireAuth, changePassword);
 
 export default authRoutes;

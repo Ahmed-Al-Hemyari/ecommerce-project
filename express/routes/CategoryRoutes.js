@@ -6,6 +6,7 @@ import {
     updateCategory, 
     deleteCategory 
 } from "../controllers/CategoryController.js";
+import { requireAuth } from '../middlewares/auth.js'
 
 const categoryRouter = express.Router();
 
@@ -16,12 +17,12 @@ categoryRouter.get('/', getAllCategories);
 categoryRouter.get('/:id', getCategoryById);
 
 // Create a new product
-categoryRouter.post('/', createCategory);
+categoryRouter.post('/', requireAuth , createCategory);
 
 // Update an existing product
-categoryRouter.put('/:id', updateCategory);
+categoryRouter.put('/:id', requireAuth , updateCategory);
 
 // Delete a product
-categoryRouter.delete('/:id', deleteCategory);
+categoryRouter.delete('/:id', requireAuth , deleteCategory);
 
 export default categoryRouter;
