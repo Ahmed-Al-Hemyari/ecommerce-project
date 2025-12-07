@@ -15,7 +15,7 @@ const orderRoutes = express.Router();
 // Get all orders
 orderRoutes.get('/', requireAuth , getAllOrders);
 // Get all orders
-orderRoutes.get('/user/:id', requireAuth , getOrdersForUser);
+orderRoutes.get('/user', requireAuth , getOrdersForUser);
 // Get order by ID
 orderRoutes.get('/:id', requireAuth , getOrderById);
 // Create new order

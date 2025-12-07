@@ -6,8 +6,7 @@ import User from "../models/User.js";
 export const getAllOrders = async (req, res) => {
     try {
         const orders = await Order.find()
-            .populate('user', "name email")
-            .populate('orderItems.product', "name price");
+            .populate('orderItems.product', "title price");
         res.status(200).json(orders);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching orders', error });
@@ -19,7 +18,7 @@ export const getOrdersForUser = async (req, res) => {
     try {
       const userId = req.user._id;
       const orders = await Order.find({user: userId})
-          .populate('orderItems.product', "title price");
+          .populate('orderItems.product', "title");
       res.status(200).json(orders);
     } catch (error) {
       console.error(error);
@@ -87,8 +86,7 @@ export const updateOrder = async (req, res) => {
       req.body,
       { new: true }
     )
-      .populate("user", "name email")
-      .populate("orderItems.product", "name price");
+      .populate("orderItems.product", "title price");
 
     if (!updatedOrder) {
       return res.status(404).json({ message: "Order not found" });
@@ -108,8 +106,7 @@ export const cancelOrder = async (req, res) => {
       {status: "Cancelled"},
       { new: true }
     )
-      .populate("user", "name email")
-      .populate("orderItems.product", "name price");
+      .populate("orderItems.product", "title price");
 
     if (!updatedOrder) {
       return res.status(404).json({ message: "Order not found" });

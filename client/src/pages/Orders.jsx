@@ -57,7 +57,6 @@ const Orders = () => {
                 orders.map((o) => (
                 <div
                     key={o._id}
-                    className="bg-white rounded-2xl shadow-md p-6 border border-(--color-light-gray)/30 hover:shadow-lg transition"
                 >
                     <OrderCard order={o} onCancel={handleCancel}/>
                 </div>

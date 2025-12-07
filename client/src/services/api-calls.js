@@ -176,11 +176,13 @@ export const createOrder = async (userId, cartItems, shipping) => {
 };
 
 export const getOrders = async () => {
-    const user = JSON.parse(localStorage.getItem('user'));
-    const userId = user.id;
+    const token = localStorage.getItem('token');
     
     try {
-        const response = await axios.get(`${API_URL}/orders/user/${userId}`);
+        const response = await axios.get(`${API_URL}/orders/user`, {
+            headers: { Authorization: `Bearer ${token}`}
+        });
+        console.log(response.data);
         return response.data;
     } catch (error) {
         console.error('Error fetching orders: ', error);
