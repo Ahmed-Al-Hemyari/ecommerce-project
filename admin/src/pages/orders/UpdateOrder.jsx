@@ -1,8 +1,11 @@
 import React from 'react'
+import MainLayout from '@/components/Layouts/MainLayout'
 
 const UpdateOrder = () => {
   return (
-    <div>UpdateOrder</div>
+    <MainLayout>
+      
+    </MainLayout>
   )
 }
 

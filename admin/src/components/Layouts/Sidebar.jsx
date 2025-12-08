@@ -30,8 +30,10 @@ const AppSidebar = ({ items }) => {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-xl text-(--color-dark-gray)
-                      ${isActive ? "bg-primary/10 text-primary font-medium" : "hover:bg-gray-100"}`}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-lg text-(--color-dark-gray)
+                      ${isActive 
+                        ? "bg-(--color-green)/40 text-(--color-dark-green) font-bold hover:bg-(--color-green)/90 hover:text-(--color-dark-green)" 
+                        : "hover:bg-(--color-green)/20"}`}
                   >
                     <Link to={item.url}>
                       <item.icon size={25} />

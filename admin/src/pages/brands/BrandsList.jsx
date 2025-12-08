@@ -1,8 +1,11 @@
 import React from 'react'
+import MainLayout from '@/components/Layouts/MainLayout'
 
 const BrandsList = () => {
   return (
-    <div>BrandsList</div>
+    <MainLayout>
+      
+    </MainLayout>
   )
 }
 

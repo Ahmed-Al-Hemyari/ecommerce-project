@@ -4,7 +4,7 @@ import { HiOutlineMenu } from "react-icons/hi";
 import { FaUserCircle } from "react-icons/fa";
 import logo from "@/assets/quickbuylogo.svg";
 
-const Navbar = ({ user, logout, toggleSidebar, children }) => {
+const Navbar = ({ user, logout, children }) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   return (
@@ -18,7 +18,7 @@ const Navbar = ({ user, logout, toggleSidebar, children }) => {
         <div className="flex items-center gap-5">
 
           {/* User menu (always present) */}
-          <div className="relative hidden md:flex">
+          <div className="relative flex">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
               className="flex items-center gap-2 cursor-pointer"
@@ -47,11 +47,11 @@ const Navbar = ({ user, logout, toggleSidebar, children }) => {
           </div>
 
           {/* Mobile Sidebar Toggle */}
-          <div className="md:hidden flex items-center">
+          {/* <div className="md:hidden flex items-center">
             <button onClick={toggleSidebar}>
               <HiOutlineMenu size={28} className="text-white" />
             </button>
-          </div>
+          </div> */}
         </div>
       </nav>
   );
