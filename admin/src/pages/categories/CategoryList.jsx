@@ -3,19 +3,18 @@ import MainLayout from '@/components/Layouts/MainLayout'
 import { useLocation, useNavigate } from 'react-router-dom';
 import { enqueueSnackbar } from 'notistack'
 import categoryService from '@/services/categoryService';
-import CustomTable from '@/components/CustomTable';
 import { Button } from '@/components/UI/button';
+import DataTable from '@/components/DataTable';
 
 const CategoryList = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
 
-  const handleEdit = (row) => alert("Edit " + row.name);
-  const handleDelete = (row) => alert("Delete " + row.name);
-
-  const headers = ['Name', 'Slug'];
-  const types = ['string', 'string'];
+  const headers = [
+    { label: 'Name', field: 'name'},
+    { label: 'Slug', field: 'slug'},
+  ];
 
   const getCategories = async () => {
     try {
@@ -45,11 +44,11 @@ const CategoryList = () => {
 
   return (
     <MainLayout>
-      <CustomTable
+      <DataTable
         headers={headers}
-        types={types}
+        link={'/categories'}
+        tableName='Categories Table'
         data={categories}
-        actions={['edit', 'show', 'delete']}
       />
     </MainLayout>
   )

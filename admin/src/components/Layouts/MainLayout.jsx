@@ -4,7 +4,7 @@ import { enqueueSnackbar } from 'notistack'
 import Navbar from './Navbar';
 import { useNavigate } from 'react-router-dom';
 import AppSidebar from './Sidebar';
-import { Boxes, Home, ShoppingCart, Tags, Users } from 'lucide-react';
+import { Boxes, Home, Package, ShoppingCart, Tags, Users } from 'lucide-react';
 import { SidebarProvider, SidebarTrigger } from '../UI/sidebar';
 
 const MainLayout = ({ children }) => {
@@ -12,31 +12,36 @@ const MainLayout = ({ children }) => {
     const user = JSON.parse(localStorage.getItem('user'));
 
     const sidebarItems = [
-    {
-        title: "Dashboard",
-        url: "/",
-        icon: Home,
-    },
-    {
-        title: "Users",
-        url: "/users",
-        icon: Users,
-    },
-    {
-        title: "Categories",
-        url: "/categories",
-        icon: Boxes,
-    },
-    {
-        title: "Brands",
-        url: "/brands",
-        icon: Tags,
-    },
-    {
-        title: "Products",
-        url: "/products",
-        icon: ShoppingCart,
-    },
+        {
+            title: "Dashboard",
+            url: "/",
+            icon: Home,
+        },
+        {
+            title: "Users",
+            url: "/users",
+            icon: Users,
+        },
+        {
+            title: "Categories",
+            url: "/categories",
+            icon: Boxes,
+        },
+        {
+            title: "Brands",
+            url: "/brands",
+            icon: Tags,
+        },
+        {
+            title: "Products",
+            url: "/products",
+            icon: ShoppingCart,
+        },
+        {
+            title: "Orders",
+            url: "/orders",
+            icon: Package,
+        },
     ];
 
     const handleLogout = async () => {

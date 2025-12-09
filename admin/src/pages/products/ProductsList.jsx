@@ -3,15 +3,20 @@ import MainLayout from '@/components/Layouts/MainLayout'
 import productService from '@/services/productService'
 import { enqueueSnackbar } from 'notistack'
 import { useLocation, useNavigate } from 'react-router-dom'
-import CustomTable from '@/components/CustomTable'
+import CustomTable from '@/components/DataTable'
 
 const ProductsList = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
 
-  const headers = ['Title', 'Category', 'Brand', 'Price'];
-  const types = ['string', 'string', 'string', 'currency'];
+  const headers = [
+    // 'Title', 'Category', 'Brand', 'Price'
+    { label: 'Title', field: 'title' },
+    { label: 'Category', field: 'category' },
+    { label: 'Brand', field: 'brand' },
+    { label: 'Price', field: 'price' },
+  ];
 
   const getProducts = async () => {
     try {
@@ -45,9 +50,9 @@ const ProductsList = () => {
     <MainLayout>
       <CustomTable
         headers={headers}
-        types={types}
+        link='/products'
         data={products}
-        actions={['edit', 'show', 'delete']}
+        tableName='Products Table'
       />
     </MainLayout>
   )

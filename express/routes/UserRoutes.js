@@ -7,18 +7,19 @@ import {
     deleteUser,
  } from "../controllers/UserController.js";
 import { requireAuth } from '../middlewares/auth.js'
+import { requireAdmin } from '../middlewares/admin.js';
 
 const userRoutes = express.Router();
 
 // Get All Users
-userRoutes.get('/', requireAuth , getAllUsers);
+userRoutes.get('/', requireAdmin , getAllUsers);
 // Get User by ID
-userRoutes.get('/:id', requireAuth , getUserById);
+userRoutes.get('/:id', requireAdmin , getUserById);
 // Create New User
-userRoutes.post('/', requireAuth , createUser);
+userRoutes.post('/', requireAdmin , createUser);
 // Update User
-userRoutes.put('/:id', requireAuth , updateUser);
+userRoutes.put('/:id', requireAdmin , updateUser);
 // Delete User
-userRoutes.delete('/:id', requireAuth , deleteUser);
+userRoutes.delete('/:id', requireAdmin , deleteUser);
 
 export default userRoutes;

@@ -7,22 +7,22 @@ import {
     deleteReview,
  } from "../controllers/ReviewController.js";
 
-const reviewRouter = express.Router();
+const reviewRoutes = express.Router();
 
 // Review Routes
 // Get all products
-reviewRouter.get('/', getAllReviews);
+reviewRoutes.get('/', getAllReviews);
 
 // Get a single product by ID
-reviewRouter.get('/:id', getReviewById);
+reviewRoutes.get('/:id', getReviewById);
 
 // Create a new product
-reviewRouter.post('/', createReview);
+reviewRoutes.post('/', createReview);
 
 // Update an existing product
-reviewRouter.put('/:id', updateReview);
+reviewRoutes.put('/:id', updateReview);
 
 // Delete a product
-reviewRouter.delete('/:id', deleteReview);
+reviewRoutes.delete('/:id', deleteReview);
 
-export default reviewRouter;
+export default reviewRoutes;

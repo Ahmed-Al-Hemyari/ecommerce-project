@@ -9,22 +9,23 @@ import {
     cancelOrder
  } from "../controllers/OrderController.js";
 import { requireAuth } from '../middlewares/auth.js'
+import { requireAdmin } from '../middlewares/admin.js'
 
 const orderRoutes = express.Router();
 
 // Get all orders
-orderRoutes.get('/', requireAuth , getAllOrders);
+orderRoutes.get('/', requireAdmin , getAllOrders);
 // Get all orders
 orderRoutes.get('/user', requireAuth , getOrdersForUser);
 // Get order by ID
-orderRoutes.get('/:id', requireAuth , getOrderById);
+orderRoutes.get('/:id', requireAdmin , getOrderById);
 // Create new order
 orderRoutes.post('/', requireAuth , createOrder);
 // Update order
-orderRoutes.put('/:id', requireAuth , updateOrder);
+orderRoutes.put('/:id', requireAdmin , updateOrder);
 // Cancel order
 orderRoutes.put('/:id/cancel', requireAuth , cancelOrder);
 // Delete order
-orderRoutes.delete('/:id', requireAuth , deleteOrder);
+orderRoutes.delete('/:id', requireAdmin , deleteOrder);
 
 export default orderRoutes;

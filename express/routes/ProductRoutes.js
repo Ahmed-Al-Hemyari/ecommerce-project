@@ -8,21 +8,21 @@ import {
 } from '../controllers/ProductController.js';
 import { requireAdmin } from '../middlewares/admin.js'
 
-const productRouter = express.Router();
+const productRoutes = express.Router();
 
 // Get all products
-productRouter.get('/', getAllProducts);
+productRoutes.get('/', getAllProducts);
 
 // Get a single product by ID
-productRouter.get('/:id', getProductById);
+productRoutes.get('/:id', getProductById);
 
 // Create a new product
-productRouter.post('/', requireAdmin , createProduct);
+productRoutes.post('/', requireAdmin , createProduct);
 
 // Update an existing product
-productRouter.put('/:id', requireAdmin , updateProduct);
+productRoutes.put('/:id', requireAdmin , updateProduct);
 
 // Delete a product
-productRouter.delete('/:id', requireAdmin , deleteProduct);
+productRoutes.delete('/:id', requireAdmin , deleteProduct);
 
-export default productRouter;
+export default productRoutes;

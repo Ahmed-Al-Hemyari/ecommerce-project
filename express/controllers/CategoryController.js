@@ -49,6 +49,8 @@ export const updateCategory = async (req, res) => {
   try {
     const newData = {};
     if (req.body.name) newData.name = req.body.name;
+    if (req.body.slug) newData.slug = req.body.slug;
+    if (req.body.icon) newData.icon = req.body.icon;
     const updatedCategory = await Category.findByIdAndUpdate(
       req.params.id,
       { $set: newData },

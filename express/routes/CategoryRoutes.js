@@ -7,22 +7,23 @@ import {
     deleteCategory 
 } from "../controllers/CategoryController.js";
 import { requireAuth } from '../middlewares/auth.js'
+import { requireAdmin } from '../middlewares/admin.js'
 
-const categoryRouter = express.Router();
+const categoryRoutes = express.Router();
 
 // Get all products
-categoryRouter.get('/', getAllCategories);
+categoryRoutes.get('/', getAllCategories);
 
 // Get a single product by ID
-categoryRouter.get('/:id', getCategoryById);
+categoryRoutes.get('/:id', getCategoryById);
 
 // Create a new product
-categoryRouter.post('/', requireAuth , createCategory);
+categoryRoutes.post('/', requireAdmin , createCategory);
 
 // Update an existing product
-categoryRouter.put('/:id', requireAuth , updateCategory);
+categoryRoutes.put('/:id', requireAdmin , updateCategory);
 
 // Delete a product
-categoryRouter.delete('/:id', requireAuth , deleteCategory);
+categoryRoutes.delete('/:id', requireAdmin , deleteCategory);
 
-export default categoryRouter;
+export default categoryRoutes;

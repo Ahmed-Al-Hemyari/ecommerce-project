@@ -8,6 +8,7 @@ import dotenv from 'dotenv'
 import authRoutes from './routes/AuthRoutes.js';
 import userRoutes from './routes/UserRoutes.js';
 import categoryRoutes from './routes/CategoryRoutes.js';
+import brandRoutes from './routes/BrandRoutes.js';
 import productRoutes from './routes/ProductRoutes.js';
 import orderRoutes from './routes/OrderRoutes.js';
 import reviewRoutes from './routes/ReviewRoutes.js';
@@ -45,12 +46,15 @@ app.use(cors());
 app.get('/', (req, res) => {
     res.json('This is ecommerce project api');
 });
+
 // Auth Routes
 app.use('/api', authRoutes);
 // User Routes
 app.use('/api/users', userRoutes);
 // Category Routes
 app.use('/api/categories', categoryRoutes);
+// Category Routes
+app.use('/api/brands', brandRoutes);
 // Product Routes
 app.use('/api/products', productRoutes);
 // Order Routes
