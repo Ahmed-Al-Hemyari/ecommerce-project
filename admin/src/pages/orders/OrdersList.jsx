@@ -3,7 +3,8 @@ import MainLayout from '@/components/Layouts/MainLayout'
 import { useLocation, useNavigate } from 'react-router-dom';
 import { enqueueSnackbar } from 'notistack';
 import orderService from '@/services/orderService';
-import DataTable from '@/components/DataTable';
+import DataTable from '@/components/UI/Tables/DataTable';
+import Swal from 'sweetalert2';
 
 const OrdersList = () => {
   const location = useLocation();
@@ -12,13 +13,13 @@ const OrdersList = () => {
 
   const headers = [
     // 'Title', 'Category', 'Brand', 'Price'
-    { label: 'User', field: 'userName' },
-    { label: 'Status', field: 'status' },
-    { label: 'Payed', field: 'payed' },
-    { label: 'Total Price', field: 'totalAmount' },
+    { label: 'User', field: 'userName', type: 'link', link: 'users'},
+    { label: 'Status', field: 'status', type: 'status' },
+    { label: 'Payed', field: 'payed', type: 'bool' },
+    { label: 'Total Price', field: 'totalAmount', type: 'price' },
   ];
 
-  const getProducts = async () => {
+  const getOrders = async () => {
     try {
       const response = await orderService.getOrders();
       const formatted = response.data.map(order => ({
@@ -28,7 +29,34 @@ const OrdersList = () => {
       console.log(response.data);
       setOrders(formatted);
     } catch (error) {
-      enqueueSnackbar("Failed to load products", {
+      enqueueSnackbar("Failed to load orders", {
+        variant: 'error'
+      });
+      console.error(error);
+    }
+  }
+
+  const handleDelete = async (id) => {
+    const result = Swal.fire({
+      title: 'Delete Order',
+      text: 'Sure you want to delete this order??',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it',
+      confirmButtonColor: '#d50101'
+    })
+
+    if (!(await result).isConfirmed) {
+      return;
+    }
+    try {
+      const response = await orderService.deleteOrder(id);
+      enqueueSnackbar("Order deleted successfully", {
+        variant: 'success'
+      });
+      getOrders();
+    } catch (error) {
+      enqueueSnackbar("Failed to delete order", {
         variant: 'error'
       });
       console.error(error);
@@ -36,7 +64,7 @@ const OrdersList = () => {
   }
 
   useEffect(() => {
-    getProducts();
+    getOrders();
   }, []);
 
   // Snackbar listener
@@ -58,6 +86,7 @@ const OrdersList = () => {
         link='/orders'
         data={orders}
         tableName='Orders Table'
+        handleDelete={handleDelete}
       />
     </MainLayout>
   )

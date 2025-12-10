@@ -1,31 +1,41 @@
 import React, { useEffect, useState } from 'react'
-import ActionButton from './UI/ActionButton';
+import ActionButton from './ActionButton';
 import { Edit, Eye, Plus, Square, SquarePlus, Trash } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import StringCell from './StringCell';
+import BoolCell from './BoolCell';
+import StatusCell from './StatusCell';
+import PriceCell from './PriceCell';
+import LinkCell from './LinkCell';
 
 const DataTable = ({
   tableName = '',
   headers = [], 
   link = '', 
   data = [],
+  handleDelete,
 }) => {
+
   const navigate = useNavigate();
-  // const [dataNames, setDataNames] = useState([]);
+
+  const CellComponents = {
+    string: StringCell,
+    bool: BoolCell,
+    status: StatusCell,
+    price: PriceCell,
+    link: LinkCell
+  }
 
   const handleCreate = () => {
     navigate(`${link}/create`);
   }
 
   const handleShow = (id) => {
-    navigate(`${link}/${id}`);
+    navigate(`${link}/show/${id}`);
   }
   
   const handleEdit = (id) => {
     navigate(`${link}/update/${id}`);
-  }
-
-  const handleDelete = () => {
-
   }
 
   return (
@@ -47,14 +57,14 @@ const DataTable = ({
                 <td 
                   key={index} 
                   style={{ width: `${100/ headers.length}%`}}
-                  className={`py-1 text-lg font-medium text-black`}
+                  className={`py-1 text-lg font-medium text-black ${(header.type === 'status' || header.type === 'bool' || header.type === 'price') && 'text-center'}`}
                 >
                   {header.label}
                 </td>
               ))}
               <td 
                 style={{ width: `${100/ headers.length}%`}}
-                className={`py-1 text-lg font-medium text-black`}
+                className={`py-1 text-lg text-center font-medium text-black`}
               >
                 Actions
               </td>
@@ -64,17 +74,35 @@ const DataTable = ({
             {data && data.length > 0 ? (
               data.map((item, rowIndex) => (
                 <tr key={rowIndex}>
-                  {headers.map((header, colIndx) => (
-                    <td
-                      key={colIndx}
-                      className='py-4 pr-5 pl-1 text-wrap text-base text-(--color-dark-gray) tracking-wider'
-                    >
-                      {item[header.field]}
-                    </td>
-                  ))}
-                  <td className='pr-5'>
-                    <div className="flex flex-row-reverse items-center">
-                      <ActionButton Icon={Trash} size={18} color={'#d50101'} handleClick={() => handleDelete()}/>
+                  {headers.map((header, colIndx) => {
+                    const Cell = CellComponents[header.type];
+                    if(!Cell) return null;
+
+                    if (header.type === 'link') {
+                      return (
+                        <LinkCell
+                          key={header.accessor}
+                          item={item}
+                          colIndx={colIndx}
+                          header={header}
+                          link={`/${header.link}/show/${item._id}`}
+                        />
+                      )
+                    }
+
+                    return (
+                      <Cell
+                        key={header.accessor}
+                        item={item}
+                        colIndx={colIndx}
+                        header={header}
+                      />
+                    )
+                    
+                    })}
+                  <td className=''>
+                    <div className="flex flex-row-reverse items-center justify-center">
+                      <ActionButton Icon={Trash} size={18} color={'#d50101'} handleClick={() => handleDelete(item._id)}/>
                       <ActionButton Icon={Edit} size={18} color={'#333333'} handleClick={() => handleEdit(item._id)}/>
                       <ActionButton Icon={Eye} size={18} color={'#333333'} handleClick={() => handleShow(item._id)}/>
                     </div>

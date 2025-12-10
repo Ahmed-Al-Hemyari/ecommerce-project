@@ -5,6 +5,8 @@ import AuthLayout from '@/components/Layouts/AuthLayout';
 import {useSnackbar} from 'notistack'
 import { allCountries } from 'country-telephone-data';
 import authService from '@/services/authService';
+import PhoneInput from '@/components/UI/Forms/PhoneInput';
+import Input from '@/components/UI/Forms/Input';
 
 
 const Login = () => {
@@ -128,7 +130,7 @@ const Login = () => {
           <button 
             className={`w-1/2 mr-1 cursor-pointer py-3 rounded-lg font-medium 
               ${!phoneLogin 
-                ? 'bg-(--color-green) text-white border border-(--color-green)' 
+                ? 'bg-(--color-green) text-(--color-dark-gray) border border-(--color-green)' 
                 : 'bg-white text-gray-700 border border-(--color-light-gray)'} 
               hover:opacity-90 transition-all duration-150`}
             onClick={() => {
@@ -141,7 +143,7 @@ const Login = () => {
           <button 
             className={`w-1/2 ml-1 cursor-pointer py-3 rounded-lg font-medium 
               ${phoneLogin 
-                ? 'bg-(--color-green) text-white border border-(--color-green)' 
+                ? 'bg-(--color-green) text-(--color-dark-gray) border border-(--color-green)' 
                 : 'bg-white text-gray-700 border border-(--color-light-gray)'} 
               hover:opacity-90 transition-all duration-150`}
             onClick={() => {
@@ -159,68 +161,38 @@ const Login = () => {
           <p className='text-sm text-red-500 my-2'>{formError}</p>
           {/* Email Input */}
           <div className={phoneLogin ? 'hidden' : 'block'}>
-            <label className="block mb-1 font-medium">Email <span className='text-red-500'>*</span></label>
-            <input
+            <Input
+              label='Email'
+              important
               type='email'
-              placeholder='example@email.com'
+              placeholder='example@gmail.com'
               value={email}
-              className={`w-full px-4 py-2 rounded-lg border ${formError ? 'border-red-500' : 'border-(--color-light-gray)'} focus:outline-none focus:ring-2 focus:ring-(--color-green)`}
-              onChange={(e) => {
-                setEmail(e.target.value);
-              }}
+              setValue={setEmail}
+              formError={formError}
             />
           </div>
 
           {/* Phone Input */}
-          <div className={phoneLogin ? 'block' : 'hidden'}>
-            <label className="block mb-1 font-medium">
-              Phone <span className="text-red-500">*</span>
-            </label>
-            <p className="text-sm text-gray-500 italic my-1">
-              Enter your phone number without leading zeros or extra characters.
-            </p>
-
-            <div className="flex">
-              {/* Country Code Dropdown */}
-              <select
-                value={countryCode}
-                onChange={(e) => setCountryCode(e.target.value)}
-                className="px-3 py-2 rounded-l-lg border border-(--color-light-gray) focus:outline-none focus:ring-2 focus:ring-(--color-green)"
-              >
-                {allCountries.map((c, index) => (
-                  <option key={c.iso2} value={c.dialCode}>
-                    {c.iso2.toUpperCase()} ({c.dialCode})
-                  </option>
-                ))}
-              </select>
-
-              {/* Phone Input */}
-              <input
-                type="tel"
-                placeholder="123 456 7890"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className={`flex-1 px-4 py-2 rounded-r-lg border ${
-                  phoneError || formError
-                    ? "border-red-500"
-                    : "border-(--color-light-gray)"
-                } focus:outline-none focus:ring-2 focus:ring-(--color-green)`}
-              />
-            </div>
-            <p className="text-sm text-red-500 my-2">{phoneError}</p>
-          </div>
+          <PhoneInput 
+            phoneLogin={phoneLogin}
+            countryCode={countryCode}
+            setCountryCode={setCountryCode}
+            phone={phone}
+            setPhone={setPhone}
+            phoneError={phoneError}
+            formError={formError}
+          />
 
           {/* Password Input */}
-          <div>
-            <label className="block mb-1 font-medium">Password <span className='text-red-500'>*</span></label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              className={`w-full px-4 py-2 rounded-lg border ${formError ? 'border-red-500' : 'border-(--color-light-gray)'} focus:outline-none focus:ring-2 focus:ring-(--color-green)`}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
+          <Input
+            label='Password'
+            important
+            type='password'
+            placeholder='••••••••'
+            value={password}
+            setValue={setPassword}
+            formError={formError}
+          />
 
           <button
             type="submit"

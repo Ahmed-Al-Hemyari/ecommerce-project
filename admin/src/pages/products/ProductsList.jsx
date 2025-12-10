@@ -3,7 +3,8 @@ import MainLayout from '@/components/Layouts/MainLayout'
 import productService from '@/services/productService'
 import { enqueueSnackbar } from 'notistack'
 import { useLocation, useNavigate } from 'react-router-dom'
-import CustomTable from '@/components/DataTable'
+import CustomTable from '@/components/UI/Tables/DataTable'
+import Swal from 'sweetalert2'
 
 const ProductsList = () => {
   const location = useLocation();
@@ -11,11 +12,10 @@ const ProductsList = () => {
   const [products, setProducts] = useState([]);
 
   const headers = [
-    // 'Title', 'Category', 'Brand', 'Price'
-    { label: 'Title', field: 'title' },
-    { label: 'Category', field: 'category' },
-    { label: 'Brand', field: 'brand' },
-    { label: 'Price', field: 'price' },
+    { label: 'Title', field: 'title', type: 'string' },
+    { label: 'Category', field: 'category', type: 'string' },
+    { label: 'Brand', field: 'brand', type: 'string' },
+    { label: 'Price', field: 'price', type: 'price' },
   ];
 
   const getProducts = async () => {
@@ -24,6 +24,33 @@ const ProductsList = () => {
       setProducts(response.data);
     } catch (error) {
       enqueueSnackbar("Failed to load products", {
+        variant: 'error'
+      });
+      console.error(error);
+    }
+  }
+
+  const handleDelete = async (id) => {
+    const result = Swal.fire({
+      title: 'Delete Product',
+      text: 'Sure you want to delete this product??',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it',
+      confirmButtonColor: '#d50101'
+    })
+
+    if (!(await result).isConfirmed) {
+      return;
+    }
+    try {
+      const response = await productService.deleteProduct(id);
+      enqueueSnackbar("Product deleted successfully", {
+        variant: 'success'
+      });
+      getProducts();
+    } catch (error) {
+      enqueueSnackbar("Failed to delete product", {
         variant: 'error'
       });
       console.error(error);
@@ -53,6 +80,7 @@ const ProductsList = () => {
         link='/products'
         data={products}
         tableName='Products Table'
+        handleDelete={handleDelete}
       />
     </MainLayout>
   )

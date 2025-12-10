@@ -3,7 +3,8 @@ import MainLayout from '@/components/Layouts/MainLayout'
 import { useLocation, useNavigate } from 'react-router-dom';
 import userService from '@/services/userService';
 import { enqueueSnackbar } from 'notistack'
-import DataTable from '@/components/DataTable';
+import DataTable from '@/components/UI/Tables/DataTable';
+import Swal from 'sweetalert2';
 
 const UsersList = () => {
   const location = useLocation();
@@ -11,11 +12,11 @@ const UsersList = () => {
   const [users, setUsers] = useState([]);
 
   const headers = [
-    { label: "Name", field: "name" },
-    { label: "Email", field: "email" },
-    { label: "Phone", field: "phone" },
-    { label: "Role", field: "role" },
-    { label: "Joined", field: "createdAt" },
+    { label: "Name", field: "name", type: 'link', link: 'users'},
+    { label: "Email", field: "email", type: 'string' },
+    { label: "Phone", field: "phone", type: 'string' },
+    { label: "Role", field: "role", type: 'string' },
+    { label: "Joined", field: "createdAt", type: 'string' },
   ];
 
 
@@ -24,7 +25,7 @@ const UsersList = () => {
       const response = await userService.getUsers();
       const formatted = response.data.map(user => ({
         ...user,
-        role: String(user.role),
+        role: String(user.role).charAt(0).toUpperCase() + String(user.role).slice(1),
         createdAt: new Date(user.createdAt).toLocaleDateString("en-US", {
           year: "numeric",
           month: "short",
@@ -34,6 +35,33 @@ const UsersList = () => {
       setUsers(formatted);
     } catch (error) {
       enqueueSnackbar("Failed to load users", { variant: 'error' });
+      console.error(error);
+    }
+  }
+
+  const handleDelete = async (id) => {
+    try {
+      const result = Swal.fire({
+        title: 'Delete User',
+        text: 'Sure you want to delete this user??',
+        icon: 'warning',
+        showCancelButton: true,
+      confirmButtonText: 'Yes, delete it',
+      confirmButtonColor: '#d50101'
+      })
+
+      if (!(await result).isConfirmed) {
+        return;
+      }
+      const response = await userService.deleteUser(id);
+      enqueueSnackbar("User deleted successfully", {
+        variant: 'success'
+      });
+      getUsers();
+    } catch (error) {
+      enqueueSnackbar("Failed to delete user", {
+        variant: 'error'
+      });
       console.error(error);
     }
   }
@@ -61,6 +89,7 @@ const UsersList = () => {
         link='/users'
         data={users}
         tableName='Users Table'
+        handleDelete={handleDelete}
       />
     </MainLayout>
   )
