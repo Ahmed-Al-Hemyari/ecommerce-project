@@ -14,7 +14,7 @@ const MainLayout = ({ children }) => {
     const sidebarItems = [
         {
             title: "Dashboard",
-            url: "/",
+            url: "/dashboard",
             icon: Home,
         },
         {

@@ -8,6 +8,7 @@ import {
 } from "../controllers/BrandController.js";
 import { requireAuth } from '../middlewares/auth.js'
 import { requireAdmin } from '../middlewares/admin.js'
+import { uploadBrand } from '../config/multer.js'
 
 const brandRoutes = express.Router();
 
@@ -18,7 +19,7 @@ brandRoutes.get('/', getAllBrands);
 brandRoutes.get('/:id', getBrandById);
 
 // Create a new product
-brandRoutes.post('/', requireAdmin , createBrand);
+brandRoutes.post('/', requireAdmin, uploadBrand.single("file"), createBrand);
 
 // Update an existing product
 brandRoutes.put('/:id', requireAdmin , updateBrand);

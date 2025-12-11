@@ -12,10 +12,14 @@ import brandRoutes from './routes/BrandRoutes.js';
 import productRoutes from './routes/ProductRoutes.js';
 import orderRoutes from './routes/OrderRoutes.js';
 import reviewRoutes from './routes/ReviewRoutes.js';
+import multer from 'multer';
 
 // Load environment variables
 dotenv.config();
 const app = express();
+
+// Uploads Folder
+app.use('/uploads', express.static('uploads'));
 
 // Middleware
 app.use(express.json());

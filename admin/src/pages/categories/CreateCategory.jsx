@@ -1,10 +1,29 @@
 import React, { useEffect, useState } from 'react'
 import MainLayout from '@/components/Layouts/MainLayout'
 import CreateForm from '@/components/UI/Forms/CreateForm'
+import categoryService from '@/services/categoryService';
+import { enqueueSnackbar } from 'notistack';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const CreateCategory = () => {
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
+  const [formError, setFormError] = useState('');
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Snackbar listener
+  useEffect(() => {
+    if (location.state?.message) {
+      enqueueSnackbar(location.state.message, {
+        variant: location.state.status,
+      });
+
+      // Clear state to prevent showing again
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state]);
 
   useEffect(() => {
     const slugified = name
@@ -14,6 +33,32 @@ const CreateCategory = () => {
 
     setSlug(slugified);
   }, [name]);
+
+  const handleSubmit = async () => {
+    setFormError('');
+
+    if (!name) {
+      setFormError('Please fill all fields with * ');
+      return false;
+    }
+
+    try {
+      const response = await categoryService.createCategory({
+        name: name,
+        slug: slug
+      });
+      return true;
+    } catch (error) {
+      enqueueSnackbar('Failed to add category');
+      return false;
+    }
+  }
+
+  const resetForm = () => {
+    setName("");
+    setSlug("");
+    setFormError("");
+  }
 
   const inputs = [
     { 
@@ -39,6 +84,10 @@ const CreateCategory = () => {
       <CreateForm
         title='Create Category'
         inputs={inputs}
+        link={'/categories'}
+        formError={formError}
+        handleSubmit={handleSubmit}
+        resetForm={resetForm}
       />
     </MainLayout>
   )

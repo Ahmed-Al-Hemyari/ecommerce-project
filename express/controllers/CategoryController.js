@@ -28,13 +28,13 @@ export const getCategoryById = async (req, res) => {
 // Create a new product
 export const createCategory = async (req, res) => {
   try {
-      if (!req.body.name || !req.body.slug || !req.body.icon) {   
-          return res.status(400).json({ message: 'Name, slug, and icon are required' });
+      if (!req.body.name || !req.body.slug ) {   
+          return res.status(400).json({ message: 'Name and slug are required' });
       }
       const newCategory = Category({
           name: req.body.name,
           slug: req.body.slug,
-          icon: req.body.icon
+          // icon: req.body.icon
       });
       const category = await Category.create(newCategory);
       res.status(201).json(category);
@@ -50,7 +50,7 @@ export const updateCategory = async (req, res) => {
     const newData = {};
     if (req.body.name) newData.name = req.body.name;
     if (req.body.slug) newData.slug = req.body.slug;
-    if (req.body.icon) newData.icon = req.body.icon;
+    // if (req.body.icon) newData.icon = req.body.icon;
     const updatedCategory = await Category.findByIdAndUpdate(
       req.params.id,
       { $set: newData },

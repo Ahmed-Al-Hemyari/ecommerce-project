@@ -24,7 +24,7 @@ const AppSidebar = ({ items }) => {
 
           <SidebarGroupContent className="mt-15 space-y-5">
             {items.map((item) => {
-              const isActive = location.pathname === item.url;
+              const isActive = location.pathname.startsWith(item.url);
 
               return (
                 <SidebarMenuItem key={item.title}>
