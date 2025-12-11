@@ -3,7 +3,7 @@ import { iconMap } from "@/services/icons.js";
 import { Link } from "react-router-dom";
 
 const CategoryCard = ({ category }) => {
-  const Icon = iconMap[category.icon];
+  const Icon = iconMap[category.slug];
 
   return (
     <Link to={`/products?category=${category.slug}`}>

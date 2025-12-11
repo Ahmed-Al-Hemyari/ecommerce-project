@@ -2,6 +2,9 @@ import React from 'react'
 import Input from './Input'
 import { Link, useNavigate } from 'react-router-dom'
 import { enqueueSnackbar } from 'notistack';
+import Dropdown from './Dropdown';
+import TextArea from './TextArea';
+import PhoneInput from './PhoneInput';
 
 const CreateForm = ({
     inputs = [],
@@ -66,8 +69,49 @@ const CreateForm = ({
 
         <form action="" onSubmit={handleFormSubmit}>
             <p className='text-sm text-red-500 my-2'>{formError}</p>
-            {inputs.map((input) => (
-                <>
+            {inputs.map((input) => {
+                if (input.type === 'select') {
+                    return (
+                        <Dropdown
+                            label={input.label}
+                            important={input.important}
+                            options={input.options}
+                            placeholder={input.placeholder}
+                            value={input.value}
+                            setValue={input.setValue}
+                            formError={formError}
+                        />
+                    );
+                }
+
+                if (input.type === 'phone') {
+                    return (
+                        <PhoneInput 
+                            phoneLogin={true}
+                            countryCode={input.countryCode}
+                            setCountryCode={input.setCountryCode}
+                            phone={input.phone}
+                            setPhone={input.setPhone}
+                            phoneError={input.phoneError}
+                            formError={input.formError}
+                        />
+                    );
+                }
+
+                if (input.type === 'textarea') {
+                    return (
+                        <TextArea
+                            label={input.label}
+                            important={input.important}
+                            placeholder={input.placeholder}
+                            value={input.value}
+                            setValue={input.setValue}
+                            formError={formError}
+                        />
+                    );
+                }
+                
+                return (
                     <Input
                         label={input.label}
                         important={input.important}
@@ -80,8 +124,8 @@ const CreateForm = ({
                         formError={formError}
                         showPreview={input.showPreview}
                     />
-                </>
-            ))}
+                );
+            })}
             <div className='flex flex-row justify-between'>
                 <div>
                     <button

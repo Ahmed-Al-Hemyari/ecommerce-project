@@ -30,22 +30,19 @@ export const getBrandById = async (req, res) => {
 // Create a new product
 export const createBrand = async (req, res) => {
   try {
-      // if (!req.body.name) {   
-      //     return res.status(400).json({ message: 'Name is required' });
-      // }
-      if (!req.body.name || !req.file) {   
-          return res.status(400).json({ message: 'Name, and logo are required' });
-      }
+    if (!req.body.name || !req.file) {   
+        return res.status(400).json({ message: 'Name, and logo are required' });
+    }
 
-      const logoUrl = `/uploads/brands/${req.file.filename}`;
+    const logoUrl = `/uploads/brands/${req.file.filename}`;
 
-      const newBrand = Brand({
-          name: req.body.name,
-          logo: logoUrl,
-      });
-      
-      const brand = await Brand.create(newBrand);
-      res.status(201).json(brand);
+    const newBrand = Brand({
+        name: req.body.name,
+        logo: logoUrl,
+    });
+    
+    const brand = await Brand.create(newBrand);
+    res.status(201).json(brand);
   } catch (error) {
       console.error('Error creating brand:', error);
       res.status(500).json({ message: 'Server error' });

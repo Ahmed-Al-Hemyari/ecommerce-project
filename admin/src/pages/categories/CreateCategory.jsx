@@ -70,13 +70,13 @@ const CreateCategory = () => {
       setValue: setName 
     },
     { 
-      label: 'Slug', 
-      important: true, 
+      label: 'Slug',
       type: 'text', 
       placeholder: 'Category slug', 
       value: slug,
       setValue: setSlug,
-      disabled: true
+      disabled: true,
+      readOnly: true,
     }
   ]
   return (

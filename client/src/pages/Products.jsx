@@ -21,6 +21,7 @@ const Products = () => {
       try {
         const data = await fetchProducts();
         setProducts(data);
+        console.log(data);
       } catch (error) {
         console.error(error);
       } finally {

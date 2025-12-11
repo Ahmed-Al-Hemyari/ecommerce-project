@@ -15,6 +15,7 @@ import {
 import Swal from 'sweetalert2'
 import { useSnackbar } from 'notistack';
 import { createOrder } from '../services/api-calls';
+const url = import.meta.env.VITE_IMAGES_BACKEND_URL;
 
 const Cart = () => {
     const [cartItems, setCartItems] = useState([]);
@@ -172,7 +173,16 @@ const Cart = () => {
                     <div className="md:col-span-2 space-y-4">
                     {cartItems.map(item => (
                         <div key={item._id} className="flex items-center bg-white p-4 rounded-lg shadow-sm">
-                            <img src={item.img ?? defaultProductImage} alt={item.title} className="w-24 h-24 object-cover rounded" />
+                            {/* <img
+                                src={item.image ? `http://localhost:5000${item.image}` : defaultProductImage}
+                                alt={item.title}
+                                className="w-full h-48 object-cover"
+                            /> */}
+                            <img 
+                                src={item.image ? `${url}${item.image}` : defaultProductImage} 
+                                alt={item.title} 
+                                className="w-24 h-24 object-cover rounded" 
+                            />
                             <div className="ml-4 flex-1">
                                 <h2 className="font-medium text-(--color-dark-gray)">{item.title}</h2>
                                 <p className="text-gray-500">${item.price.toFixed(2) ?? '0.00'}</p>

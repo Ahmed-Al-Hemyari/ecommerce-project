@@ -3,8 +3,8 @@ import MainLayout from '@/components/Layouts/MainLayout'
 import productService from '@/services/productService'
 import { enqueueSnackbar } from 'notistack'
 import { useLocation, useNavigate } from 'react-router-dom'
-import CustomTable from '@/components/UI/Tables/DataTable'
 import Swal from 'sweetalert2'
+import DataTable from '@/components/UI/Tables/DataTable'
 
 const ProductsList = () => {
   const location = useLocation();
@@ -13,15 +13,20 @@ const ProductsList = () => {
 
   const headers = [
     { label: 'Title', field: 'title', type: 'string' },
-    { label: 'Category', field: 'category', type: 'string' },
-    { label: 'Brand', field: 'brand', type: 'string' },
+    { label: 'Category', field: 'category', type: 'link', link: 'categories' },
+    { label: 'Brand', field: 'brand', type: 'link', link: 'brands' },
     { label: 'Price', field: 'price', type: 'price' },
   ];
 
   const getProducts = async () => {
     try {
       const response = await productService.getProducts();
-      setProducts(response.data);
+      const formatted = response.data.map(product => ({
+        ...product,
+        category: product.category.name,
+        brand: product.brand.name,
+      }));
+      setProducts(formatted);
     } catch (error) {
       enqueueSnackbar("Failed to load products", {
         variant: 'error'
@@ -75,7 +80,7 @@ const ProductsList = () => {
 
   return (
     <MainLayout>
-      <CustomTable
+      <DataTable
         headers={headers}
         link='/products'
         data={products}

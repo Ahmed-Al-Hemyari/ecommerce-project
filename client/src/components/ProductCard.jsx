@@ -6,6 +6,7 @@ import {
   updateLocalStorageItem
 } from '@/services/LocalStorageFunctions';
 import {useSnackbar} from 'notistack'
+const url = import.meta.env.VITE_IMAGES_BACKEND_URL;
 
 const ProductCard = ({product, onCartChange}) => {
   const {enqueueSnackbar} = useSnackbar();
@@ -25,7 +26,7 @@ const ProductCard = ({product, onCartChange}) => {
         description: product.description,
         price: product.price,
         category: product.category,
-        images: product.images,
+        image: product.image,
         quantity: 1,
       }
       addToLocalStorage('cart', cartProduct);
@@ -38,7 +39,11 @@ const ProductCard = ({product, onCartChange}) => {
   return (
     <div key={product._id} className="bg-white rounded-lg shadow-sm overflow-hidden">
         <div className="relative">
-            <img src={product.img ?? defaultProductImage} alt={product.title} className="w-full h-48 object-cover" />
+            <img
+              src={product.image ? `${url}${product.image}` : defaultProductImage}
+              alt={product.title}
+              className="w-full h-48 object-cover"
+            />
         </div>
         <div className="p-4">
             <div className="font-medium text-sm" style={{ color: 'var(--color-dark-gray)' }}>{product.title}</div>

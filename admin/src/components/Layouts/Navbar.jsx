@@ -11,7 +11,7 @@ const Navbar = ({ user, logout, children }) => {
       <nav className="w-full bg-(--color-dark-gray) text-white flex items-center justify-between px-6 md:px-10 h-20 fixed top-0 left-0 z-50 shadow-md">
 
         {/* Logo */}
-        <Link to="/">
+        <Link to="/dashboard">
           <img src={logo} alt="Admin Logo" className="w-32 md:w-36" />
         </Link>
 

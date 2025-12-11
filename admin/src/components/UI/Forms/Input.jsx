@@ -12,7 +12,7 @@ const Input = ({
     formError,
     inputError,
     disabled = false,
-    showPreview = false
+    showPreview = false,
 }) => {
 
     const handleChange = (e) => {
@@ -34,6 +34,9 @@ const Input = ({
                 placeholder={placeholder}
                 className={`${width} ${disabled && 'bg-gray-50'} px-4 py-2 rounded-lg border ${formError || inputError ? 'border-red-500' : 'border-(--color-light-gray)'} focus:outline-none focus:ring-2 focus:ring-(--color-green)`}
                 onChange={handleChange}
+                value={
+                    type !== 'file' ? value : ''
+                }
                 disabled={disabled}
             />
 

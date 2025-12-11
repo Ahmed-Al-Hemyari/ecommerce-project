@@ -7,6 +7,7 @@ import {
     deleteProduct 
 } from '../controllers/ProductController.js';
 import { requireAdmin } from '../middlewares/admin.js'
+import { uploadProduct } from '../config/multer.js';
 
 const productRoutes = express.Router();
 
@@ -17,7 +18,7 @@ productRoutes.get('/', getAllProducts);
 productRoutes.get('/:id', getProductById);
 
 // Create a new product
-productRoutes.post('/', requireAdmin , createProduct);
+productRoutes.post('/', requireAdmin, uploadProduct.single("file") , createProduct);
 
 // Update an existing product
 productRoutes.put('/:id', requireAdmin , updateProduct);

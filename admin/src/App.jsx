@@ -1,5 +1,5 @@
 import React from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useNavigate, Navigate } from 'react-router-dom'
 
 import ProtectRoute from './components/ProtectRoute'
 
@@ -22,6 +22,7 @@ import UpdateProduct from './pages/products/UpdateProduct'
 import Login from './pages/auth/Login'
 
 const App = () => {
+  const navigate = useNavigate();
   return (
     <Routes>
 
@@ -32,6 +33,13 @@ const App = () => {
         <ProtectRoute>
           <Dashboard />
         </ProtectRoute>
+      }
+    />
+
+    <Route
+      path="/"
+      element={
+        <Navigate to={'/dashboard'} replace/>
       }
     />
 
