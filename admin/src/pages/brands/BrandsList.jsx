@@ -10,15 +10,16 @@ const BrandsList = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [brands, setBrands] = useState([]);
+  const [search, setSearch] = useState([]);
 
   const headers = [
     { label: "Name", field: "name", type: 'string' }
   ];
 
 
-  const getBrands = async () => {
+  const getBrands = async (search) => {
     try {
-      const response = await brandService.getBrands();
+      const response = await brandService.getBrands(search);
       setBrands(response.data);
     } catch (error) {
       enqueueSnackbar("Failed to load brands", { variant: 'error' });
@@ -58,6 +59,10 @@ const BrandsList = () => {
     getBrands();
   }, []);
 
+  useEffect(() => {
+    getBrands(search);
+  }, [search]);
+
   // Snackbar listener
   useEffect(() => {
     if (location.state?.message) {
@@ -76,6 +81,8 @@ const BrandsList = () => {
         headers={headers}
         link='/brands'
         data={brands}
+        search={search}
+        setSearch={setSearch}
         tableName='Brands Table'
         handleDelete={handleDelete}
       />

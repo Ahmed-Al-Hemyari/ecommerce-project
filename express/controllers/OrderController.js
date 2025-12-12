@@ -5,11 +5,22 @@ import User from "../models/User.js";
 // Get all orders
 export const getAllOrders = async (req, res) => {
     try {
-        const orders = await Order.find()
-            .populate('orderItems.product', "title price")
-            .populate('user', 'name');
-        // const validOrders = orders.filter(order => order.user);
-        res.status(200).json(orders);
+      const { search } = req.query;
+      const query = {};
+
+      if (search) {
+          query.$or = [
+              { 'user.name': { $regex: search, $options: "i" } },
+              { status: { $regex: search, $options: "i" } },
+              { totalAmount: isNaN(search) ? null : Number(search) },
+          ].filter(Boolean);
+      }
+
+      const orders = await Order.find(query)
+          .populate('orderItems.product', "title price")
+          .populate('user', 'name');
+      const validOrders = orders.filter(order => order.user);
+      res.status(200).json(validOrders);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching orders', error });
     }

@@ -143,6 +143,17 @@ export const fetchCategories = async () => {
     }
 };
 
+// Brands
+export const fetchBrands = async () => {
+    try {
+        const response = await axios.get(`${API_URL}/brands`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching brands:', error);
+        return [];
+    }
+};
+
 // Orders
 export const createOrder = async (userId, cartItems, shipping) => {
     const token = localStorage.getItem('token');

@@ -1,7 +1,9 @@
 import api from "./api";
 
 export const brandService = {
-    getBrands : () => api.get("/brands"),
+    getBrands : (search) => api.get("/brands", {
+        params: search ? { search } : {}
+    }),
     getBrand : (id) => api.get(`/brands/${id}`),
     createBrand : (data) => api.post("/brands", data),
     updateBrand : (id, data) => api.put(`/brands/${id}`, data),

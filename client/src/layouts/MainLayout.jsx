@@ -5,6 +5,9 @@ import { useSnackbar } from 'notistack';
 import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router-dom';
 import { readLocalStorageItem } from '../services/LocalStorageFunctions';
+import {
+  isAuth
+} from '../services/api-calls.js'
 
 const MainLayout = ({ page, children }) => {
   const { enqueueSnackbar } = useSnackbar();
@@ -34,12 +37,26 @@ const MainLayout = ({ page, children }) => {
     navigate('/'); // redirect to home
   };
 
-  useEffect(() => {
+  const checkAuth = async () => {
     // 1. Check if token exists
     const token = localStorage.getItem('token');
     if (!token) {
       setIsAuthenticated(false);
       setUser(null);
+      return;
+    }
+
+    try {
+      const response = await isAuth();
+      if(!response)
+      {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        return;
+      }
+    } catch (error) {
+      console.error('failed to check authenication');
+      enqueueSnackbar("Authenication Error");
       return;
     }
 
@@ -52,6 +69,10 @@ const MainLayout = ({ page, children }) => {
       setUser(null);
       setIsAuthenticated(false);
     }
+  }
+
+  useEffect(() => {
+    checkAuth();
   }, []);
 
   return (

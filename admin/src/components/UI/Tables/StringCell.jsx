@@ -3,7 +3,7 @@ import React from 'react'
 const StringCell = ({item, header}) => {
   return (
     <td
-        className='py-4 pr-5 pl-1 text-wrap text-base text-(--color-dark-gray) tracking-wider'
+        className='p-3 border-b text-wrap text-base text-(--color-dark-gray) tracking-wider'
     >
         {item[header.field]}
     </td>

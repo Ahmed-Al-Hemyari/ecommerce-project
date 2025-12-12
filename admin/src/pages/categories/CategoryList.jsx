@@ -11,15 +11,16 @@ const CategoryList = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
+  const [search, setSearch] = useState('');
 
   const headers = [
     { label: 'Name', field: 'name', type: 'string' },
     { label: 'Slug', field: 'slug', type: 'string' },
   ];
 
-  const getCategories = async () => {
+  const getCategories = async (search) => {
     try {
-      const response = await categoryService.getCategories();
+      const response = await categoryService.getCategories(search);
       setCategories(response.data);
     } catch (error) {
       enqueueSnackbar("Failed to load categories", { variant: 'error' });
@@ -58,6 +59,11 @@ const CategoryList = () => {
     getCategories();
   }, []);
 
+  // Search
+  useEffect(() => {
+    getCategories(search);
+  }, [search])
+
   // Snackbar listener
   useEffect(() => {
     if (location.state?.message) {
@@ -75,8 +81,10 @@ const CategoryList = () => {
       <DataTable
         headers={headers}
         link={'/categories'}
-        tableName='Categories Table'
+        tableName='Categories'
         data={categories}
+        search={search}
+        setSearch={setSearch}
         handleDelete={handleDelete}
       />
     </MainLayout>

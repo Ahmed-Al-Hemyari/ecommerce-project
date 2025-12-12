@@ -10,6 +10,7 @@ const OrdersList = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
+  const [search, setSearch] = useState('');
 
   const headers = [
     // 'Title', 'Category', 'Brand', 'Price'
@@ -19,9 +20,9 @@ const OrdersList = () => {
     { label: 'Total Price', field: 'totalAmount', type: 'price' },
   ];
 
-  const getOrders = async () => {
+  const getOrders = async (search) => {
     try {
-      const response = await orderService.getOrders();
+      const response = await orderService.getOrders(search);
       const formatted = response.data.map(order => ({
         ...order,
         userName: String(order.user?.name) || 'Deleted User',
@@ -66,6 +67,10 @@ const OrdersList = () => {
   useEffect(() => {
     getOrders();
   }, []);
+  
+  useEffect(() => {
+    getOrders(search);
+  }, [search]);
 
   // Snackbar listener
   useEffect(() => {
@@ -85,6 +90,8 @@ const OrdersList = () => {
         headers={headers}
         link='/orders'
         data={orders}
+        search={search}
+        setSearch={setSearch}
         tableName='Orders Table'
         handleDelete={handleDelete}
       />

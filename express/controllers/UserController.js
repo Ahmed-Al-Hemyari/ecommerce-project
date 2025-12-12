@@ -1,9 +1,30 @@
 import User from "../models/User.js";
+import Order from '../models/Order.js'
 
 // Get all users
 export const getAllUsers = async (req, res) => {
     try {
-        const users = await User.find().select('-password');
+        const { search, name, email, phone, role } = req.query;
+        const query = {};
+
+        // General search across multiple fields
+        if (search) {
+            query.$or = [
+                { name: { $regex: search, $options: "i" } },
+                { email: { $regex: search, $options: "i" } },
+                { phone: { $regex: search, $options: "i" } }
+            ];
+        }
+
+        // Individual filters
+        if (name)  query.name = { $regex: name, $options: "i" };
+        if (email) query.email = { $regex: email, $options: "i" };
+        if (phone) query.phone = { $regex: phone, $options: "i" };
+
+        // Role usually exact match
+        if (role) query.role = role;
+
+        const users = await User.find(query).select('-password');
         res.status(200).json(users);
     } catch (error) {
         res.status(500).json({ message: "Error fetching users", error });
@@ -30,7 +51,7 @@ export const createUser = async (req, res) => {
         newUser.name = req.body.name;
         newUser.email = req.body.email;
         newUser.phone = req.body.phone;
-        newUser.password = req.body.phone; // Default password is phone number
+        newUser.password = req.body.email; // Default password is email
         newUser.role = "user";
 
         const existingUser = await User.find({ email: newUser.email });
@@ -71,6 +92,9 @@ export const deleteUser = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
+
+        await Order.deleteMany({ user: req.params.id });
+        
         res.status(200).json({ message: "User deleted successfully" });
     } catch (error) {
         res.status(500).json({ message: "Error deleting user", error });

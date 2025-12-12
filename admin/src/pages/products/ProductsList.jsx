@@ -10,6 +10,7 @@ const ProductsList = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
+  const [search, setSearch] = useState([]);
 
   const headers = [
     { label: 'Title', field: 'title', type: 'string' },
@@ -18,9 +19,9 @@ const ProductsList = () => {
     { label: 'Price', field: 'price', type: 'price' },
   ];
 
-  const getProducts = async () => {
+  const getProducts = async (search) => {
     try {
-      const response = await productService.getProducts();
+      const response = await productService.getProducts(search);
       const formatted = response.data.map(product => ({
         ...product,
         category: product.category.name,
@@ -66,6 +67,10 @@ const ProductsList = () => {
     getProducts();
   }, []);
 
+  useEffect(() => {
+    getProducts(search);
+  }, [search]);
+
   // Snackbar listener
   useEffect(() => {
     if (location.state?.message) {
@@ -84,6 +89,8 @@ const ProductsList = () => {
         headers={headers}
         link='/products'
         data={products}
+        search={search}
+        setSearch={setSearch}
         tableName='Products Table'
         handleDelete={handleDelete}
       />

@@ -9,7 +9,7 @@ const StatusCell = ({item, header}) => {
     }
   return (
     <td
-        className={`py-4 text-wrap text-base tracking-wider`}
+        className={`p-3 border-b text-wrap text-center text-base tracking-wider`}
     >
         <div className='flex justify-center'>
             <div className={`${ statusStyle[item[header.field]] } w-fit px-5 rounded-2xl text-center p-1`}>

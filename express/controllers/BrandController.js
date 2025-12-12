@@ -5,7 +5,16 @@ import path from "path";
 // Get all products
 export const getAllBrands = async (req, res) => {
   try {
-    const brands = await Brand.find();
+    const { search } = req.query;
+    const query = {};
+
+    if (search) {
+        query.$or = [
+            { name: { $regex: search, $options: "i" } }
+        ];
+    }
+
+    const brands = await Brand.find(query);
     res.status(200).json(brands);
   } catch (error) {
     console.error('Error fetching brands:', error);

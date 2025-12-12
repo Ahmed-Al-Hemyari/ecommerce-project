@@ -1,7 +1,9 @@
 import api from "./api";
 
 export const productService = {
-    getProducts : () => api.get("/products"),
+    getProducts : (search) => api.get("/products", {
+        params: search ? { search } : {}
+    }),
     getProduct : (id) => api.get(`/products/${id}`),
     createProduct : (data) => api.post("/products", data),
     updateProduct : (id, data) => api.put(`/products/${id}`, data),

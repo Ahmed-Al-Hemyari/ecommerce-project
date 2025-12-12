@@ -7,7 +7,19 @@ import fs from 'fs';
 // Get all products
 export const getAllProducts = async (req, res) => {
   try {
-    const products = await Product.find()
+    const { search } = req.query;
+    const query = {};
+
+    if (search) {
+        query.$or = [
+            { title: { $regex: search, $options: "i" } },
+            { 'category.name': { $regex: search, $options: "i" } },
+            { 'brand.name': { $regex: search, $options: "i" } },
+            { price: isNaN(search) ? null : Number(search) },
+        ].filter(Boolean);
+    }
+
+    const products = await Product.find(query)
       .populate('category')
       .populate('brand');
     res.status(200).json(products);

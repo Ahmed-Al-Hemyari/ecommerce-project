@@ -10,6 +10,7 @@ const UsersList = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
+  const [search, setSearch] = useState('');
 
   const headers = [
     { label: "Name", field: "name", type: 'link', link: 'users'},
@@ -20,9 +21,9 @@ const UsersList = () => {
   ];
 
 
-  const getUsers = async () => {
+  const getUsers = async (search) => {
     try {
-      const response = await userService.getUsers();
+      const response = await userService.getUsers(search);
       const formatted = response.data.map(user => ({
         ...user,
         role: String(user.role).charAt(0).toUpperCase() + String(user.role).slice(1),
@@ -70,6 +71,10 @@ const UsersList = () => {
     getUsers();
   }, []);
 
+  useEffect(() => {
+    getUsers(search);
+  }, [search])
+
   // Snackbar listener
   useEffect(() => {
     if (location.state?.message) {
@@ -88,7 +93,9 @@ const UsersList = () => {
         headers={headers}
         link='/users'
         data={users}
-        tableName='Users Table'
+        search={search}
+        setSearch={setSearch}
+        tableName='Users'
         handleDelete={handleDelete}
       />
     </MainLayout>

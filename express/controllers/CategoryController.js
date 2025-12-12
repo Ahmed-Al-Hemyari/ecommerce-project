@@ -3,7 +3,17 @@ import Category from '../models/Category.js';
 // Get all products
 export const getAllCategories = async (req, res) => {
   try {
-    const categories = await Category.find();
+    const { search } = req.query;
+    const query = {};
+
+    if (search) {
+        query.$or = [
+            { name: { $regex: search, $options: "i" } },
+            { slug: { $regex: search, $options: "i" } }
+        ];
+    }
+
+    const categories = await Category.find(query);
     res.status(200).json(categories);
   } catch (error) {
     console.error('Error fetching categories:', error);
