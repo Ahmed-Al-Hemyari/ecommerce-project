@@ -4,24 +4,20 @@ import Order from '../models/Order.js'
 // Get all users
 export const getAllUsers = async (req, res) => {
     try {
-        const { search, name, email, phone, role } = req.query;
+        const { search, role } = req.query;
         const query = {};
 
-        // General search across multiple fields
         if (search) {
-            query.$or = [
+            const orQuery = [
                 { name: { $regex: search, $options: "i" } },
-                { email: { $regex: search, $options: "i" } },
-                { phone: { $regex: search, $options: "i" } }
+                { eamil: { $regex: search, $options: "i" } },
+                { phone: { $regex: search, $options: "i" } },
+                { role: { $regex: search, $options: "i" } },
             ];
+
+            query.$or = orQuery;
         }
 
-        // Individual filters
-        if (name)  query.name = { $regex: name, $options: "i" };
-        if (email) query.email = { $regex: email, $options: "i" };
-        if (phone) query.phone = { $regex: phone, $options: "i" };
-
-        // Role usually exact match
         if (role) query.role = role;
 
         const users = await User.find(query).select('-password');
@@ -29,7 +25,7 @@ export const getAllUsers = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: "Error fetching users", error });
     }
-};
+}; 
 
 // Get user by ID
 export const getUserById = async (req, res) => {

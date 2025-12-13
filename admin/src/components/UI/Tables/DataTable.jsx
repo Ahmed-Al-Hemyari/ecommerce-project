@@ -1,25 +1,29 @@
 import React, { useEffect, useState } from 'react'
 import ActionButton from './ActionButton';
 import { Edit, Eye, Plus, Search, Square, SquarePlus, Trash } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import StringCell from './StringCell';
 import BoolCell from './BoolCell';
 import StatusCell from './StatusCell';
 import PriceCell from './PriceCell';
 import LinkCell from './LinkCell';
 import Input from '../Forms/Input';
+import { enqueueSnackbar } from 'notistack';
+import Filters from '../Filters';
 
 const DataTable = ({
   tableName = '',
   headers = [], 
   link = '', 
   data = [],
+  filters = [],
   search,
   setSearch,
   handleDelete,
 }) => {
 
   const navigate = useNavigate();
+  const location = useLocation();
 
   const CellComponents = {
     string: StringCell,
@@ -41,16 +45,23 @@ const DataTable = ({
     navigate(`${link}/update/${id}`);
   }
 
+  // Snackbar listener
+  useEffect(() => {
+    if (location.state?.message) {
+      enqueueSnackbar(location.state.message, {
+        variant: location.state.status,
+      });
+
+      // Clear state to prevent showing again
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state]);
+
   return (
     <div>
       <div className='flex flex-row justify-between mb-5 px-2 py-3'>
         <h1 className='text-3xl font-medium'>{tableName}</h1>
       </div>
-      {/* <div className='flex flex-row justify-end mb-4'>      
-        <Link to={`${link}/create`} className='bg-(--color-green) text-(--color-dark-gray) text-lg flex flex-row items-center gap-2 font-medium rounded-md px-3 py-1'>
-          Create
-        </Link>
-      </div> */}
       <div className="overflow-x-auto w-full">
 
         <section className=' border rounded-2xl overflow-hidden'>
@@ -68,8 +79,8 @@ const DataTable = ({
               </tr>
               <tr>
                 <td className='w-full' colSpan={headers.length + 1}>
-                  <div className='w-full h-full p-2 flex flex-row justify-end'>
-                    <div className='flex flex-row items-center space-x-2 bg-gray-50 py-2 px-3 rounded-full'>
+                  <div className='w-full h-full p-2 flex flex-row items-center space-x-5 justify-end'>
+                    <div className='flex flex-row items-center space-x-2 bg-gray-100 py-2 px-3 rounded-full'>
                       <Search size={18} color='#bfbfbf'/>  
                       <input
                         placeholder="Search..."
@@ -79,6 +90,7 @@ const DataTable = ({
                         onChange={(e) => setSearch(e.target.value)}
                       />
                     </div>
+                    {filters.length > 0 && <Filters inputs={filters}/>}
                   </div>
                 </td>
               </tr>
@@ -87,7 +99,7 @@ const DataTable = ({
                   <td 
                     key={index} 
                     style={{ width: `${100/ headers.length}%`}}
-                    className={`p-3 text-lg font-bold text-black ${(header.type === 'status' || header.type === 'bool' || header.type === 'price') && 'text-center'}`}
+                    className={`p-3 text-lg font-bold text-black ${(header.type === 'status' || header.type === 'bool') && 'text-center'}`}
                   >
                     {header.label}
                   </td>
@@ -155,184 +167,3 @@ const DataTable = ({
 }
 
 export default DataTable
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// // src/components/ui/CustomTable.jsx
-// import React, { useState, useEffect } from "react";
-// import {
-//   Table,
-//   TableBody,
-//   TableCell,
-//   TableHead,
-//   TableHeader,
-//   TableRow,
-// } from "@/components/ui/table";
-// import { Edit, Trash, Eye } from "lucide-react";
-// import { Button } from "@/components/ui/button";
-
-// const actionIcons = {
-//   edit: Edit,
-//   delete: Trash,
-//   show: Eye,
-// };
-
-// const CustomTable = ({
-//   headers = [],
-//   types = [],
-//   data = [],
-//   actions = [],
-//   actionHandlers = {},
-//   bulkActions = [], // [{ name: "Delete Selected", handler: fn }]
-// }) => {
-//   const [selectedRows, setSelectedRows] = useState([]);
-//   const [allSelected, setAllSelected] = useState(false);
-
-//   useEffect(() => {
-//     if (allSelected) {
-//       setSelectedRows(data.map((row) => row.id || row._id || row.name)); // use id or name
-//     } else {
-//       setSelectedRows([]);
-//     }
-//   }, [allSelected, data]);
-
-//   const toggleRow = (row) => {
-//     const id = row.id || row._id || row.name;
-//     setSelectedRows((prev) =>
-//       prev.includes(id) ? prev.filter((r) => r !== id) : [...prev, id]
-//     );
-//   };
-
-//   return (
-//     <div className="overflow-x-auto">
-//       {/* Bulk Actions */}
-//       {bulkActions.length > 0 && selectedRows.length > 0 && (
-//         <div className="flex gap-2 mb-2">
-//           {bulkActions.map((action) => (
-//             <Button
-//               key={action.name}
-//               variant={action.variant || "outline"}
-//               onClick={() =>
-//                 action.handler(
-//                   data.filter((row) =>
-//                     selectedRows.includes(row.id || row._id || row.name)
-//                   )
-//                 )
-//               }
-//             >
-//               {action.name}
-//             </Button>
-//           ))}
-//         </div>
-//       )}
-
-//       <Table>
-//         <TableHeader>
-//           <TableRow>
-//             {/* Checkbox select all */}
-//             <TableHead>
-//               <input
-//                 type="checkbox"
-//                 checked={allSelected}
-//                 onChange={() => setAllSelected(!allSelected)}
-//                 className="cursor-pointer"
-//               />
-//             </TableHead>
-
-//             {headers.map((header, idx) => (
-//               <TableHead key={idx} className='text-base'>{header}</TableHead>
-//             ))}
-//             {actions.length > 0 && <TableHead className={'text-base'}>Actions</TableHead>}
-//           </TableRow>
-//         </TableHeader>
-
-//         <TableBody>
-//           {data.length === 0 ? (
-//             <TableRow>
-//               <TableCell colSpan={headers.length + 2} className="text-center py-4">
-//                 No data available
-//               </TableCell>
-//             </TableRow>
-//           ) : (
-//             data.map((row, idx) => {
-//               const rowId = row.id || row._id || row.name;
-//               return (
-//                 <TableRow key={idx} className={selectedRows.includes(rowId) ? "bg-gray-50" : ""}>
-//                   <TableCell>
-//                     <input
-//                       type="checkbox"
-//                       checked={selectedRows.includes(rowId)}
-//                       onChange={() => toggleRow(row)}
-//                       className="cursor-pointer accent-(--color-green) my-2"
-//                     />
-//                   </TableCell>
-
-//                   {headers.map((header, i) => {
-//                     const key = header.toLowerCase().replace(/\s+/g, "_");
-//                     const type = types[i] || "string";
-//                     let value = row[key];
-
-//                     if (type === "currency") value = `$${value.toFixed(2)}`;
-//                     if (type === "date") value = new Date(value).toLocaleDateString();
-
-//                     return <TableCell key={i} className='text-base'>{value}</TableCell>;
-//                   })}
-
-//                   {actions.length > 0 && (
-//                     <TableCell>
-//                       <div className="flex gap-2">
-//                         {actions.map((action) => {
-//                           const Icon = actionIcons[action];
-//                           if (!Icon) return null;
-//                           const classes =
-//                             action === "delete"
-//                               ? "text-red-500 hover:text-red-600"
-//                               : "text-gray-600 hover:text-gray-800";
-
-//                           return (
-//                             <button
-//                               key={action}
-//                               onClick={() => actionHandlers[action]?.(row)}
-//                               className={`p-1 ${classes} transition-colors cursor-pointer`}
-//                             >
-//                               <Icon className="w-4 h-4"/>
-//                             </button>
-//                           );
-//                         })}
-//                       </div>
-//                     </TableCell>
-//                   )}
-//                 </TableRow>
-//               );
-//             })
-//           )}
-//         </TableBody>
-//       </Table>
-//     </div>
-//   );
-// };
-
-// export default CustomTable;

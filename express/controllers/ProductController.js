@@ -7,17 +7,25 @@ import fs from 'fs';
 // Get all products
 export const getAllProducts = async (req, res) => {
   try {
-    const { search } = req.query;
+    const { search, category, brand } = req.query;
     const query = {};
 
     if (search) {
-        query.$or = [
-            { title: { $regex: search, $options: "i" } },
-            { 'category.name': { $regex: search, $options: "i" } },
-            { 'brand.name': { $regex: search, $options: "i" } },
-            { price: isNaN(search) ? null : Number(search) },
-        ].filter(Boolean);
+      const orFilters = [
+          { title: { $regex: search, $options: "i" } },
+          { 'category.name': { $regex: search, $options: "i" } },
+          { 'brand.name': { $regex: search, $options: "i" } },
+      ];
+
+      if (!isNaN(search)) {
+          orFilters.push({ price: Number(search) });
+      }
+
+      query.$or = orFilters;
     }
+
+    if (category) query['category._id'] = category;
+    if (brand) query['brand._id'] = brand;
 
     const products = await Product.find(query)
       .populate('category')
@@ -69,8 +77,14 @@ export const createProduct = async (req, res) => {
     const newProduct = Product({
       title: req.body.title,
       price: req.body.price,
-      brand: req.body.brand,
-      category: req.body.category,
+      brand: {
+        _id: brand._id,
+        name: brand.name,
+      },
+      category: {
+        _id: category._id,
+        name: category.name,
+      },
       description: req.body.description || '',
       image: imageUrl,
     });
@@ -100,7 +114,10 @@ export const updateProduct = async (req, res) => {
       if (!category) {
         return res.status(400).json({ message: 'Category not found' });
       }
-      newData.category = req.body.category;
+      newData.category = {
+        _id: category._id,
+        name: category.name,
+      };
     }
 
     // Check Brand
@@ -110,7 +127,10 @@ export const updateProduct = async (req, res) => {
       if (!brand) {
         return res.status(400).json({ message: 'Brand not found' });
       }
-      newData.brand = req.body.brand;
+      newData.brand = {
+        _id: brand._id,
+        name: brand.name
+      };
     }
     
     // Update Product

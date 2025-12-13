@@ -18,7 +18,7 @@ export const requireAdmin = async (req, res, next) => {
         }
         
         req.user = user;
-        console.log(decoded);
+        
         if (req.user.role !== 'admin') {
             return res.status(403).json({message: "Unauthorized access!! Admins only."});
         }

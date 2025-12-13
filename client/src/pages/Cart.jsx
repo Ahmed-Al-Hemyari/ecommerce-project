@@ -101,38 +101,6 @@ const Cart = () => {
         });
     };
 
-    // const handleSubmitOrder = async () => {
-    //     checkAuth();
-
-    //     if (!isAuthenticated) {
-    //         navigate('/login');
-    //         return;
-    //     }
-
-    //     try {
-    //         const order = await createOrder(subtotal);
-    //         // Clear cart after successful order
-    //         localStorage.removeItem("cart");
-
-    //         // Give user feedback
-    //         Swal.fire({
-    //             title: "Order placed!",
-    //             text: `Your order #${order._id} has been successfully created.`,
-    //             icon: "success",
-    //         });
-
-    //         // Optionally navigate to order confirmation page
-    //         navigate(`/orders/${order._id}`);
-    //     } catch (error) {
-    //         Swal.fire({
-    //             title: "Error",
-    //             text: error.response?.data?.message || error.message || "Failed to create order",
-    //             icon: "error",
-    //         });
-    //     }
-    // };
-
-
     useEffect(() => {
         const root = document.documentElement;
         root.style.setProperty('--color-dark-gray', '#333333');

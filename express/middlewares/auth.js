@@ -12,12 +12,16 @@ export const requireAuth = async (req, res, next) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
         // Check if user still exists
-        const user = await User.findById(decoded.id);
+        const user = await User.findById(decoded._id);
+        // console.log(decoded);
         if (!user) {
             return res.status(401).json({ message: "User no longer exists" });
         }
 
-        req.user = user; // attach full user object
+        req.user = user;
+
+        // req.user = decoded;
+
         next();
     } catch (error) {
         return res.status(401).json({ message: "Invalid token" });

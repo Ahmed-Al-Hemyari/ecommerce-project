@@ -83,7 +83,7 @@ const BrandsList = () => {
         data={brands}
         search={search}
         setSearch={setSearch}
-        tableName='Brands Table'
+        tableName='Brands'
         handleDelete={handleDelete}
       />
     </MainLayout>

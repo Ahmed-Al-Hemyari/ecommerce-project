@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import MainLayout from '@/components/Layouts/MainLayout'
 import CreateForm from '@/components/UI/Forms/CreateForm';
 import Dropdown from '@/components/UI/Forms/Dropdown';
-import SearchSelect from '@/components/UI/Forms/SearchSelect';
 import userService from '@/services/userService';
 
 const CreateOrder = () => {
@@ -86,7 +85,7 @@ const CreateOrder = () => {
         </button>
       </div>
       <form action="">
-        <SearchSelect
+        {/* <SearchSelect
           label="User"
           placeholder="Search user..."
           important
@@ -95,7 +94,7 @@ const CreateOrder = () => {
           results={users}
           headers={["name", "email"]}
           onSelect={setUser}
-        />
+        /> */}
       </form>
     </MainLayout>
   )

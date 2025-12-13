@@ -147,15 +147,6 @@ const CreateProduct = () => {
         handleSubmit={handleSubmit}
         resetForm={resetForm}
       />
-      {/* <CreateForm
-        formTitle='Create Brand'
-        title='Brand'
-        inputs={inputs}
-        link={'/brands'}
-        formError={formError}
-        handleSubmit={handleSubmit}
-        resetForm={resetForm}
-      /> */}
     </MainLayout>
   )
 }

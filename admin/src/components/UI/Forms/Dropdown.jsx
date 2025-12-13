@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 
 const Dropdown = ({
   label = '',
@@ -10,29 +10,40 @@ const Dropdown = ({
   formError,
 }) => {
   return (
-    <div className='mb-4'>
+    <div>
       <label className="block mb-1 font-medium">
-        {label}{' '}
-        {important && <span className='text-red-500'>*</span>}
+        {label}
+        {important && <span className="ml-1 text-red-500">*</span>}
       </label>
 
       <select
-        className={`w-full px-4 py-2 rounded-lg border 
-          ${formError ? 'border-red-500' : 'border-(--color-light-gray)'} 
-          focus:outline-none focus:ring-2 focus:ring-(--color-green)`}
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
+        className={`
+          w-full px-4 py-2 rounded-lg border
+          bg-white
+          transition-colors duration-150
+          hover:border-gray-400
+          focus:outline-none focus:ring-2 focus:ring-(--color-green)
+          ${formError ? 'border-red-500' : 'border-(--color-light-gray)'}
+        `}
+        value={value || ''}
+        onChange={(e) => setValue(e.target.value || null)}
       >
-        <option value="">{placeholder}</option>
+        <option value="" disabled className="text-gray-400">
+          {placeholder}
+        </option>
 
         {options.map((option) => (
-          <option key={option._id} value={option._id}>
+          <option
+            key={option._id}
+            value={option._id}
+            className="text-gray-700"
+          >
             {option.name}
           </option>
         ))}
       </select>
     </div>
-  )
-}
+  );
+};
 
-export default Dropdown
+export default Dropdown;

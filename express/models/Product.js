@@ -5,8 +5,14 @@ const productSchema = new mongoose.Schema({
     title: { type: String, required: true },
     description: { type: String, required: false },
     price: { type: Number, required: true },
-    category: { type: ObjectId, ref: "Category" },
-    brand: { type: ObjectId, ref: "Brand" },
+    category: { 
+        _id: { type: ObjectId, ref: "Category" },
+        name: { type: String, required: true }
+    },
+    brand: { 
+        _id: { type: ObjectId, ref: "Brand" },
+        name: { type: String, required: true }
+    },
     image: { type: String, default: '' },
 }, { timestamps: true });
 

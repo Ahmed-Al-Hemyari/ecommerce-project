@@ -6,7 +6,7 @@ const CategoryCard = ({ category }) => {
   const Icon = iconMap[category.slug];
 
   return (
-    <Link to={`/products?category=${category.slug}`}>
+    <Link to={`/products?category=${category._id}`}>
         <div
             key={category.id}
             className="p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition transform hover:-translate-y-1 cursor-pointer flex flex-col items-center"

@@ -5,6 +5,7 @@ import { enqueueSnackbar } from 'notistack';
 import Dropdown from './Dropdown';
 import TextArea from './TextArea';
 import PhoneInput from './PhoneInput';
+import SearchableDropdown from './SearchableDropDown';
 
 const CreateForm = ({
     inputs = [],
@@ -41,13 +42,8 @@ const CreateForm = ({
         }
 
         if (action === 'create_add') {
+            enqueueSnackbar('Added successfully', { variant: 'success' });
             resetForm();
-            navigate(`${link}/create`, {
-                state: {
-                    message: 'Added successfully',
-                    status: 'success'
-                }
-            });
         }
     }
 
@@ -72,7 +68,7 @@ const CreateForm = ({
             {inputs.map((input) => {
                 if (input.type === 'select') {
                     return (
-                        <Dropdown
+                        <SearchableDropdown
                             label={input.label}
                             important={input.important}
                             options={input.options}

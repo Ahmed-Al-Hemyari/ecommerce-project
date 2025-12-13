@@ -80,11 +80,14 @@ const Home = () => {
 
       {/* Brands */}
       <section className="max-w-7xl mx-auto p-6">
-        <h3 className="text-2xl font-semibold mb-4" style={{ color: 'var(--color-dark-gray)' }}>
-          Shop by Brand
-        </h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {brands.map(brand => (
+        <div className="flex items-center justify-between">
+          <h3 className="text-2xl font-semibold" style={{ color: 'var(--color-dark-gray)' }}>
+            Shop By Brand
+          </h3>
+          <Link className="text-sm" to="/brands">View all</Link>
+        </div>
+        <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+          {brands.slice(0, 4).map(brand => (
             <BrandCard key={brand._id} brand={brand} />
           ))}
         </div>
@@ -92,11 +95,14 @@ const Home = () => {
 
       {/* Categories */}
       <section className="max-w-7xl mx-auto p-6">
-        <h3 className="text-2xl font-semibold mb-4" style={{ color: 'var(--color-dark-gray)' }}>
-          Shop by Category
-        </h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {categories.map(category => (
+        <div className="flex items-center justify-between">
+          <h3 className="text-2xl font-semibold" style={{ color: 'var(--color-dark-gray)' }}>
+            Shop By Category
+          </h3>
+          <Link className="text-sm" to="/categories">View all</Link>
+        </div>
+        <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+          {categories.slice(0, 4).map(category => (
             <CategoryCard key={category._id} category={category} />
           ))}
         </div>
@@ -117,7 +123,7 @@ const Home = () => {
           ) : products.length === 0 ? (
             <h1 className="text-lg">No Products Found</h1>
           ) : (
-            products.map(product => (
+            products.slice(0, 8).map(product => (
               <ProductCard
                 key={product._id}
                 product={product}
@@ -127,6 +133,7 @@ const Home = () => {
           )}
         </div>
       </section>
+
     </MainLayout>
   );
 };

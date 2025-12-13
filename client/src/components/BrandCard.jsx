@@ -14,7 +14,7 @@ const BrandCard = ({brand}) => {
                 <img
                     src={brand.logo ? `${url}${brand.logo}` : defaultBrandImage}
                     alt={brand.title}
-                    className="w-full h-32 rounded-2xl object-cover"
+                    className="w-full h-18 rounded-2xl object-cover"
                 />
             </div>
 
