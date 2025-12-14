@@ -1,10 +1,12 @@
 import api from "./api";
 
 export const userService = {
-    getUsers: (search, role) => {
+    getUsers: (search, role, page, limit) => {
         const params = {};
         if (search) params.search = search;
         if (role) params.role = role;
+        if (page) params.page = page;
+        if (limit) params.limit = limit;
 
         return api.get("/users", { params });
     },

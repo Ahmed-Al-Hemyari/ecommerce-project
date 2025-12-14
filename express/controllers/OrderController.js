@@ -25,9 +25,23 @@ export const getAllOrders = async (req, res) => {
       if (status) query.status = status;
       if (payed !== undefined) query.payed = payed;
 
-      const orders = await Order.find(query);
-      const validOrders = orders.filter(order => order.user);
-      res.status(200).json(validOrders);
+      // Pagination
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 50;
+      const skip = (page - 1) * limit;
+  
+      const totalItems = await Order.countDocuments(query);
+
+      const orders = await Order.find(query)
+        .skip(skip)
+        .limit(limit);
+      // const validOrders = orders.filter(order => order.user);
+      res.status(200).json({
+        orders: orders, 
+        currentPage: page,
+        totalItems: totalItems,
+        totalPages: Math.ceil(totalItems / limit)
+      });
     } catch (error) {
         res.status(500).json({ message: 'Error fetching orders', error });
     }
@@ -63,8 +77,7 @@ export const getOrderById = async (req, res) => {
 
 export const createOrder = async (req, res) => {
   try {
-    const { orderItems, shipping } = req.body;
-    const userId = req.user._id;
+    const { userId, orderItems, shipping } = req.body;
     console.log(req.body);
 
     // 🔐 Basic validation
@@ -111,7 +124,7 @@ export const createOrder = async (req, res) => {
       itemsSnapshot.push({
         product: {
           _id: product._id,
-          title: product.title,
+          name: product.name,
         },
         quantity,
         price,

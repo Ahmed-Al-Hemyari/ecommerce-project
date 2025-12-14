@@ -12,7 +12,7 @@ export const getAllProducts = async (req, res) => {
 
     if (search) {
       const orFilters = [
-          { title: { $regex: search, $options: "i" } },
+          { name: { $regex: search, $options: "i" } },
           { 'category.name': { $regex: search, $options: "i" } },
           { 'brand.name': { $regex: search, $options: "i" } },
       ];
@@ -34,7 +34,7 @@ export const getAllProducts = async (req, res) => {
 
     // Pagination
     const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 10;
+    const limit = Number(req.query.limit) || 50;
     const skip = (page - 1) * limit;
 
     const totalItems = await Product.countDocuments(query);
@@ -42,7 +42,12 @@ export const getAllProducts = async (req, res) => {
     const products = await Product.find(query)
       .skip(skip)
       .limit(limit);
-    res.status(200).json({products: products, currentPage: page, totalPages: Math.ceil(totalItems / limit)});
+    res.status(200).json({
+      products: products, 
+      currentPage: page,
+      totalItems: totalItems,
+      totalPages: Math.ceil(totalItems / limit)
+    });
   } catch (error) {
     console.error('Error fetching products:', error);
     res.status(500).json({ message: 'Server error' });
@@ -67,8 +72,8 @@ export const getProductById = async (req, res) => {
 export const createProduct = async (req, res) => {
   try {
     // Check fields
-    if (!req.body.title || !req.body.price || !req.body.category || !req.body.brand) {   
-        return res.status(400).json({ message: 'Title, brand, category, and price are required' });
+    if (!req.body.name || !req.body.price || !req.body.category || !req.body.brand) {   
+        return res.status(400).json({ message: 'Name, brand, category, and price are required' });
     }
 
     // Check Category
@@ -87,7 +92,7 @@ export const createProduct = async (req, res) => {
 
     // Create Product
     const newProduct = Product({
-      title: req.body.title,
+      name: req.body.name,
       price: req.body.price,
       brand: {
         _id: brand._id,
@@ -112,7 +117,7 @@ export const createProduct = async (req, res) => {
 export const updateProduct = async (req, res) => {
   try {
     const newData = {};
-    if (req.body.title) newData.title = req.body.title;
+    if (req.body.name) newData.name = req.body.name;
     if (req.body.brand) newData.brand = req.body.brand;
     if (req.body.category) newData.category = req.body.category;
     if (req.body.description) newData.description = req.body.description;

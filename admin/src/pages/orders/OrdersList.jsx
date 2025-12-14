@@ -9,12 +9,17 @@ import Swal from 'sweetalert2';
 const OrdersList = () => {
   const location = useLocation();
   const navigate = useNavigate();
-
+  // Data
   const [orders, setOrders] = useState([]);
   const [search, setSearch] = useState('');
-
+  // Filters
   const [statusFilter, setStatusFilter] = useState(null);
   const [payedFilter, setPayedFilter] = useState(null);
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [limit, setLimit] = useState(50);
 
   const headers = [
     { label: 'User', field: 'userName', type: 'link', link: 'users' },
@@ -23,14 +28,16 @@ const OrdersList = () => {
     { label: 'Total Price', field: 'totalAmount', type: 'price' },
   ];
 
-  const getOrders = async (search, status, payed) => {
+  const getOrders = async (search, status, payed, currentPage, limit) => {
     try {
-      const response = await orderService.getOrders(search, status, payed);
-      const formatted = response.data.map(order => ({
+      const response = await orderService.getOrders(search, status, payed, currentPage, limit);
+      const formatted = response.data.orders.map(order => ({
         ...order,
         userName: order.user?.name || 'Deleted User',
       }));
       setOrders(formatted);
+      setTotalPages(response.data.totalPages);
+      setTotalItems(response.data.totalItems);
     } catch (error) {
       enqueueSnackbar('Failed to load orders', { variant: 'error' });
       console.error(error);
@@ -67,8 +74,8 @@ const OrdersList = () => {
 
   // Fetch orders when search/filter changes
   useEffect(() => {
-    getOrders(search, statusFilter, payedFilter);
-  }, [search, statusFilter, payedFilter]);
+    getOrders(search, statusFilter, payedFilter, currentPage, limit);
+  }, [search, statusFilter, payedFilter, currentPage, limit]);
 
 
   // Snackbar listener
@@ -122,7 +129,12 @@ const OrdersList = () => {
         filters={filters}
         tableName='Orders'
         handleDelete={handleDelete}
-        handleResetFilters={handleResetFilters} // optional, if DataTable supports it
+        // handleResetFilters={handleResetFilters}
+        // Pagination
+        currentPage={currentPage} setCurrentPage={setCurrentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        limit={limit} setLimit={setLimit}
       />
     </MainLayout>
   );

@@ -1,11 +1,13 @@
 import api from "./api";
 
 export const orderService = {
-    getOrders: (search, status, payed) => {
+    getOrders: (search, status, payed, page, limit) => {
         const params = {};
         if (search) params.search = search;
         if (status) params.status = status;
         if (payed) params.payed = payed;
+        if (page) params.page = page;
+        if (limit) params.limit = limit;
 
         return api.get("/orders", { params });
     },

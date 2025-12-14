@@ -1,11 +1,13 @@
 import api from "./api";
 
 export const productService = {
-    getProducts: (filters) => {
+    getProducts: (search, category, brand, page, limit) => {
         const params = {};
-        if (filters.search) params.search = filters.search;
-        if (filters.category) params.category = filters.category;
-        if (filters.brand) params.brand = filters.brand;
+        if (search) params.search = search;
+        if (category) params.category = category;
+        if (brand) params.brand = brand;
+        if (page) params.page = page;
+        if (limit) params.limit = limit;
 
         return api.get("/products", { params });
     },

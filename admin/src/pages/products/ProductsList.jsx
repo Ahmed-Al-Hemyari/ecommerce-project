@@ -15,33 +15,34 @@ const ProductsList = () => {
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [search, setSearch] = useState([]);
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [limit, setLimit] = useState(50);
 
   // Filters
   const [categoryFilter, setCategoryFilter] = useState(null);
   const [brandFilter, setBrandFilter] = useState(null);
 
   const headers = [
-    { label: 'Title', field: 'title', type: 'string' },
+    { label: 'Name', field: 'name', type: 'string' },
     { label: 'Category', field: 'category', type: 'link', link: 'categories' },
     { label: 'Brand', field: 'brand', type: 'link', link: 'brands' },
     { label: 'Price', field: 'price', type: 'price' },
   ];
 
-  const getProducts = async (search, category, brand) => {
+  const getProducts = async (search, category, brand, currentPage, limit) => {
     try {
-      const filters = {};
-
-      if (search) filters.search = search;
-      if (category) filters.category = category;
-      if (brand) filters.brand = brand;
-
-      const response = await productService.getProducts(filters);
-      const formatted = response.data.map(product => ({
+      const response = await productService.getProducts(search, category, brand, currentPage, limit);
+      const formatted = response.data.products.map(product => ({
         ...product,
-        category: product.category.name,
-        brand: product.brand.name,
+        category: product.category?.name || 'N/A',
+        brand: product.brand?.name || 'N/A',
       }));
       setProducts(formatted);
+      setTotalPages(response.data.totalPages);
+      setTotalItems(response.data.totalItems);
     } catch (error) {
       enqueueSnackbar("Failed to load products", {
         variant: 'error'
@@ -101,15 +102,17 @@ const ProductsList = () => {
     }
   }
 
+  // Initial useEffect
   useEffect(() => {
     getProducts();
     getCategories();
     getBrands();
   }, []);
 
+  // Filter, pagination useEffect
   useEffect(() => {
-    getProducts(search, categoryFilter, brandFilter);
-  }, [search, categoryFilter, brandFilter]);
+    getProducts(search, categoryFilter, brandFilter, currentPage, limit);
+  }, [search, categoryFilter, brandFilter, currentPage, limit]);
 
   // Snackbar listener
   useEffect(() => {
@@ -151,6 +154,11 @@ const ProductsList = () => {
         setSearch={setSearch}
         tableName='Products'
         handleDelete={handleDelete}
+        // Pagination
+        currentPage={currentPage} setCurrentPage={setCurrentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        limit={limit} setLimit={setLimit}
       />
     </MainLayout>
   )

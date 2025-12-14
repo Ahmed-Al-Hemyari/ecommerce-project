@@ -13,6 +13,11 @@ const UsersList = () => {
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState('');
   const [role, setRole] = useState(null);
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [limit, setLimit] = useState(50);
 
   const headers = [
     { label: "Name", field: "name", type: 'link', link: 'users' },
@@ -22,10 +27,10 @@ const UsersList = () => {
     { label: "Joined", field: "createdAt", type: 'string' },
   ];
 
-  const getUsers = async (search, role) => {
+  const getUsers = async (search, role, currentPage, limit) => {
     try {
-      const response = await userService.getUsers(search, role);
-      const formatted = response.data.map(user => ({
+      const response = await userService.getUsers(search, role, currentPage, limit);
+      const formatted = response.data.users.map(user => ({
         ...user,
         role: user.role.charAt(0).toUpperCase() + user.role.slice(1),
         createdAt: new Date(user.createdAt).toLocaleDateString("en-US", {
@@ -35,6 +40,8 @@ const UsersList = () => {
         }),
       }));
       setUsers(formatted);
+      setTotalPages(response.data.totalPages);
+      setTotalItems(response.data.totalItems);
     } catch (error) {
       enqueueSnackbar("Failed to load users", { variant: 'error' });
       console.error(error);
@@ -64,8 +71,8 @@ const UsersList = () => {
   };
 
   useEffect(() => {
-    getUsers(search, role);
-  }, [search, role]);
+    getUsers(search, role, currentPage, limit);
+  }, [search, role, currentPage, limit]);
 
   // Snackbar listener
   useEffect(() => {
@@ -101,6 +108,11 @@ const UsersList = () => {
         filters={filters}
         tableName='Users'
         handleDelete={handleDelete}
+        // Pagination
+        currentPage={currentPage} setCurrentPage={setCurrentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        limit={limit} setLimit={setLimit}
       />
     </MainLayout>
   );

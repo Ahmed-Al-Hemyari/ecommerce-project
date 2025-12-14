@@ -22,7 +22,7 @@ const ProductCard = ({product, onCartChange}) => {
     } else {
       const cartProduct = {
         _id: product._id,
-        title: product.title,
+        name: product.name,
         description: product.description,
         price: product.price,
         category: product.category,
@@ -41,13 +41,13 @@ const ProductCard = ({product, onCartChange}) => {
         <div className="relative">
             <img
               src={product.image ? `${url}${product.image}` : defaultProductImage}
-              alt={product.title}
+              alt={product.name}
               className="w-full h-48 object-cover"
             />
         </div>
         <div className="p-4">
             <div className="font-bold text-base" style={{ color: 'var(--color-dark-gray)' }}>
-              {product.title}
+              {product.name}
             </div>
             <div className="font-normal text-sm" style={{ color: 'var(--color-dark-gray)' }}>
               {product.brand.name}

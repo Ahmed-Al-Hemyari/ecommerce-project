@@ -10,6 +10,7 @@ import LinkCell from './LinkCell';
 import Input from '../Forms/Input';
 import { enqueueSnackbar } from 'notistack';
 import Filters from '../Filters';
+import Pagination from './Pagination';
 
 const DataTable = ({
   tableName = '',
@@ -20,11 +21,21 @@ const DataTable = ({
   search,
   setSearch,
   handleDelete,
+  // Pagination
+  currentPage, setCurrentPage,
+  totalPages, 
+  totalItems,
+  limit, setLimit
 }) => {
-
+  // Essentails
   const navigate = useNavigate();
   const location = useLocation();
-
+  // // Pagination
+  // const [currentPage, setCurrentPage] = useState();
+  // const [totalPages, setTotalPages] = useState();
+  // const [totalItems, setTotalItems] = useState();
+  // const [limit, setLimit] = useState();
+  // Cell Components
   const CellComponents = {
     string: StringCell,
     bool: BoolCell,
@@ -33,6 +44,7 @@ const DataTable = ({
     link: LinkCell
   }
 
+  // Handlers
   const handleCreate = () => {
     navigate(`${link}/create`);
   }
@@ -159,6 +171,22 @@ const DataTable = ({
                 </tr>
               )}
             </tbody>
+            <tfoot>
+              <tr>
+                <td colSpan={headers.length + 1}>
+                  <div className='flex flex-row justify-center pb-2'>
+                    <Pagination
+                      currentPage={currentPage}
+                      setCurrentPage={setCurrentPage}
+                      totalPages={totalPages}
+                      totalItems={totalItems}
+                      limit={limit}
+                      setLimit={setLimit}
+                    />
+                  </div>
+                </td>
+              </tr>
+            </tfoot>
           </table>
         </section>
       </div>

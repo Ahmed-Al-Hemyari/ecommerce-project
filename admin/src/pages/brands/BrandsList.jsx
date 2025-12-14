@@ -11,16 +11,23 @@ const BrandsList = () => {
   const navigate = useNavigate();
   const [brands, setBrands] = useState([]);
   const [search, setSearch] = useState([]);
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [limit, setLimit] = useState(50);
 
   const headers = [
     { label: "Name", field: "name", type: 'string' }
   ];
 
 
-  const getBrands = async (search) => {
+  const getBrands = async (search, currentPage, limit) => {
     try {
-      const response = await brandService.getBrands(search);
-      setBrands(response.data);
+      const response = await brandService.getBrands(search, currentPage, limit);
+      setBrands(response.data.brands);
+      setTotalPages(response.data.totalPages);
+      setTotalItems(response.data.totalItems);
     } catch (error) {
       enqueueSnackbar("Failed to load brands", { variant: 'error' });
       console.error(error);
@@ -60,8 +67,8 @@ const BrandsList = () => {
   }, []);
 
   useEffect(() => {
-    getBrands(search);
-  }, [search]);
+    getBrands(search, currentPage, limit);
+  }, [search, currentPage, limit]);
 
   // Snackbar listener
   useEffect(() => {
@@ -85,6 +92,11 @@ const BrandsList = () => {
         setSearch={setSearch}
         tableName='Brands'
         handleDelete={handleDelete}
+        // Pagination
+        currentPage={currentPage} setCurrentPage={setCurrentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        limit={limit} setLimit={setLimit}
       />
     </MainLayout>
   )

@@ -13,7 +13,7 @@ const CreateProduct = () => {
   // Errors
   const [formError, setFormError] = useState('');
   // fields
-  const [title, setTitle] = useState('');
+  const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState(0);
   const [category, setCategory] = useState();
@@ -23,7 +23,7 @@ const CreateProduct = () => {
   const getCategories = async () => {
     try {
       const response = await categoryService.getCategories();
-      setCategories(response.data);
+      setCategories(response.data.categories);
     } catch (error) {
       enqueueSnackbar('Failed to load categories');
       console.error(error);
@@ -33,7 +33,7 @@ const CreateProduct = () => {
   const getBrands = async () => {
     try {
       const response = await brandService.getBrands();
-      setBrands(response.data);
+      setBrands(response.data.brands);
     } catch (error) {
       enqueueSnackbar('Failed to load brands');
       console.error(error);
@@ -60,14 +60,14 @@ const CreateProduct = () => {
   const handleSubmit = async () => {
       setFormError('');
   
-      if (!title || !brand || !category || !price) {
+      if (!name || !brand || !category || !price) {
         setFormError('Please fill all fields with * ');
         return false;
       }
   
       try {
         const formData = new FormData();
-        formData.append('title', title);
+        formData.append('name', name);
         formData.append('brand', brand);
         formData.append('category', category);
         formData.append('price', price);
@@ -83,7 +83,7 @@ const CreateProduct = () => {
     }
   
     const resetForm = () => {
-      setTitle("");
+      setName("");
       setCategory("");
       setBrand("");
       setPrice(0);
@@ -93,12 +93,12 @@ const CreateProduct = () => {
 
   const inputs = [
     { 
-      label: 'Title', 
+      label: 'Name', 
       important: true, 
       type: 'text', 
       placeholder: 'Product name', 
-      value: title, 
-      setValue: setTitle 
+      value: name, 
+      setValue: setName 
     },
     { 
       label: 'Brand', 

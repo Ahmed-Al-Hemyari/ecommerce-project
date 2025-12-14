@@ -62,7 +62,7 @@ const Products = () => {
 const getBrands = async () => {
     try {
       const response = await brandService.getBrands();
-      setBrands(response.data);
+      setBrands(response.data.brands);
     } catch (error) {
       console.error(error);
       enqueueSnackbar("Failed to load brands", { variant: 'error' });
@@ -72,7 +72,7 @@ const getBrands = async () => {
   const getCategories = async () => {
     try {
       const response = await categoryService.getCategories();
-      setCategories(response.data);
+      setCategories(response.data.categories);
     } catch (error) {
       console.error(error);
       enqueueSnackbar("Failed to load categories", { variant: 'error' });
@@ -146,13 +146,13 @@ const getBrands = async () => {
   const filters = [
     {
       label: 'Category',
-      options: categories.slice(0, 10),
+      options: categories,
       value: category,
       setValue: setCategory,
     },
     {
       label: 'Brand',
-      options: brands.slice(0, 10),
+      options: brands,
       value: brand,
       setValue: setBrand,
     },

@@ -68,7 +68,7 @@ const SearchableDropdown = ({
                   }}
                   className="px-4 py-2 cursor-pointer hover:bg-gray-100"
                 >
-                  {option.name}
+                  {option.name ?? option.title}
                 </div>
               ))
             ) : (

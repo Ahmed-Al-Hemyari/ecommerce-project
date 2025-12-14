@@ -14,8 +14,22 @@ export const getAllBrands = async (req, res) => {
         ];
     }
 
-    const brands = await Brand.find(query);
-    res.status(200).json(brands);
+    // Pagination
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 50;
+    const skip = (page - 1) * limit;
+
+    const totalItems = await Brand.countDocuments(query);
+
+    const brands = await Brand.find(query)
+      .skip(skip)
+      .limit(limit);
+    res.status(200).json({
+      brands: brands, 
+      currentPage: page,
+      totalItems: totalItems,
+      totalPages: Math.ceil(totalItems / limit)
+    });
   } catch (error) {
     console.error('Error fetching brands:', error);
     res.status(500).json({ message: 'Server error' });
