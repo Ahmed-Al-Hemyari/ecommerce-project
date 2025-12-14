@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import AuthLayout from "@/layouts/AuthLayout";
 import {useSnackbar} from 'notistack'
 import {
-  register
+  authService
 } from '@/services/api-calls'
 import {allCountries} from 'country-telephone-data'
 
@@ -67,7 +67,7 @@ const Register = () => {
 
     try {
       // Call register API
-      const data = await register(trimmedName, trimmedEmail, normalizedPhone, trimmedPassword);
+      const data = await authService.register(trimmedName, trimmedEmail, normalizedPhone, trimmedPassword);
       console.log("Registered:", data);
 
       // Navigate to login page with snackbar message

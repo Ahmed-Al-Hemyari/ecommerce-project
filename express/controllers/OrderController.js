@@ -63,10 +63,27 @@ export const getOrderById = async (req, res) => {
 
 export const createOrder = async (req, res) => {
   try {
-    const { user, orderItems, shipping } = req.body;
+    const { orderItems, shipping } = req.body;
+    const userId = req.user._id;
+    console.log(req.body);
 
-    // Validate user
-    const existingUser = await User.findById(user);
+    // 🔐 Basic validation
+    if (!Array.isArray(orderItems) || orderItems.length === 0) {
+      return res.status(400).json({ message: "Invalid order data" });
+    }
+
+    if (
+      !shipping?.address1 ||
+      !shipping?.city ||
+      !shipping?.zip ||
+      !shipping?.country ||
+      !shipping?.paymentMethod
+    ) {
+      return res.status(400).json({ message: "Incomplete shipping data" });
+    }
+
+    // 👤 Validate user
+    const existingUser = await User.findById(userId);
     if (!existingUser) {
       return res.status(400).json({ message: "User not found" });
     }
@@ -75,26 +92,33 @@ export const createOrder = async (req, res) => {
     const itemsSnapshot = [];
 
     for (const item of orderItems) {
-      const product = await Product.findById(item.product);
+      const productId = item.product?._id || item.product;
+
+      const product = await Product.findById(productId);
       if (!product) {
         return res.status(400).json({ message: "Invalid product in order" });
       }
 
-      const itemTotal = product.price * item.quantity;
-      totalAmount += itemTotal;
+      const quantity = Number(item.quantity) || 0;
+      const price = Number(product.price) || 0;
 
-      // 🔹 Product snapshot
+      if (quantity <= 0) {
+        return res.status(400).json({ message: "Invalid quantity" });
+      }
+
+      totalAmount += price * quantity;
+
       itemsSnapshot.push({
         product: {
           _id: product._id,
           title: product.title,
         },
-        quantity: item.quantity,
-        price: product.price,
+        quantity,
+        price,
       });
     }
 
-    totalAmount += 5; // Shipping fee
+    totalAmount += 5; // shipping fee
 
     const order = await Order.create({
       user: {
@@ -109,6 +133,7 @@ export const createOrder = async (req, res) => {
     res.status(201).json(order);
 
   } catch (error) {
+    console.error("CREATE ORDER ERROR:", error);
     res.status(500).json({ message: error.message });
   }
 };

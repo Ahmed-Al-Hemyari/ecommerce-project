@@ -2,14 +2,16 @@ import React, { useState, useEffect } from "react";
 import MainLayout from '../layouts/MainLayout';
 import { readLocalStorageItem } from "../services/LocalStorageFunctions";
 import { countries } from '../services/countries'
-import { createOrder } from "../services/api-calls";
+import { 
+    orderService
+ } from "../services/api-calls";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import { useSnackbar } from "notistack";
 
 const Checkout = () => {
-  const user = readLocalStorageItem('user');
-  const userId = user?.id;
+//   const user = readLocalStorageItem('user');
+//   const userId = user?.id;
 
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
@@ -63,7 +65,12 @@ const Checkout = () => {
     }
 
     try {
-        const response = await createOrder(userId, cart, shippingData);
+        const orderItems = cart.map(item => ({
+            product: item._id,
+            quantity: item.quantity
+        }));
+        console.log(orderItems);
+        const response = await orderService.createOrder({orderItems, shipping: shippingData});
         localStorage.setItem('cart', JSON.stringify([]));
         navigate("/", {
             state: {

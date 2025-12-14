@@ -7,7 +7,7 @@ import fs from 'fs';
 // Get all products
 export const getAllProducts = async (req, res) => {
   try {
-    const { search, category, brand } = req.query;
+    const { search, category, brand, minPrice, maxPrice } = req.query;
     const query = {};
 
     if (search) {
@@ -26,11 +26,23 @@ export const getAllProducts = async (req, res) => {
 
     if (category) query['category._id'] = category;
     if (brand) query['brand._id'] = brand;
+    if (minPrice || maxPrice) {
+      query.price = {};
+      if (minPrice) query.price.$gte = Number(minPrice);
+      if (maxPrice) query.price.$lte = Number(maxPrice);
+    }
+
+    // Pagination
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const totalItems = await Product.countDocuments(query);
 
     const products = await Product.find(query)
-      .populate('category')
-      .populate('brand');
-    res.status(200).json(products);
+      .skip(skip)
+      .limit(limit);
+    res.status(200).json({products: products, currentPage: page, totalPages: Math.ceil(totalItems / limit)});
   } catch (error) {
     console.error('Error fetching products:', error);
     res.status(500).json({ message: 'Server error' });

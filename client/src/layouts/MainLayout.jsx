@@ -6,7 +6,7 @@ import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router-dom';
 import { readLocalStorageItem } from '../services/LocalStorageFunctions';
 import {
-  isAuth
+  authService
 } from '../services/api-calls.js'
 
 const MainLayout = ({ page, children }) => {
@@ -47,7 +47,7 @@ const MainLayout = ({ page, children }) => {
     }
 
     try {
-      const response = await isAuth();
+      const response = await authService.checkAuth();
       if(!response)
       {
         localStorage.removeItem('token');

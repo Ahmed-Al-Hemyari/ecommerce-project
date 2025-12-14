@@ -15,14 +15,16 @@ import reviewRoutes from './routes/ReviewRoutes.js';
 import multer from 'multer';
 
 // Load environment variables
-dotenv.config();
 const app = express();
+dotenv.config();
 
 // Uploads Folder
 app.use('/uploads', express.static('uploads'));
 
 // Middleware
 app.use(express.json());
+app.use(cors());
+app.use(express.urlencoded({ extended: true }));
 
 // Connect to MongoDB
 mongoose.connect(uri)
@@ -33,18 +35,6 @@ mongoose.connect(uri)
     console.error('Error connecting to MongoDB database:', error);
 });
 
-app.use(cors());
-// // CORS Middleware
-// app.use(cors(
-//     {
-//         origin: 'http://localhost:3000',
-//         methods: ['GET', 'POST', 'PUT', 'DELETE'],
-//     },
-//     {
-//         origin: 'http://localhost:4000',
-//         methods: ['GET', 'POST', 'PUT', 'DELETE'],
-//     },
-// ));
 
 // // Routes
 app.get('/', (req, res) => {

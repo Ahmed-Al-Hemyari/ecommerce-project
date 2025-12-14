@@ -4,7 +4,9 @@ import AuthLayout from '../layouts/AuthLayout'
 import { Link, useNavigate } from 'react-router-dom';
 import {allCountries} from 'country-telephone-data'
 import { readLocalStorageItem, extractPhoneParts } from '../services/LocalStorageFunctions';
-import { editProfile } from '../services/api-calls';
+import { 
+    authService
+ } from '../services/api-calls';
 
 const EditProfile = () => {
     const user = readLocalStorageItem('user');
@@ -50,8 +52,10 @@ const EditProfile = () => {
     
         try {
             // Call register API
-            const data = await editProfile(trimmedName, trimmedEmail, normalizedPhone);
-            console.log("Updated:", data);
+            const response = await authService.updateProfile({name: trimmedName, email: trimmedEmail, phone: normalizedPhone});
+            console.log("Updated:", response);
+
+            localStorage.setItem("user", JSON.stringify(response.data.user));
     
             // Navigate to login page with snackbar message
             navigate("/profile", {

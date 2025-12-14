@@ -10,11 +10,12 @@ import {
     removeFromLocalStorage,
 } from '@/services/LocalStorageFunctions'
 import {
-    fetchProductById
-} from '@/services/api-calls'
+    productService,
+    authService
+} from '../services/api-calls'
 import Swal from 'sweetalert2'
 import { useSnackbar } from 'notistack';
-import { createOrder } from '../services/api-calls';
+
 const url = import.meta.env.VITE_IMAGES_BACKEND_URL;
 
 const Cart = () => {
@@ -32,7 +33,7 @@ const Cart = () => {
 
         // 2. Load profile
         try {
-            const data = await profile();
+            const data = await authService.getProfile();
             setUser(data);
             setIsAuthenticated(true);
         } catch (error) {
@@ -45,18 +46,28 @@ const Cart = () => {
     const loadCart = async () => {
         const items = readLocalStorageItem('cart') || [];
 
-        const fullCart = await Promise.all(items.map(async (item) => {
+        const fullCart = await Promise.all(
+            items.map(async (item) => {
             try {
-                const product = await fetchProductById(item._id);
-                return { ...product, quantity: item.quantity };
+                const res = await productService.getProduct(item._id);
+
+                const product = res.data; // ✅ THIS IS THE FIX
+
+                return {
+                ...product,
+                price: Number(product.price) || 0,
+                quantity: item.quantity,
+                };
             } catch (error) {
                 console.error("Error fetching product:", error);
-                return null; // skip failed items
+                return null;
             }
-        }));
+            })
+        );
 
-        setCartItems(fullCart.filter(item => item !== null));
+        setCartItems(fullCart.filter(Boolean));
     };
+
 
     const handleQuantity = (id, type) => {
         setCartItems(prevCart => {
@@ -141,19 +152,14 @@ const Cart = () => {
                     <div className="md:col-span-2 space-y-4">
                     {cartItems.map(item => (
                         <div key={item._id} className="flex items-center bg-white p-4 rounded-lg shadow-sm">
-                            {/* <img
-                                src={item.image ? `http://localhost:5000${item.image}` : defaultProductImage}
-                                alt={item.title}
-                                className="w-full h-48 object-cover"
-                            /> */}
                             <img 
                                 src={item.image ? `${url}${item.image}` : defaultProductImage} 
                                 alt={item.title} 
                                 className="w-24 h-24 object-cover rounded" 
                             />
-                            <div className="ml-4 flex-1">
+                            <div className="ml-4 flex-1">   
                                 <h2 className="font-medium text-(--color-dark-gray)">{item.title}</h2>
-                                <p className="text-gray-500">${item.price.toFixed(2) ?? '0.00'}</p>
+                                <p className="text-gray-500">${Number(item.price || 0).toFixed(2) ?? '0.00'}</p>
                                 <div className="flex items-center mt-2 gap-2">
                                 <button className="px-2 py-1 border border-(--color-light-gray) rounded" onClick={() => handleQuantity(item._id, 'dec')}>-</button>
                                     <span className="px-3 py-1 border border-(--color-light-gray) rounded">{item.quantity}</span>
@@ -161,7 +167,7 @@ const Cart = () => {
                                 </div>
                             </div>
                             <div className="ml-4 text-right">
-                                <p className="font-semibold">${(item.price * item.quantity)?.toFixed(2) ?? '0.00'}</p>
+                                <p className="font-semibold">${(Number(item.price || 0) * item.quantity)?.toFixed(2) ?? '0.00'}</p>
                                 <button className="mt-2 text-red-500 hover:underline cursor-pointer" onClick={() => handleRemove(item._id)}><AiOutlineDelete size={20}/></button>
                             </div>
                         </div>

@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import MainLayout from '../layouts/MainLayout';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
-import { getOrders, cancelOrderById } from '../services/api-calls';
+import { 
+  orderService
+} from '../services/api-calls';
 import OrderCard from '../components/OrderCard';
 
 const Orders = () => {
@@ -14,8 +16,8 @@ const Orders = () => {
   const fetchOrders = async () => {
     try {
       const user = JSON.parse(localStorage.getItem('user'));
-      const response = await getOrders(user.id);
-      setOrders(response);
+      const response = await orderService.getOrders();
+      setOrders(response.data);
     } catch (error) {
       console.error(error);
     }
@@ -24,7 +26,7 @@ const Orders = () => {
   // Handle cancel click
   const handleCancel = async (orderId) => {
     try {
-      await cancelOrderById(orderId);
+      await orderService.cancelOrder(orderId);
       fetchOrders();
       enqueueSnackbar("Order cancelled successfully!", { variant: "success" });
     } catch (err) {

@@ -61,22 +61,33 @@ export const createBrand = async (req, res) => {
 // Update an existing product
 export const updateBrand = async (req, res) => {
   try {
+    if (!req.body) {
+      return res.status(400).json({ message: 'No data provided' });
+    }
+
     const newData = {};
+    console.log(req.body);
+
     if (req.body.name) newData.name = req.body.name;
-    if (req.body.logo) newData.name = req.body.logo;
+    if (req.body.logo) newData.logo = req.body.logo; // <-- fixed
+
     const updatedBrand = await Brand.findByIdAndUpdate(
       req.params.id,
       { $set: newData },
+      { new: true } // return the updated document
     );
+
     if (!updatedBrand) {
       return res.status(404).json({ message: 'Brand not found' });
     }
-    res.status(200).json({ message: 'Brand updated successfully' });
+
+    res.status(200).json({ message: 'Brand updated successfully', brand: updatedBrand });
   } catch (error) {
     console.error('Error updating brand:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
+
 
 // Delete a product
 export const deleteBrand = async (req, res) => {

@@ -3,9 +3,8 @@ import logo from "@/assets/quickbuylogo.svg";
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import AuthLayout from "@/layouts/AuthLayout";
 import {
-  loginByEmail,
-  loginByPhone
-} from '@/services/api-calls'
+  authService
+} from '../../services/api-calls.js'
 import {useSnackbar} from 'notistack'
 import {allCountries} from 'country-telephone-data'
 
@@ -80,17 +79,18 @@ const Login = () => {
     if (!isValid) return;
 
     try {
-      let data;
+      let response;
       if (phoneLogin) {
         const fullPhone = countryCode + phone.trim(); // include country code
-        data = await loginByPhone(fullPhone, password);
+        response = await authService.loginByPhone({phone: fullPhone, password});
       } else {
-        data = await loginByEmail(email, password);
+        response = await authService.loginByEmail({email, password});
       }
 
-      console.log(data);
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
+      console.log(response);
+      localStorage.setItem("token", response.data.token || "");
+      localStorage.setItem("user", JSON.stringify(response.data.user || null));
+
       resetForm();
       navigate("/", {
         state: {

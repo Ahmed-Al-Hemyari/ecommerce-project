@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { allCountries } from 'country-telephone-data';
 import MainLayout from '../layouts/MainLayout';
 import AuthLayout from '../layouts/AuthLayout';
-import { changePassword } from '../services/api-calls';
+import { authService } from '../services/api-calls';
 import { useNavigate } from 'react-router-dom';
 
 const ChangePassword = () => {
@@ -38,7 +38,10 @@ const ChangePassword = () => {
 
     try {
         // Call register API
-        const data = await changePassword(trimmedOldPassword, trimmedNewPassword);
+        const data = await authService.changePassword({
+            oldPassword: trimmedOldPassword, 
+            newPassword: trimmedNewPassword
+        });
         console.log("Password Updated Successfully: ", data);
 
         // Navigate to login page with snackbar message

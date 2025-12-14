@@ -46,7 +46,12 @@ const ProductCard = ({product, onCartChange}) => {
             />
         </div>
         <div className="p-4">
-            <div className="font-medium text-sm" style={{ color: 'var(--color-dark-gray)' }}>{product.title}</div>
+            <div className="font-bold text-base" style={{ color: 'var(--color-dark-gray)' }}>
+              {product.title}
+            </div>
+            <div className="font-normal text-sm" style={{ color: 'var(--color-dark-gray)' }}>
+              {product.brand.name}
+            </div>
             <div className="mt-2 flex items-center justify-between">
                 <div className="text-lg font-bold">${product.price}</div>
                 <button

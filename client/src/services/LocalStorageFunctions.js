@@ -1,8 +1,15 @@
 // Read
 export const readLocalStorageItem = (key) => {
-    const items = JSON.parse(localStorage.getItem(key)) || [];
-    return items;
-}
+  const value = localStorage.getItem(key);
+  if (!value) return null;
+
+  try {
+    return JSON.parse(value);
+  } catch (err) {
+    console.error(`Invalid JSON in localStorage for key "${key}"`, value);
+    return null;
+  }
+};
 
 // Create
 export const addToLocalStorage = (key, newObj) => {
