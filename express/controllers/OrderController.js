@@ -78,7 +78,6 @@ export const getOrderById = async (req, res) => {
 export const createOrder = async (req, res) => {
   try {
     const { userId, orderItems, shipping } = req.body;
-    console.log(req.body);
 
     // 🔐 Basic validation
     if (!Array.isArray(orderItems) || orderItems.length === 0) {
