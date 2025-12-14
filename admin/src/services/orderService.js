@@ -14,7 +14,8 @@ export const orderService = {
     getOrder : (id) => api.get(`/orders/${id}`),
     createOrder : (data) => api.post("/orders", data),
     updateOrder : (id, data) => api.put(`/orders/${id}`, data),
-    deleteOrder : (id) => api.delete(`/orders/${id}`),
+    // deleteOrder : (id) => api.delete(`/orders/${id}`),
+    cancelOrder: (id) => api.put(`/orders/${id}/cancel`),
 }
 
 export default orderService;

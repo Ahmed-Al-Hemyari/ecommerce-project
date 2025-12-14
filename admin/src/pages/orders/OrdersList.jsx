@@ -44,21 +44,21 @@ const OrdersList = () => {
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleCancel = async (id) => {
     const result = await Swal.fire({
-      title: 'Delete Order',
-      text: 'Are you sure you want to delete this order?',
+      title: 'Cancel Order',
+      text: 'Are you sure you want to cancel this order?',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Yes, delete it',
+      confirmButtonText: 'Yes, cancel it',
       confirmButtonColor: '#d50101',
     });
 
     if (!result.isConfirmed) return;
 
     try {
-      await orderService.deleteOrder(id);
-      enqueueSnackbar('Order deleted successfully', { variant: 'success' });
+      await orderService.cancelOrder(id);
+      enqueueSnackbar('Order cancelled successfully', { variant: 'success' });
       // Refresh orders after deletion
       const payedValue = payedFilter
         ? payedFilter === 'Payed'
@@ -128,8 +128,7 @@ const OrdersList = () => {
         setSearch={setSearch}
         filters={filters}
         tableName='Orders'
-        handleDelete={handleDelete}
-        // handleResetFilters={handleResetFilters}
+        handleCancel={handleCancel}
         // Pagination
         currentPage={currentPage} setCurrentPage={setCurrentPage}
         totalPages={totalPages}

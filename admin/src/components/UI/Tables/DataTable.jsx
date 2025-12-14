@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import ActionButton from './ActionButton';
-import { Edit, Eye, Plus, Search, Square, SquarePlus, Trash } from 'lucide-react';
+import { Edit, Eye, Plus, Search, Square, SquarePlus, Trash, X } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import StringCell from './StringCell';
 import BoolCell from './BoolCell';
@@ -21,6 +21,7 @@ const DataTable = ({
   search,
   setSearch,
   handleDelete,
+  handleCancel,
   // Pagination
   currentPage, setCurrentPage,
   totalPages, 
@@ -156,7 +157,8 @@ const DataTable = ({
                       })}
                     <td className='border-b'>
                       <div className="flex flex-row-reverse items-center justify-center">
-                        <ActionButton Icon={Trash} size={18} color={'#d50101'} handleClick={() => handleDelete(item._id)}/>
+                        {link !== '/orders' && <ActionButton Icon={Trash} size={18} color={'#d50101'} handleClick={() => handleDelete(item._id)}/>}
+                        {link === '/orders' && <ActionButton Icon={X} size={18} color={'#d50101'} handleClick={() => handleCancel(item._id)}/>}
                         <ActionButton Icon={Edit} size={18} color={'#333333'} handleClick={() => handleEdit(item._id)}/>
                         <ActionButton Icon={Eye} size={18} color={'#333333'} handleClick={() => handleShow(item._id)}/>
                       </div>
