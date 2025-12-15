@@ -13,6 +13,8 @@ const UsersList = () => {
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState('');
   const [role, setRole] = useState(null);
+  // Laoding
+  const [loading, setLoading] = useState(true);
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -20,7 +22,7 @@ const UsersList = () => {
   const [limit, setLimit] = useState(50);
 
   const headers = [
-    { label: "Name", field: "name", type: 'link', link: 'users' },
+    { label: "Name", field: "name", type: 'string' },
     { label: "Email", field: "email", type: 'string' },
     { label: "Phone", field: "phone", type: 'string' },
     { label: "Role", field: "role", type: 'string' },
@@ -28,6 +30,7 @@ const UsersList = () => {
   ];
 
   const getUsers = async (search, role, currentPage, limit) => {
+    setLoading(true);
     try {
       const response = await userService.getUsers(search, role, currentPage, limit);
       const formatted = response.data.users.map(user => ({
@@ -45,6 +48,8 @@ const UsersList = () => {
     } catch (error) {
       enqueueSnackbar("Failed to load users", { variant: 'error' });
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -108,6 +113,8 @@ const UsersList = () => {
         filters={filters}
         tableName='Users'
         handleDelete={handleDelete}
+        // Loading
+        loading={loading}
         // Pagination
         currentPage={currentPage} setCurrentPage={setCurrentPage}
         totalPages={totalPages}

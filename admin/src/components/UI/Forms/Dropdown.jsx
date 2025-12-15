@@ -32,7 +32,7 @@ const Dropdown = ({
           {placeholder}
         </option>
 
-        {options.map((option) => (
+        {options?.map((option) => (
           <option
             key={option._id}
             value={option._id}

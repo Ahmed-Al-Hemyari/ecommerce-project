@@ -1,15 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import Navbar from '../components/Navbar';
-import Footer from '@/components/Footer';
+import Navbar from './Navbar';
 import { useSnackbar } from 'notistack';
 import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router-dom';
-import { readLocalStorageItem } from '../services/LocalStorageFunctions';
-import {
-  authService
-} from '../services/api-calls.js'
+import authService from '@/services/authService';
 
-const MainLayout = ({ page, children }) => {
+const ProfileLayout = ({ children }) => {
   const { enqueueSnackbar } = useSnackbar();
   const navigate = useNavigate();
 
@@ -46,8 +42,9 @@ const MainLayout = ({ page, children }) => {
       return;
     }
 
+    // Check auth form api
     try {
-      const response = await authService.checkAuth();
+      const response = await authService.checkAuthAndAdmin();
       if(!response)
       {
         localStorage.removeItem('token');
@@ -60,8 +57,8 @@ const MainLayout = ({ page, children }) => {
       return;
     }
 
-    // 2. Load user from localStorage
-    const storedUser = readLocalStorageItem('user');
+    // 3. Load user from localStorage
+    const storedUser = JSON.parse(localStorage.getItem('user'));
     if (storedUser) {
       setUser(storedUser);
       setIsAuthenticated(true);
@@ -77,14 +74,14 @@ const MainLayout = ({ page, children }) => {
 
   return (
     <div>
-      <Navbar page={page} user={user} logout={handleLogout} />
-      <div className="bg-gray-50 text-gray-800 min-h-[calc(100vh-2rem)]">
+      <Navbar user={user} logout={handleLogout}/>
+      <div className="bg-gray-50 text-gray-800 min-h-[calc(100vh-5rem)] pt-20">
         {children}
       </div>
 
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 };
 
-export default MainLayout;
+export default ProfileLayout;

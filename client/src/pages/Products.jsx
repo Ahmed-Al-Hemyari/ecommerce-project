@@ -178,16 +178,24 @@ const getBrands = async () => {
         setValue={setSearch}
       />
       <Filters inputs={filters}/>
-      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 px-5">
-        {loading ? (<Spinner />) : (
-          products.length === 0 ?
-            <h1 className='text-lg'>No Products Found</h1> :
-          products.map(product => (
-            <ProductCard key={product._id} product={product} onCartChange={handleCartChange}/>
-          ))
+        {loading ? (
+          <div className="w-full min-h-[50vh] flex items-center justify-center">
+            <Spinner />
+          </div>
+        ) : (
+          <>
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 px-5">
+              {
+                products.length === 0 ?
+                  <h1 className='text-lg'>No Products Found</h1> :
+                products.map(product => (
+                  <ProductCard key={product._id} product={product} onCartChange={handleCartChange}/>
+                ))  
+              }
+            </div>
+            <Pagination currentPage={currentPage} totalPages={totalPages} setCurrentPage={setCurrentPage}/>
+          </>
         )}
-      </div>
-      <Pagination currentPage={currentPage} totalPages={totalPages} setCurrentPage={setCurrentPage}/>
     </MainLayout>
   );
 };

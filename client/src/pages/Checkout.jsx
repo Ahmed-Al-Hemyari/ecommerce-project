@@ -10,8 +10,8 @@ import { useNavigate } from "react-router-dom";
 import { useSnackbar } from "notistack";
 
 const Checkout = () => {
-//   const user = readLocalStorageItem('user');
-//   const userId = user?.id;
+  const user = readLocalStorageItem('user');
+  const userId = user?.id;
 
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
@@ -70,7 +70,7 @@ const Checkout = () => {
             quantity: item.quantity
         }));
         console.log(orderItems);
-        const response = await orderService.createOrder({orderItems, shipping: shippingData});
+        const response = await orderService.createOrder({userId: userId, orderItems, shipping: shippingData});
         localStorage.setItem('cart', JSON.stringify([]));
         navigate("/", {
             state: {

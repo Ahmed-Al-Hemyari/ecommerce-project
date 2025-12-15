@@ -20,6 +20,14 @@ import ProductsList from './pages/products/ProductsList'
 import CreateProduct from './pages/products/CreateProduct'
 import UpdateProduct from './pages/products/UpdateProduct'
 import Login from './pages/auth/Login'
+import Profile from './pages/profile/Profile'
+import EditProfile from './pages/profile/EditProfile'
+import ChangePassword from './pages/profile/ChangePassword'
+import ShowBrand from './pages/brands/ShowBrand'
+import ShowProduct from './pages/products/ShowProduct'
+import ShowCategory from './pages/categories/ShowCategory'
+import ShowOrder from './pages/orders/ShowOrder'
+import ShowUser from './pages/users/ShowUser'
 
 const App = () => {
   const navigate = useNavigate();
@@ -40,6 +48,32 @@ const App = () => {
       path="/"
       element={
         <Navigate to={'/dashboard'} replace/>
+      }
+    />
+
+    {/* Profile */}
+    <Route
+      path="/profile"
+      element={
+        <ProtectRoute>
+          <Profile />
+        </ProtectRoute>
+      }
+    />
+    <Route
+      path="/profile/edit"
+      element={
+        <ProtectRoute>
+          <EditProfile />
+        </ProtectRoute>
+      }
+    />
+    <Route
+      path="/profile/change-password"
+      element={
+        <ProtectRoute>
+          <ChangePassword />
+        </ProtectRoute>
       }
     />
 
@@ -79,6 +113,15 @@ const App = () => {
       }
     />
 
+    <Route
+      path="/brands/show/:id"
+      element={
+        <ProtectRoute>
+          <ShowBrand />
+        </ProtectRoute>
+      }
+    />
+
     {/* Products */}
     <Route
       path="/products"
@@ -107,6 +150,14 @@ const App = () => {
       }
     />
 
+    <Route
+      path="/products/show/:id"
+      element={
+        <ProtectRoute>
+          <ShowProduct />
+        </ProtectRoute>
+      }
+    />
     {/* Categories */}
     <Route
       path="/categories"
@@ -131,6 +182,15 @@ const App = () => {
       element={
         <ProtectRoute>
           <UpdateCategory />
+        </ProtectRoute>
+      }
+    />
+    
+    <Route
+      path="/categories/show/:id"
+      element={
+        <ProtectRoute>
+          <ShowCategory />
         </ProtectRoute>
       }
     />
@@ -163,6 +223,15 @@ const App = () => {
       }
     />
 
+    <Route
+      path="/orders/show/:id"
+      element={
+        <ProtectRoute>
+          <ShowOrder />
+        </ProtectRoute>
+      }
+    />
+
     {/* Users */}
     <Route
       path="/users"
@@ -187,6 +256,15 @@ const App = () => {
       element={
         <ProtectRoute>
           <UpdateUser />
+        </ProtectRoute>
+      }
+    />
+
+    <Route
+      path="/users/show/:id"
+      element={
+        <ProtectRoute>
+          <ShowUser />
         </ProtectRoute>
       }
     />

@@ -19,7 +19,7 @@ export const categoryService = {
 }
 
 export const productService = {
-    getProducts: ({search, category, brand, minPrice, maxPrice, page} = {}) => {
+    getProducts: ({search, category, brand, minPrice, maxPrice, page, limit=10} = {}) => {
         const params = {};
 
         if(search) params.search = search;
@@ -28,6 +28,7 @@ export const productService = {
         if(minPrice) params.minPrice = minPrice;
         if(maxPrice) params.maxPrice = maxPrice;
         if(page) params.page = page;
+        if(limit) params.limit = limit;
 
         return api.get("/products", { params });
     },

@@ -8,18 +8,20 @@ import DataTable from '@/components/UI/Tables/DataTable'
 import categoryService from '@/services/categoryService'
 import brandService from '@/services/brandService'
 
-const ProductsList = () => {
+const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
-  const [search, setSearch] = useState([]);
+  const [search, setSearch] = useState('');
+  // Loading
+  const [loading, setLoading] = useState(true);
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [limit, setLimit] = useState(50);
+  const [limit, setLimit] = useState(propLimit);
 
   // Filters
   const [categoryFilter, setCategoryFilter] = useState(null);
@@ -33,28 +35,25 @@ const ProductsList = () => {
   ];
 
   const getProducts = async (search, category, brand, currentPage, limit) => {
+    setLoading(true);
     try {
       const response = await productService.getProducts(search, category, brand, currentPage, limit);
-      const formatted = response.data.products.map(product => ({
-        ...product,
-        category: product.category?.name || 'N/A',
-        brand: product.brand?.name || 'N/A',
-      }));
-      setProducts(formatted);
+      setProducts(response.data.products);
       setTotalPages(response.data.totalPages);
       setTotalItems(response.data.totalItems);
     } catch (error) {
       enqueueSnackbar("Failed to load products", {
         variant: 'error'
       });
-      console.error(error);
+    } finally {
+      setLoading(false);
     }
   }
 
   const getCategories = async () => {
     try {
       const response = await categoryService.getCategories();
-      setCategories(response.data);
+      setCategories(response.data.categories || []);
     } catch (error) {
       enqueueSnackbar("Failed to load categories", {
         variant: 'error'
@@ -66,7 +65,7 @@ const ProductsList = () => {
   const getBrands = async () => {
     try {
       const response = await brandService.getBrands();
-      setBrands(response.data);
+      setBrands(response.data.brands || []);
     } catch (error) {
       enqueueSnackbar("Failed to load brands", {
         variant: 'error'
@@ -104,10 +103,13 @@ const ProductsList = () => {
 
   // Initial useEffect
   useEffect(() => {
-    getProducts();
-    getCategories();
-    getBrands();
-  }, []);
+  if (category) setCategoryFilter(category);
+  if (brand) setBrandFilter(brand);
+
+  getCategories();
+  getBrands();
+}, [category, brand]);
+
 
   // Filter, pagination useEffect
   useEffect(() => {
@@ -143,25 +145,49 @@ const ProductsList = () => {
     }
   ];
 
-  return (
-    <MainLayout>
-      <DataTable
-        headers={headers}
-        link='/products'
-        data={products}
-        filters={filters}
-        search={search}
-        setSearch={setSearch}
-        tableName='Products'
-        handleDelete={handleDelete}
-        // Pagination
-        currentPage={currentPage} setCurrentPage={setCurrentPage}
-        totalPages={totalPages}
-        totalItems={totalItems}
-        limit={limit} setLimit={setLimit}
-      />
-    </MainLayout>
-  )
+  return inner ? (
+     <DataTable
+      headers={headers}
+      link="/products"
+      data={products}
+      filters={filters}
+      search={search}
+      setSearch={setSearch}
+      tableName="Products"
+      handleDelete={handleDelete}
+      loading={loading}
+      // Pagination
+      currentPage={currentPage}
+      setCurrentPage={setCurrentPage}
+      totalPages={totalPages}
+      totalItems={totalItems}
+      limit={limit}
+      setLimit={setLimit}
+      inner={inner}
+    />
+  ) : (
+      <MainLayout>
+        <DataTable
+          headers={headers}
+          link="/products"
+          data={products}
+          filters={filters}
+          search={search}
+          setSearch={setSearch}
+          tableName="Products"
+          handleDelete={handleDelete}
+          loading={loading}
+          // Pagination
+          currentPage={currentPage}
+          setCurrentPage={setCurrentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          limit={limit}
+          setLimit={setLimit}
+        />
+      </MainLayout>
+  );
+
 }
 
 export default ProductsList

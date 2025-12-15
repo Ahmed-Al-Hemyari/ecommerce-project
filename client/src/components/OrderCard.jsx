@@ -27,7 +27,7 @@ const OrderCard = ({ order, onCancel }) => {
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <span className="text-sm font-medium text-gray-500">
-          Order <span className="text-blue-800 font-bold">#{order._id.slice(-6).toUpperCase()}</span>
+          Order <span className="text-blue-800 font-bold">#{order.orderId}</span>
         </span>
         <span className="text-sm text-gray-400">
           {new Date(order.createdAt).toLocaleDateString()}

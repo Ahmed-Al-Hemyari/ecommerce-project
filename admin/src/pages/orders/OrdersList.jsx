@@ -15,6 +15,8 @@ const OrdersList = () => {
   // Filters
   const [statusFilter, setStatusFilter] = useState(null);
   const [payedFilter, setPayedFilter] = useState(null);
+  // Loading
+  const [loading, setLoading] = useState(true);
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -22,18 +24,21 @@ const OrdersList = () => {
   const [limit, setLimit] = useState(50);
 
   const headers = [
-    { label: 'User', field: 'userName', type: 'link', link: 'users' },
+    { label: 'User', field: 'user', type: 'link', link: 'users' },
     { label: 'Status', field: 'status', type: 'status' },
     { label: 'Payed', field: 'payed', type: 'bool' },
     { label: 'Total Price', field: 'totalAmount', type: 'price' },
   ];
 
   const getOrders = async (search, status, payed, currentPage, limit) => {
+    setLoading(true);
     try {
       const response = await orderService.getOrders(search, status, payed, currentPage, limit);
       const formatted = response.data.orders.map(order => ({
         ...order,
-        userName: order.user?.name || 'Deleted User',
+        user: order.user
+          ? { _id: order.user._id, name: order.user.name }
+          : null,
       }));
       setOrders(formatted);
       setTotalPages(response.data.totalPages);
@@ -41,6 +46,8 @@ const OrdersList = () => {
     } catch (error) {
       enqueueSnackbar('Failed to load orders', { variant: 'error' });
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -68,7 +75,6 @@ const OrdersList = () => {
       getOrders(search, statusFilter, payedValue);
     } catch (error) {
       enqueueSnackbar('Failed to delete order', { variant: 'error' });
-      console.error(error);
     }
   };
 
@@ -129,6 +135,8 @@ const OrdersList = () => {
         filters={filters}
         tableName='Orders'
         handleCancel={handleCancel}
+        // Loading
+        loading={loading}
         // Pagination
         currentPage={currentPage} setCurrentPage={setCurrentPage}
         totalPages={totalPages}

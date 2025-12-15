@@ -13,12 +13,14 @@ import Profile from '@/pages/Profile'
 import Orders from '@/pages/Orders'
 import EditProfile from './pages/EditProfile'
 import ChangePassword from './pages/ChangePassword'
+import ProductShow from './pages/ProductShow'
 
 const App = () => {
   return (
     <Routes>
       <Route path="/" element={<Home/>} />
       <Route path="/products" element={<Products/>} />
+      <Route path="/products/:id" element={<ProductShow/>} />
       <Route path="/about" element={<About/>} />
       <Route path="/cart" element={<Cart/>} />
       {/* Auth */}

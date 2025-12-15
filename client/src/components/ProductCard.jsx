@@ -5,12 +5,11 @@ import {
   readLocalStorageItem,
   updateLocalStorageItem
 } from '@/services/LocalStorageFunctions';
-import {useSnackbar} from 'notistack'
+import { enqueueSnackbar } from 'notistack'
+import { Link } from 'react-router-dom'
 const url = import.meta.env.VITE_IMAGES_BACKEND_URL;
 
 const ProductCard = ({product, onCartChange}) => {
-  const {enqueueSnackbar} = useSnackbar();
-
   const handleAddToCart = () => {
     const storageItems = readLocalStorageItem('cart');
 
@@ -38,6 +37,7 @@ const ProductCard = ({product, onCartChange}) => {
 
   return (
     <div key={product._id} className="bg-white rounded-lg shadow-sm overflow-hidden">
+      <Link to={`/products/${product._id}`}>
         <div className="relative">
             <img
               src={product.image ? `${url}${product.image}` : defaultProductImage}
@@ -61,6 +61,7 @@ const ProductCard = ({product, onCartChange}) => {
                 </button>
             </div>
         </div>
+      </Link>
     </div>
   )
 }

@@ -11,6 +11,8 @@ const BrandsList = () => {
   const navigate = useNavigate();
   const [brands, setBrands] = useState([]);
   const [search, setSearch] = useState([]);
+  // Loading
+  const [loading, setLoading] = useState(true);
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -23,6 +25,7 @@ const BrandsList = () => {
 
 
   const getBrands = async (search, currentPage, limit) => {
+    setLoading(true);
     try {
       const response = await brandService.getBrands(search, currentPage, limit);
       setBrands(response.data.brands);
@@ -31,6 +34,8 @@ const BrandsList = () => {
     } catch (error) {
       enqueueSnackbar("Failed to load brands", { variant: 'error' });
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -63,10 +68,6 @@ const BrandsList = () => {
   }
 
   useEffect(() => {
-    getBrands();
-  }, []);
-
-  useEffect(() => {
     getBrands(search, currentPage, limit);
   }, [search, currentPage, limit]);
 
@@ -92,6 +93,8 @@ const BrandsList = () => {
         setSearch={setSearch}
         tableName='Brands'
         handleDelete={handleDelete}
+        // Loading
+        loading={loading}
         // Pagination
         currentPage={currentPage} setCurrentPage={setCurrentPage}
         totalPages={totalPages}

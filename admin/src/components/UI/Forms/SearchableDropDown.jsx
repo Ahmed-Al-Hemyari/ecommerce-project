@@ -68,7 +68,23 @@ const SearchableDropdown = ({
                   }}
                   className="px-4 py-2 cursor-pointer hover:bg-gray-100"
                 >
-                  {option.name ?? option.title}
+                  <p className="text-base font-medium">
+                    {option.name}
+                  </p>
+
+                  { option.phone ?
+                    (  
+                      <p className="text-sm text-gray-500">
+                        {option.phone}
+                      </p>
+                    )
+                    :
+                    (                      
+                      <p className="text-sm text-gray-500">
+                        {option.brand} • {option.category}
+                      </p>
+                    )
+                  }
                 </div>
               ))
             ) : (

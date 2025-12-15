@@ -12,6 +12,8 @@ const CategoryList = () => {
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
   const [search, setSearch] = useState('');
+  // Loading
+  const [loading, setLoading] = useState(true);
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -24,6 +26,7 @@ const CategoryList = () => {
   ];
 
   const getCategories = async (search, currentPage, limit) => {
+    setLoading(true);
     try {
       const response = await categoryService.getCategories(search, currentPage, limit);
       setCategories(response.data.categories);
@@ -31,7 +34,8 @@ const CategoryList = () => {
       setTotalItems(response.data.totalItems);
     } catch (error) {
       enqueueSnackbar("Failed to load categories", { variant: 'error' });
-      console.error(error);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -62,14 +66,10 @@ const CategoryList = () => {
     }
   }
 
-  // useEffect(() => {
-  //   getCategories();
-  // }, []);
-
   // Search
   useEffect(() => {
     getCategories(search, currentPage, limit);
-  }, [search, currentPage, limit])
+  }, [search, currentPage, limit]);
 
   // Snackbar listener
   useEffect(() => {
@@ -93,6 +93,8 @@ const CategoryList = () => {
         search={search}
         setSearch={setSearch}
         handleDelete={handleDelete}
+        // Loading
+        loading={loading}
         // Pagination
         currentPage={currentPage} setCurrentPage={setCurrentPage}
         totalPages={totalPages}

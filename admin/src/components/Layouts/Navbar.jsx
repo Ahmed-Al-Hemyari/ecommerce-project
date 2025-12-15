@@ -4,7 +4,7 @@ import { HiOutlineMenu } from "react-icons/hi";
 import { FaUserCircle } from "react-icons/fa";
 import logo from "@/assets/quickbuylogo.svg";
 
-const Navbar = ({ user, logout, children }) => {
+const Navbar = ({ user, logout }) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   return (
@@ -24,13 +24,13 @@ const Navbar = ({ user, logout, children }) => {
               className="flex items-center gap-2 cursor-pointer"
             >
               <FaUserCircle size={28} />
-              <span className="font-semibold">{user.name}</span>
+              <span className="font-semibold">{user?.name}</span>
             </button>
 
             {showUserMenu && (
               <div className="absolute right-0 mt-3 bg-white text-black rounded-lg shadow-lg w-44 py-2 z-50">
                 <Link
-                  to="/admin/profile"
+                  to="/profile"
                   className="block px-4 py-2 hover:bg-gray-100"
                 >
                   Profile
@@ -45,13 +45,6 @@ const Navbar = ({ user, logout, children }) => {
               </div>
             )}
           </div>
-
-          {/* Mobile Sidebar Toggle */}
-          {/* <div className="md:hidden flex items-center">
-            <button onClick={toggleSidebar}>
-              <HiOutlineMenu size={28} className="text-white" />
-            </button>
-          </div> */}
         </div>
       </nav>
   );
