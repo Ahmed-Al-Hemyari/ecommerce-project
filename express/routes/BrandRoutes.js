@@ -6,7 +6,6 @@ import {
     updateBrand,
     deleteBrand
 } from "../controllers/BrandController.js";
-import { requireAuth } from '../middlewares/auth.js'
 import { requireAdmin } from '../middlewares/admin.js'
 import { uploadBrand } from '../config/multer.js'
 
@@ -22,7 +21,7 @@ brandRoutes.get('/:id', getBrandById);
 brandRoutes.post('/', requireAdmin, uploadBrand.single("file"), createBrand);
 
 // Update an existing product
-brandRoutes.put('/:id', requireAdmin , updateBrand);
+brandRoutes.put('/:id', requireAdmin, uploadBrand.single("file"), updateBrand);
 
 // Delete a product
 brandRoutes.delete('/:id', requireAdmin , deleteBrand);

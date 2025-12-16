@@ -16,19 +16,23 @@ export const getAllBrands = async (req, res) => {
 
     // Pagination
     const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 50;
+    const limit = req.query.limit !== undefined ? Number(req.query.limit) : null;
     const skip = (page - 1) * limit;
 
     const totalItems = await Brand.countDocuments(query);
 
-    const brands = await Brand.find(query)
-      .skip(skip)
-      .limit(limit);
+    let brandsQuery = Brand.find(query);
+    if (limit) {
+      brandsQuery = brandsQuery.skip(skip).limit(limit);
+    }
+
+    const brands = await brandsQuery;
+
     res.status(200).json({
       brands: brands, 
       currentPage: page,
       totalItems: totalItems,
-      totalPages: Math.ceil(totalItems / limit)
+      totalPages: limit ? Math.ceil(totalItems / limit) : 1,
     });
   } catch (error) {
     console.error('Error fetching brands:', error);
@@ -72,36 +76,51 @@ export const createBrand = async (req, res) => {
   }
 };
 
-// Update an existing product
+// Update an existing brand
 export const updateBrand = async (req, res) => {
   try {
-    if (!req.body) {
-      return res.status(400).json({ message: 'No data provided' });
+    const brand = await Brand.findById(req.params.id);
+    if (!brand) {
+      return res.status(404).json({ message: 'Brand not found' });
+    }
+
+    // Check required fields (optional: only name required)
+    if (!req.body.name && !req.file) {
+      return res.status(400).json({ message: 'Nothing to update' });
     }
 
     const newData = {};
-    console.log(req.body);
 
+    // Update name
     if (req.body.name) newData.name = req.body.name;
-    if (req.body.logo) newData.logo = req.body.logo; // <-- fixed
+
+    // Update logo if a file was uploaded
+    if (req.file) {
+      const logoUrl = `/uploads/brands/${req.file.filename}`;
+      newData.logo = logoUrl;
+
+      // Delete old logo safely
+      if (brand.logo) {
+        const imagePath = path.join(process.cwd(), brand.logo);
+        fs.unlink(imagePath, (err) => {
+          if (err) console.warn('Old logo not found or already deleted:', err.message);
+        });
+      }
+    }
 
     const updatedBrand = await Brand.findByIdAndUpdate(
       req.params.id,
       { $set: newData },
-      { new: true } // return the updated document
+      { new: true }
     );
 
-    if (!updatedBrand) {
-      return res.status(404).json({ message: 'Brand not found' });
-    }
-
     res.status(200).json({ message: 'Brand updated successfully', brand: updatedBrand });
+
   } catch (error) {
     console.error('Error updating brand:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
-
 
 // Delete a product
 export const deleteBrand = async (req, res) => {
@@ -113,7 +132,6 @@ export const deleteBrand = async (req, res) => {
 
     // Delete image file
     if (brand.logo) {
-      // Example: "/uploads/brands/toyota.png"
       const imagePath = path.join(process.cwd(), brand.logo);
 
       fs.unlink(imagePath, (err) => {

@@ -4,8 +4,11 @@ export const brandService = {
     getBrands : (search, page, limit) => {
         const params = {};
         if (search) params.search = search;
+        
+        if (limit !== undefined && limit !== null) {
         if (page) params.page = page;
-        if (limit) params.limit = limit;
+        params.limit = limit;
+        }
 
         return api.get("/brands", { params });
     },

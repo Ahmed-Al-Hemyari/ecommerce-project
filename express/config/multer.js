@@ -8,7 +8,7 @@ const brand = multer.diskStorage({
     filename: function (req, file, cb) {
         const ext = path.extname(file.originalname);
         const name = String(req.body.name).toLowerCase().replace(/\s+/g, "-");
-        cb(null, `${name}${ext}`);
+        cb(null, `${Date.now()}-${name}${ext}`);
     }
 });
 

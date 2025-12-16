@@ -5,8 +5,9 @@ import { enqueueSnackbar } from 'notistack';
 import TextArea from './TextArea';
 import PhoneInput from './PhoneInput';
 import SearchableDropdown from './SearchableDropDown';
+import Dropdown from './Dropdown';
 
-const CreateForm = ({
+const UpdateForm = ({
     inputs = [],
     title = '', // Main title
     link, // redirect link after submit
@@ -24,23 +25,24 @@ const CreateForm = ({
         const result = await handleSubmit();
 
         if (!result) {
-            enqueueSnackbar('Failed to add', {
+            enqueueSnackbar('Failed to update', {
                 variant: 'error'
             });
             return;
         }
 
-        // Create behavior
-        if (action === 'create') {
+        // Update behavior
+        if (action === 'update') {
             navigate(link, {
                 state: {
-                    message: 'Added successfully',
+                    message: 'Updated successfully',
                     status: 'success'
                 }
             });
-        } else if (action === 'create_add') {
-            enqueueSnackbar('Added successfully', { variant: 'success' });
+        } else if (action === 'update_continue') {
+            enqueueSnackbar('Updated successfully', { variant: 'success' });
             resetForm();
+            window.location.reload();
         }
     };
 
@@ -67,6 +69,21 @@ const CreateForm = ({
                     if (input.type === 'select' || input.type === 'searchable') {
                         return (
                             <SearchableDropdown
+                                key={index}
+                                label={input.label}
+                                important={input.important}
+                                options={input.options}
+                                placeholder={input.placeholder}
+                                value={input.value}
+                                setValue={input.setValue}
+                                formError={formError}
+                            />
+                        );
+                    }
+
+                    if (input.type === 'dropdown' || input.type === 'searchable') {
+                        return (
+                            <Dropdown
                                 key={index}
                                 label={input.label}
                                 important={input.important}
@@ -130,18 +147,18 @@ const CreateForm = ({
                         <button
                             type='submit'
                             name='action'
-                            value='create'
+                            value='update'
                             className="px-4 py-2 rounded-md bg-(--color-green) border qb-border cursor-pointer"
                         >
-                            Create
+                            Update
                         </button>
                         <button
                             type='submit'
                             name='action'
-                            value='create_add'
+                            value='update_continue'
                             className="px-4 py-2 rounded-md bg-(--color-green) border qb-border cursor-pointer"
                         >
-                            Create & Add Another
+                            Update & Continue Editing
                         </button>
                     </div>
                     <Link
@@ -156,4 +173,4 @@ const CreateForm = ({
     );
 };
 
-export default CreateForm;
+export default UpdateForm;

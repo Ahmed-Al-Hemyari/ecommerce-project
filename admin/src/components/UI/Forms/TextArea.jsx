@@ -11,11 +11,7 @@ const TextArea = ({
 }) => {
 
     const handleChange = (e) => {
-        if (type === 'file') {
-            setValue(e.target.files[0]); // <== THIS IS CORRECT
-        } else {
-            setValue(e.target.value);
-        }
+        setValue(e.target.value);
     };
 
     return (
@@ -28,6 +24,7 @@ const TextArea = ({
                 placeholder={placeholder}
                 className={`${width} px-4 py-2 h-30 rounded-lg border ${formError ? 'border-red-500' : 'border-(--color-light-gray)'} focus:outline-none focus:ring-2 focus:ring-(--color-green)`}
                 onChange={handleChange}
+                value={value}
             />
         </div>
     );

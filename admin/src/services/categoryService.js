@@ -4,8 +4,11 @@ export const categoryService = {
     getCategories : (search, page, limit) => {
         const params = {};
         if (search) params.search = search;
-        if (page) params.page = page;
-        if (limit) params.limit = limit;
+
+        if (limit !== undefined && limit !== null) {
+            if (page) params.page = page;
+            params.limit = limit;
+        }
 
         return api.get("/categories", { params });
     },

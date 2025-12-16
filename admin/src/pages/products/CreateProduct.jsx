@@ -14,11 +14,11 @@ const CreateProduct = () => {
   const [formError, setFormError] = useState('');
   // fields
   const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [price, setPrice] = useState(0);
-  const [category, setCategory] = useState();
-  const [image, setImage] = useState();
   const [brand, setBrand] = useState();
+  const [category, setCategory] = useState();
+  const [price, setPrice] = useState(0);
+  const [description, setDescription] = useState('');
+  const [image, setImage] = useState();
 
   const getCategories = async () => {
     try {
@@ -58,35 +58,36 @@ const CreateProduct = () => {
   }, [location.state]);
 
   const handleSubmit = async () => {
-      setFormError('');
-  
-      if (!name || !brand || !category || !price) {
-        setFormError('Please fill all fields with * ');
-        return false;
-      }
-  
-      try {
-        const formData = new FormData();
-        formData.append('name', name);
-        formData.append('brand', brand);
-        formData.append('category', category);
-        formData.append('price', price);
-        formData.append('description', description);
-        if (image) formData.append('file', image); // MUST MATCH multer field name
+    setFormError('');
 
-        const response = await productService.createProduct(formData);
-        return true;
-      } catch (error) {
-        // enqueueSnackbar('Failed to add product');
-        return false;
-      }
+    if (!name || !brand || !category || !price) {
+      setFormError('Please fill all fields with * ');
+      return false;
     }
+
+    try {
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('brand', brand);
+      formData.append('category', category);
+      formData.append('price', price);
+      formData.append('description', description);
+      if (image) formData.append('file', image); // MUST MATCH multer field name
+
+      const response = await productService.createProduct(formData);
+      return true;
+    } catch (error) {
+      // enqueueSnackbar('Failed to add product');
+      return false;
+    }
+  }
   
     const resetForm = () => {
       setName("");
       setCategory("");
       setBrand("");
       setPrice(0);
+      setDescription("");
       setImage('');
       setFormError("");
     }
@@ -125,6 +126,14 @@ const CreateProduct = () => {
       placeholder: 'Product price', 
       value: price, 
       setValue: setPrice 
+    },
+    { 
+      label: 'Description', 
+      important: true, 
+      type: 'number', 
+      placeholder: 'Description', 
+      value: description, 
+      setValue: setDescription 
     },
     {
       label: 'Image', 

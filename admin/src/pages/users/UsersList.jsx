@@ -43,6 +43,7 @@ const UsersList = () => {
         }),
       }));
       setUsers(formatted);
+      console.log(response.data.users)
       setTotalPages(response.data.totalPages);
       setTotalItems(response.data.totalItems);
     } catch (error) {

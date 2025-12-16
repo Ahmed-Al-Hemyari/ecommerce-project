@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import MainLayout from '@/components/Layouts/MainLayout'
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import CreateForm from '@/components/UI/Forms/CreateForm';
 import brandService from '@/services/brandService';
 import { enqueueSnackbar } from 'notistack';
+import UpdateForm from '@/components/UI/Forms/UpdateForm';
 
 const UpdateBrand = () => {
   // id
@@ -17,24 +17,11 @@ const UpdateBrand = () => {
 
   const location = useLocation();
   const navigate = useNavigate();
-
-  // Snackbar listener
-  useEffect(() => {
-    if (location.state?.message) {
-      enqueueSnackbar(location.state.message, {
-        variant: location.state.status,
-      });
-
-      // Clear state to prevent showing again
-      navigate(location.pathname, { replace: true, state: {} });
-    }
-  }, [location.state]);
-
   
   const getBrand = async (id) => {
     try {
       const response = await brandService.getBrand(id);
-      setName(response.data.name);
+      setBrand(response.data);
     } catch (error) {
       enqueueSnackbar('Failed to load brand', { variant: 'error' });
       console.error(error);
@@ -44,6 +31,11 @@ const UpdateBrand = () => {
   useEffect(() => {
     getBrand(id);
   }, []);
+
+  useEffect(() => {
+    setName(brand.name);
+    setLogo(brand.logo);
+  }, [brand]);
 
   const handleSubmit = async () => {
     setFormError('');
@@ -66,10 +58,12 @@ const UpdateBrand = () => {
   }
 
   const resetForm = () => {
-    setName("");
-    setLogo("");
-    setFormError("");
-  }
+    if (!brand) return;
+    setName(brand.name || '');
+    setLogo('');
+    setFormError('');
+  };
+
 
   const inputs = [
     {
@@ -77,7 +71,7 @@ const UpdateBrand = () => {
       important: true, 
       type: 'text', 
       placeholder: 'Brand name', 
-      value: name, 
+      value: name || '', 
       setValue: setName 
     },
     {
@@ -88,15 +82,14 @@ const UpdateBrand = () => {
       setValue: setLogo,
       showPreview: true
     }
-  ]
+  ];
+
   return (
     <MainLayout>
-      <CreateForm
-        formTitle='Create Brand'
-        title='Brand'
+      <UpdateForm
         inputs={inputs}
+        title={`Update ${brand?.name || ''}`}
         link={'/brands'}
-        isUpdate={true}
         formError={formError}
         handleSubmit={handleSubmit}
         resetForm={resetForm}

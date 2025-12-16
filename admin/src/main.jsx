@@ -7,7 +7,7 @@ import App from './App.jsx'
 
 createRoot(document.getElementById('root')).render(
   <BrowserRouter>
-    <SnackbarProvider>
+    <SnackbarProvider preventDuplicate>
       <App />
     </SnackbarProvider>
   </BrowserRouter>,

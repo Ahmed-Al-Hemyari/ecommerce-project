@@ -21,7 +21,7 @@ productRoutes.get('/:id', getProductById);
 productRoutes.post('/', requireAdmin, uploadProduct.single("file") , createProduct);
 
 // Update an existing product
-productRoutes.put('/:id', requireAdmin , updateProduct);
+productRoutes.put('/:id', requireAdmin, uploadProduct.single("file") , updateProduct);
 
 // Delete a product
 productRoutes.delete('/:id', requireAdmin , deleteProduct);

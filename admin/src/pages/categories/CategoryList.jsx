@@ -73,15 +73,14 @@ const CategoryList = () => {
 
   // Snackbar listener
   useEffect(() => {
-    if (location.state?.message) {
-      enqueueSnackbar(location.state.message, {
-        variant: location.state.status,
-      });
+    if (!location.state?.message) return;
 
-      // Clear state to prevent showing again
-      navigate(location.pathname, { replace: true, state: {} });
-    }
-  }, [location.state]);
+    enqueueSnackbar(location.state.message, {
+      variant: location.state.status,
+    });
+
+    navigate(location.pathname, { replace: true });
+  }, []);
 
   return (
     <MainLayout>
