@@ -3,6 +3,7 @@ import mongoose from 'mongoose'
 const brandSchema = new mongoose.Schema({
     name: { type: String, required: true, unique: true },
     logo: { type: String, required: false},
+    deleted: { type: Boolean, default: false },
 }, { timestamps: true });
 
 const Brand = mongoose.model('Brand', brandSchema);

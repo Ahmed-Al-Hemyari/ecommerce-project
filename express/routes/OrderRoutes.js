@@ -6,12 +6,15 @@ import {
     updateOrder,
     deleteOrder,
     getOrdersForUser,
-    cancelOrder
+    updateMany,
  } from "../controllers/OrderController.js";
 import { requireAuth } from '../middlewares/auth.js'
 import { requireAdmin } from '../middlewares/admin.js'
 
 const orderRoutes = express.Router();
+
+// Update many
+orderRoutes.patch('/bulk-update', requireAdmin, updateMany);
 
 // Get all orders
 orderRoutes.get('/', requireAdmin , getAllOrders);
@@ -23,9 +26,9 @@ orderRoutes.get('/:id', requireAdmin , getOrderById);
 orderRoutes.post('/', requireAuth , createOrder);
 // Update order
 orderRoutes.put('/:id', requireAdmin , updateOrder);
-// Cancel order
-orderRoutes.put('/:id/cancel', requireAuth , cancelOrder);
+// // Cancel order
+// orderRoutes.put('/:id/cancel', requireAuth , cancelOrder);
 // Delete order
-orderRoutes.delete('/:id', requireAdmin , deleteOrder);
+// orderRoutes.delete('/:id', requireAdmin , deleteOrder);
 
 export default orderRoutes;

@@ -22,7 +22,7 @@ export const getAllBrands = async (req, res) => {
 
     const totalItems = await Brand.countDocuments(query);
 
-    let brandsQuery = Brand.find(query);
+    let brandsQuery = Brand.find({...query, deleted: false });
     if (limit) {
       brandsQuery = brandsQuery.skip(skip).limit(limit);
     }
@@ -126,31 +126,11 @@ export const updateBrand = async (req, res) => {
 // Delete a product
 export const deleteBrand = async (req, res) => {
   try {
-    const brand = await Brand.findById(req.params.id);
+    const brand = await Brand.findByIdAndUpdate(req.params.id, { deleted: true });
+
     if (!brand) {
       return res.status(404).json({ message: 'Brand not found' });
     }
-
-    // Delete image file
-    if (brand.logo) {
-      const imagePath = path.join(process.cwd(), brand.logo);
-
-      fs.unlink(imagePath, (err) => {
-        if (err) 
-          {
-            console.warn("Image file not found or already deleted:", err);
-            res.status(500).json({ message: 'Server error', error: err});
-          }
-            
-      });
-    }
-
-    // Delete DB record
-    await brand.deleteOne();
-
-    await Product.deleteMany({
-      'brand._id': { $in: req.params.id },
-    });
 
     res.status(200).json({ message: 'Brand deleted successfully' });
 
@@ -169,17 +149,14 @@ export const deleteMany = async (req, res) => {
       return res.status(400).json({ message: "No IDs provided" });
     }
 
-    const brandResult = await Brand.deleteMany({
-      _id: { $in: ids },
-    });
-
-    await Product.deleteMany({
-      'brand._id': { $in: ids },
-    });
+    const brandResult = await Brand.updateMany(
+      { _id: { $in: ids } },
+      { $set: { deleted: true }},
+    );
 
     res.status(200).json({
       message: "Brands deleted successfully",
-      deletedBrands: brandResult.deletedCount,
+      // deletedBrands: brandResult.deletedCount,
     });
   } catch (error) {
     res.status(500).json({

@@ -1,6 +1,6 @@
 import React from "react";
-import { Pencil, ArrowLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Pencil, ArrowLeft, Copy } from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
 
 const ShowCard = ({
   title,
@@ -9,10 +9,11 @@ const ShowCard = ({
   imageAlt = "Preview",
   data = [],
   onEdit,
-  backTo,
+  link,
   actions,
 }) => {
   const navigate = useNavigate();
+  const { id } = useParams();
 
   return (
     <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-sm border">
@@ -26,21 +27,19 @@ const ShowCard = ({
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate(`${link}/create`)}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium bg-gray-100 hover:bg-gray-200"
+          >
+            <Copy size={16} />
+          </button>
+
           {onEdit && (
             <button
               onClick={onEdit}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium bg-(--color-green) text-(--color-dark-gray) hover:bg-(--color-green)/80"
+              className="flex items-center gap-1 px-2 py-2 rounded-md text-sm font-medium bg-(--color-green) text-(--color-dark-gray) hover:bg-(--color-green)/80"
             >
-              <Pencil size={16} /> Edit
-            </button>
-          )}
-
-          {backTo && (
-            <button
-              onClick={() => navigate(backTo)}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium bg-gray-100 hover:bg-gray-200"
-            >
-              <ArrowLeft size={16} /> Back
+              <Pencil size={16} />
             </button>
           )}
         </div>

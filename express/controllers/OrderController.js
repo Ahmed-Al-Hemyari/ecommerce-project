@@ -1,51 +1,65 @@
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
 import User from "../models/User.js";
-
 // Get all orders
 export const getAllOrders = async (req, res) => {
-    try {
-      const { search, status, payed } = req.query;
-      const query = {};
+  try {
+    let { search, user, status, payed, page, limit } = req.query;
 
-      if (search) {
-        const orQuery = [
-            { 'user.name': { $regex: search, $options: "i" } },
-            { status: { $regex: search, $options: "i" } }
-        ];
+    const query = {};
 
-        const totalAmount = Number(search);
-        if (!isNaN(totalAmount)) {
-            orQuery.push({ totalAmount });
-        }
+    // Convert pagination values
+    page = Number(page) || 1;
+    limit = Number(limit) || 50;
+    const skip = (page - 1) * limit;
 
-        query.$or = orQuery;
+    // Search filter
+    if (search) {
+      const orQuery = [
+        { 'user.name': { $regex: search, $options: 'i' } },
+        { status: { $regex: search, $options: 'i' } }
+      ];
+
+      const totalAmount = Number(search);
+      if (!isNaN(totalAmount)) {
+        orQuery.push({ totalAmount });
       }
 
-      if (status) query.status = status;
-      if (payed !== undefined) query.payed = payed;
-
-      // Pagination
-      const page = Number(req.query.page) || 1;
-      const limit = Number(req.query.limit) || 50;
-      const skip = (page - 1) * limit;
-  
-      const totalItems = await Order.countDocuments(query);
-
-      const orders = await Order.find(query)
-        .skip(skip)
-        .limit(limit);
-      // const validOrders = orders.filter(order => order.user);
-      res.status(200).json({
-        orders: orders, 
-        currentPage: page,
-        totalItems: totalItems,
-        totalPages: Math.ceil(totalItems / limit)
-      });
-    } catch (error) {
-        res.status(500).json({ message: 'Error fetching orders', error });
+      query.$or = orQuery;
     }
+
+    // Status filter
+    if (status) query.status = status;
+
+    // User filter (match by ObjectId)
+    if (user) query.user = user;
+
+    // Payed filter (convert string 'true'/'false' to boolean)
+    if (payed !== undefined) {
+      if (payed === 'true') query.payed = true;
+      else if (payed === 'false') query.payed = false;
+    }
+
+    const totalItems = await Order.countDocuments(query);
+
+    // Find orders and populate user info
+    const orders = await Order.find(query)
+      .populate('user', 'name email') // populate user name and email
+      .skip(skip)
+      .limit(limit); // optional: latest first
+
+    res.status(200).json({
+      orders,
+      currentPage: page,
+      totalItems,
+      totalPages: Math.ceil(totalItems / limit),
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error fetching orders', error });
+  }
 };
+
 
 // Get orders for user
 export const getOrdersForUser = async (req, res) => {
@@ -233,24 +247,53 @@ export const updateOrder = async (req, res) => {
   }
 };
 
-// Cancel order
-export const cancelOrder = async (req, res) => {
-  try {
-    const updatedOrder = await Order.findByIdAndUpdate(
-      req.params.id,
-      { status: "Cancelled" },
-      { new: true }
-    );
+// // Cancel order
+// export const cancelOrder = async (req, res) => {
+//   try {
+//     const updatedOrder = await Order.findByIdAndUpdate(
+//       req.params.id,
+//       { status: "Cancelled" },
+//       { new: true }
+//     );
 
-    if (!updatedOrder) {
-      return res.status(404).json({ message: "Order not found" });
+//     if (!updatedOrder) {
+//       return res.status(404).json({ message: "Order not found" });
+//     }
+
+//     res.status(200).json(updatedOrder);
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
+// Update many
+export const updateMany = async (req, res) => {
+    try {
+        const { ids, updates } = req.body;
+
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ message: "No IDs provided" });
+        }
+
+        if (!updates || typeof updates !== 'object') {
+            return res.status(400).json({ message: "No update data provided" });
+        }
+
+        const result = await Order.updateMany(
+            { _id: { $in: ids }},
+            { $set: updates }
+        );
+
+        res.status(200).json({
+            message: "Orders updated successfully",
+            // matched: result.matchedCount,
+            // modified: result.modifiedCount,
+        });
+        
+    } catch (error) {
+        res.status(500).json({message: error.message });
     }
-
-    res.status(200).json(updatedOrder);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
+}
 
 // Delete an order
 export const deleteOrder = async (req, res) => {

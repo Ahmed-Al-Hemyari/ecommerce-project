@@ -39,7 +39,7 @@ export const getAllProducts = async (req, res) => {
 
     const totalItems = await Product.countDocuments(query);
 
-    const products = await Product.find(query)
+    const products = await Product.find({...query, deleted: false })
       .skip(skip)
       .limit(limit);
     res.status(200).json({
@@ -113,59 +113,7 @@ export const createProduct = async (req, res) => {
   }
 };
 
-// // Update an existing product
-// export const updateProduct = async (req, res) => {
-//   try {
-//     const newData = {};
-//     if (req.body.name) newData.name = req.body.name;
-//     if (req.body.brand) newData.brand = req.body.brand;
-//     if (req.body.category) newData.category = req.body.category;
-//     if (req.body.description) newData.description = req.body.description;
-//     if (req.body.price) newData.price = req.body.price;
-//     if (req.body.image) newData.image = req.body.image;
-
-//     // Check Category
-//     if (req.body.category) 
-//     {
-//       const category = await Category.findById(req.body.category);
-//       if (!category) {
-//         return res.status(400).json({ message: 'Category not found' });
-//       }
-//       newData.category = {
-//         _id: category._id,
-//         name: category.name,
-//       };
-//     }
-
-//     // Check Brand
-//     if (req.body.brand) 
-//     {
-//       const brand = await Brand.findById(req.body.brand);
-//       if (!brand) {
-//         return res.status(400).json({ message: 'Brand not found' });
-//       }
-//       newData.brand = {
-//         _id: brand._id,
-//         name: brand.name
-//       };
-//     }
-    
-//     // Update Product
-//     const updatedProduct = await Product.findByIdAndUpdate(
-//       req.params.id,
-//       newData,
-//     );
-
-//     if (!updatedProduct) {
-//       return res.status(404).json({ message: 'Product not found' });
-//     }
-//     res.status(200).json({ message: 'Product updated successfully' });
-//   } catch (error) {
-//     console.error('Error updating product:', error);
-//     res.status(500).json({ message: 'Server error' });
-//   }
-// };
-// Update an existing brand
+// Update an existing product
 export const updateProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -239,7 +187,7 @@ export const updateProduct = async (req, res) => {
 // Delete a product
 export const deleteProduct = async (req, res) => {
   try {
-    const deletedProduct = await Product.findByIdAndDelete(req.params.id);
+    const deletedProduct = await Product.findByIdAndUpdate(req.params.id, { deleted: true });
     if (!deletedProduct) {
       return res.status(404).json({ message: 'Product not found' });
     }
@@ -259,9 +207,10 @@ export const deleteMany = async (req, res) => {
       return res.status(400).json({ message: "No IDs provided" });
     }
 
-    const productResult = await Product.deleteMany({
-      _id: { $in: ids },
-    });
+    const productResult = await Product.updateMany(
+      { _id: { $in: ids } },
+      { $set: { deleted: true }},
+    );
 
     res.status(200).json({
       message: "Products deleted successfully",

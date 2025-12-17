@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import ProductsList from '../products/ProductsList';
 import brandService from '@/services/brandService';
+import { ArrowLeft } from 'lucide-react';
 
 const ShowBrand = () => {
   const { id } = useParams();
@@ -39,10 +40,17 @@ const ShowBrand = () => {
     <MainLayout>
       { brand && (
         <>
+          <button
+            onClick={() => navigate('/brands')}
+            className="flex items-center gap-1 mb-3 px-3 py-1.5 rounded-md text-sm font-medium bg-gray-200 hover:bg-gray-300"
+          >
+            <ArrowLeft size={16} /> Back
+          </button>
           <ShowCard
             title={`${brand.name} Details`}
             image={brand.logo ? `${import.meta.env.VITE_BACKEND_IMAGES_URL}${brand.logo}` : null}
             data={data}
+            link={'/brands'}
             onEdit={edit}
             backTo={'/brands'}
           />

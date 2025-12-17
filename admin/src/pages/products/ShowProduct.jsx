@@ -4,6 +4,7 @@ import { enqueueSnackbar } from 'notistack';
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import productService from '@/services/productService';
+import { ArrowLeft } from 'lucide-react';
 
 const ShowProduct = () => {
   const { id } = useParams();
@@ -39,13 +40,21 @@ const ShowProduct = () => {
   return (
     <MainLayout>
       {product && (
-        <ShowCard
-          title={`${product.name} Details`}
-          image={product.image ? `${import.meta.env.VITE_BACKEND_IMAGES_URL}${product.image}` : null}
-          data={data}
-          onEdit={() => navigate(`/products/update/${product._id}`)}
-          backTo={'/products'}
-        />
+        <>
+          <button
+            onClick={() => navigate('/products')}
+            className="flex items-center gap-1 mb-3 px-3 py-1.5 rounded-md text-sm font-medium bg-gray-200 hover:bg-gray-300"
+          >
+            <ArrowLeft size={16} /> Back
+          </button>
+          <ShowCard
+            title={`${product.name} Details`}
+            image={product.image ? `${import.meta.env.VITE_BACKEND_IMAGES_URL}${product.image}` : null}
+            data={data}
+            onEdit={() => navigate(`/products/update/${product._id}`)}
+            backTo={'/products'}
+          />
+        </>
       )}
     </MainLayout>
   );

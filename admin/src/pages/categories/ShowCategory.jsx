@@ -5,6 +5,7 @@ import { enqueueSnackbar } from 'notistack';
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import ProductsList from '../products/ProductsList';
+import { ArrowLeft } from 'lucide-react';
 
 const ShowCategory = () => {
   const { id } = useParams();
@@ -45,6 +46,12 @@ const ShowCategory = () => {
     <MainLayout>
       {category && (
         <>
+          <button
+            onClick={() => navigate('/categories')}
+            className="flex items-center gap-1 mb-3 px-3 py-1.5 rounded-md text-sm font-medium bg-gray-200 hover:bg-gray-300"
+          >
+            <ArrowLeft size={16} /> Back
+          </button>
           <ShowCard
             title={`${category.name} Details`}
             data={data}

@@ -4,6 +4,8 @@ import userService from '@/services/userService';
 import { enqueueSnackbar } from 'notistack';
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import OrdersList from '../orders/OrdersList';
+import { ArrowLeft } from 'lucide-react';
 
 const ShowUser = () => {
   const { id } = useParams();
@@ -62,12 +64,21 @@ const ShowUser = () => {
   return (
     <MainLayout>
       { user && (
-        <ShowCard
-          title={`${user.name} Details`}
-          data={data}
-          onEdit={edit}
-          backTo={'/users'}
-        />
+        <>
+          <button
+            onClick={() => navigate('/users')}
+            className="flex items-center gap-1 mb-3 px-3 py-1.5 rounded-md text-sm font-medium bg-gray-200 hover:bg-gray-300"
+          >
+            <ArrowLeft size={16} /> Back
+          </button>
+          <ShowCard
+            title={`${user.name} Details`}
+            data={data}
+            onEdit={edit}
+            backTo={'/users'}
+          />
+          <OrdersList propLimit={10} inner user={user._id}/>
+        </>
       )}
     </MainLayout>
   )

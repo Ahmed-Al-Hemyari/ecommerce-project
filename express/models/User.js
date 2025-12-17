@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema({
     password: { type: String, required: true },
     phone: { type: String, required: true },
     role: { type: String, enum: ["user","admin"], default: "user" },
+    deleted: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now }
 }, { timestamps: true });
 

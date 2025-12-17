@@ -2,11 +2,13 @@ import React from 'react'
 
 const StatusCell = ({item, header}) => {
     const statusStyle = {
-        Pending: 'bg-yellow-100 text-yellow-800',
-        Processing: 'bg-yellow-100 text-yellow-800',
-        Shipped: 'bg-yellow-100 text-yellow-800',
-        Delivered: 'bg-yellow-100 text-yellow-800',
-    }
+        Pending:    'bg-gray-100 text-gray-800',
+        Processing:'bg-blue-100 text-blue-800',
+        Shipped:   'bg-purple-100 text-purple-800',
+        Delivered: 'bg-green-100 text-green-800',
+        Cancelled: 'bg-red-100 text-red-800',
+    };
+
   return (
     <td
         className={`p-3 border-b text-wrap text-center text-base tracking-wider`}

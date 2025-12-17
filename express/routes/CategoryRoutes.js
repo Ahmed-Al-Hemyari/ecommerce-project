@@ -13,7 +13,7 @@ import { requireAdmin } from '../middlewares/admin.js'
 const categoryRoutes = express.Router();
 
 // Delete many
-categoryRoutes.delete('/bulk-delete', requireAdmin, deleteMany);
+categoryRoutes.patch('/bulk-delete', requireAdmin, deleteMany);
 
 // Get all products
 categoryRoutes.get('/', getAllCategories);
@@ -28,6 +28,6 @@ categoryRoutes.post('/', requireAdmin , createCategory);
 categoryRoutes.put('/:id', requireAdmin , updateCategory);
 
 // Delete a product
-categoryRoutes.delete('/:id', requireAdmin , deleteCategory);
+categoryRoutes.patch('/:id', requireAdmin , deleteCategory);
 
 export default categoryRoutes;

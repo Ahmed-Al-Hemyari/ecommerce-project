@@ -27,7 +27,7 @@ export const getAllUsers = async (req, res) => {
     
         const totalItems = await User.countDocuments(query);
 
-        const users = await User.find(query).select('-password')
+        const users = await User.find({ ...query, deleted: false }).select('-password')
             .skip(skip)
             .limit(limit);
         res.status(200).json({
@@ -98,12 +98,10 @@ export const updateUser = async (req, res) => {
 // Delete user
 export const deleteUser = async (req, res) => {
     try {
-        const user = await User.findByIdAndDelete(req.params.id);
+        const user = await User.findByIdAndUpdate(req.params.id, { deleted: true });
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
-
-        await Order.deleteMany({ user: req.params.id });
         
         res.status(200).json({ message: "User deleted successfully" });
     } catch (error) {
@@ -120,17 +118,14 @@ export const deleteMany = async (req, res) => {
       return res.status(400).json({ message: "No user IDs provided" });
     }
 
-    const usersResult = await User.deleteMany({
-      _id: { $in: ids },
-    });
-
-    await Order.deleteMany({
-      user: { $in: ids },
-    });
+    const usersResult = await User.updateMany(
+      { _id: { $in: ids } },
+      { $set: { deleted: true, } },
+    );
 
     res.status(200).json({
-      message: "Users and related orders deleted successfully",
-      deletedUsers: usersResult.deletedCount,
+      message: "Users and deleted successfully",
+    //   deletedUsers: usersResult.deletedCount,
     });
   } catch (error) {
     res.status(500).json({
@@ -161,8 +156,8 @@ export const updateMany = async (req, res) => {
 
         res.status(200).json({
             message: "Users updated successfully",
-            matched: result.matchedCount,
-            modified: result.modifiedCount,
+            // matched: result.matchedCount,
+            // modified: result.modifiedCount,
         });
         
     } catch (error) {

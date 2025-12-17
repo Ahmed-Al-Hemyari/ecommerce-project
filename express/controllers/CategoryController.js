@@ -21,7 +21,7 @@ export const getAllCategories = async (req, res) => {
 
     const totalItems = await Category.countDocuments(query);
 
-    let categoryQuery = Category.find(query);
+    let categoryQuery = Category.find({...query, deleted: false });
     if (limit) {
       categoryQuery = categoryQuery.skip(skip).limit(limit);
     }
@@ -63,7 +63,6 @@ export const createCategory = async (req, res) => {
       const newCategory = Category({
           name: req.body.name,
           slug: req.body.slug,
-          // icon: req.body.icon
       });
       const category = await Category.create(newCategory);
       res.status(201).json(category);
@@ -79,7 +78,6 @@ export const updateCategory = async (req, res) => {
     const newData = {};
     if (req.body.name) newData.name = req.body.name;
     if (req.body.slug) newData.slug = req.body.slug;
-    // if (req.body.icon) newData.icon = req.body.icon;
     const updatedCategory = await Category.findByIdAndUpdate(
       req.params.id,
       { $set: newData },
@@ -97,14 +95,10 @@ export const updateCategory = async (req, res) => {
 // Delete a product
 export const deleteCategory = async (req, res) => {
   try {
-    const deletedCategory = await Category.findByIdAndDelete(req.params.id);
+    const deletedCategory = await Category.findByIdAndUpdate(req.params.id, { deleted: true });
     if (!deletedCategory) {
       return res.status(404).json({ message: 'Category not found' });
     }
-    
-    await Product.deleteMany({
-      'category._id': { $in: req.params.id },
-    });
     
     res.status(200).json({ message: 'Category deleted successfully' });
   } catch (error) {
@@ -122,17 +116,14 @@ export const deleteMany = async (req, res) => {
       return res.status(400).json({ message: "No IDs provided" });
     }
 
-    const categoryResult = await Category.deleteMany({
-      _id: { $in: ids },
-    });
-
-    await Product.deleteMany({
-      'category._id': { $in: ids },
-    });
+    const categoryResult = await Category.updateMany(
+      { _id: { $in: ids } },
+      { $set: { deleted: true } }
+    );
 
     res.status(200).json({
       message: "Categories deleted successfully",
-      deletedCategories: categoryResult.deletedCount,
+      // deletedCategories: categoryResult.deletedCount,
     });
   } catch (error) {
     res.status(500).json({

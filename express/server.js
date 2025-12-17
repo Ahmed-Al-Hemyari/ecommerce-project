@@ -11,7 +11,6 @@ import categoryRoutes from './routes/CategoryRoutes.js';
 import brandRoutes from './routes/BrandRoutes.js';
 import productRoutes from './routes/ProductRoutes.js';
 import orderRoutes from './routes/OrderRoutes.js';
-import reviewRoutes from './routes/ReviewRoutes.js';
 import multer from 'multer';
 
 // Load environment variables
@@ -53,8 +52,6 @@ app.use('/api/brands', brandRoutes);
 app.use('/api/products', productRoutes);
 // Order Routes
 app.use('/api/orders', orderRoutes);
-// Review Routes
-app.use('/api/reviews', reviewRoutes);
 
 
 // Start the server

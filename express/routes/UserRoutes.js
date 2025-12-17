@@ -14,9 +14,9 @@ import { requireAdmin } from '../middlewares/admin.js';
 const userRoutes = express.Router();
 
 // Delete many
-userRoutes.delete('/bulk-delete', requireAdmin, deleteMany);
+userRoutes.patch('/bulk-delete', requireAdmin, deleteMany);
 // Update many
-userRoutes.put('/bulk-update', requireAdmin, updateMany);
+userRoutes.patch('/bulk-update', requireAdmin, updateMany);
 
 
 // Get All Users
@@ -28,6 +28,6 @@ userRoutes.post('/', requireAdmin , createUser);
 // Update User
 userRoutes.put('/:id', requireAdmin , updateUser);
 // Delete User
-userRoutes.delete('/:id', requireAdmin , deleteUser);
+userRoutes.patch('/:id', requireAdmin , deleteUser);
 
 export default userRoutes;

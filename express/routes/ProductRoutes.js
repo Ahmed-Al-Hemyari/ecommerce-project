@@ -13,7 +13,7 @@ import { uploadProduct } from '../config/multer.js';
 const productRoutes = express.Router();
 
 // Delete many
-productRoutes.delete('/bulk-delete', requireAdmin, deleteMany);
+productRoutes.patch('/bulk-delete', requireAdmin, deleteMany);
 
 // Get all products
 productRoutes.get('/', getAllProducts);
@@ -28,6 +28,6 @@ productRoutes.post('/', requireAdmin, uploadProduct.single("file") , createProdu
 productRoutes.put('/:id', requireAdmin, uploadProduct.single("file") , updateProduct);
 
 // Delete a product
-productRoutes.delete('/:id', requireAdmin , deleteProduct);
+productRoutes.patch('/:id', requireAdmin , deleteProduct);
 
 export default productRoutes;

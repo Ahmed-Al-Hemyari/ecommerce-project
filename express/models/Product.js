@@ -14,6 +14,7 @@ const productSchema = new mongoose.Schema({
         name: { type: String, required: true }
     },
     image: { type: String, default: '' },
+    deleted: { type: Boolean, default: false },
 }, { timestamps: true });
 
 const Product = mongoose.model("Product", productSchema);

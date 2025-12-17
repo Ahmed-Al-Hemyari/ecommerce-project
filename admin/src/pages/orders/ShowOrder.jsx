@@ -4,6 +4,7 @@ import ShowCard from '@/components/UI/ShowCard';
 import orderService from '@/services/orderService';
 import { useNavigate, useParams } from 'react-router-dom';
 import { enqueueSnackbar } from 'notistack';
+import { ArrowLeft } from 'lucide-react';
 
 const ShowOrder = () => {
   const { id } = useParams();
@@ -57,6 +58,12 @@ const ShowOrder = () => {
 
   return (
     <MainLayout>
+      <button
+        onClick={() => navigate('/orders')}
+        className="flex items-center gap-1 mb-3 px-3 py-1.5 rounded-md text-sm font-medium bg-gray-200 hover:bg-gray-300"
+      >
+        <ArrowLeft size={16} /> Back
+      </button>
       <ShowCard
         title={`Order #${order.orderId}`}
         data={data}

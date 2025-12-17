@@ -15,11 +15,9 @@ export const categoryService = {
     getCategory : (id) => api.get(`/categories/${id}`),
     createCategory : (data) => api.post("/categories", data),
     updateCategory : (id, data) => api.put(`/categories/${id}`, data),
-    deleteCategory : (id) => api.delete(`/categories/${id}`),
-    deleteMany: (data) => api.delete('/categories/bulk-delete', {
-        data: {
-            ids: data,
-        }
+    deleteCategory : (id) => api.patch(`/categories/${id}`),
+    deleteMany: (data) => api.patch('/categories/bulk-delete', {
+        ids: data,
     })
 }
 

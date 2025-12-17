@@ -97,7 +97,7 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
       setSelected([]);
       getProducts(search, categoryFilter, brandFilter, currentPage, limit);
     } catch (error) {
-      enqueueSnackbar("Failed to delete categories", { variant: 'error' });
+      enqueueSnackbar("Failed to delete products", { variant: 'error' });
       console.error(error);
     }
   }
