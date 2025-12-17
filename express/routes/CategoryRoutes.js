@@ -4,12 +4,16 @@ import {
     getCategoryById, 
     createCategory, 
     updateCategory, 
-    deleteCategory 
+    deleteCategory, 
+    deleteMany
 } from "../controllers/CategoryController.js";
 import { requireAuth } from '../middlewares/auth.js'
 import { requireAdmin } from '../middlewares/admin.js'
 
 const categoryRoutes = express.Router();
+
+// Delete many
+categoryRoutes.delete('/bulk-delete', requireAdmin, deleteMany);
 
 // Get all products
 categoryRoutes.get('/', getAllCategories);

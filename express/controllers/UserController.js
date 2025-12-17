@@ -110,3 +110,62 @@ export const deleteUser = async (req, res) => {
         res.status(500).json({ message: "Error deleting user", error });
     }
 };
+
+// Delete many
+export const deleteMany = async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: "No user IDs provided" });
+    }
+
+    const usersResult = await User.deleteMany({
+      _id: { $in: ids },
+    });
+
+    await Order.deleteMany({
+      user: { $in: ids },
+    });
+
+    res.status(200).json({
+      message: "Users and related orders deleted successfully",
+      deletedUsers: usersResult.deletedCount,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error deleting users",
+      error: error.message,
+    });
+    console.log(error);
+  }
+};
+
+// Update many
+export const updateMany = async (req, res) => {
+    try {
+        const { ids, updates } = req.body;
+
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ message: "No user IDs provided" });
+        }
+
+        if (!updates || typeof updates !== 'object') {
+            return res.status(400).json({ message: "No update data provided" });
+        }
+
+        const result = await User.updateMany(
+            { _id: { $in: ids }},
+            { $set: updates }
+        );
+
+        res.status(200).json({
+            message: "Users updated successfully",
+            matched: result.matchedCount,
+            modified: result.modifiedCount,
+        });
+        
+    } catch (error) {
+        res.status(500).json({message: error.message });
+    }
+}

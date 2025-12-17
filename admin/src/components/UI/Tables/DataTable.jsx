@@ -11,6 +11,8 @@ import { enqueueSnackbar } from 'notistack';
 import Filters from '../Filters';
 import Pagination from './Pagination';
 import Spinner from '../Spinner';
+import Checkbox from '../Checkbox';
+import Dropdown from '../Forms/Dropdown';
 
 const DataTable = ({
   tableName = '',
@@ -23,22 +25,22 @@ const DataTable = ({
   handleDelete,
   handleCancel,
   loading = true,
+  setLoading,
   // Pagination
   currentPage, setCurrentPage,
   totalPages, 
   totalItems,
   limit, setLimit,
   // Customize
-  inner = false
+  inner = false,
+  // bulk
+  selected=[], setSelected,
+  bulkActions = [],
+  bulkAction, setBulkAction,
 }) => {
   // Essentails
   const navigate = useNavigate();
   const location = useLocation();
-  // // Pagination
-  // const [currentPage, setCurrentPage] = useState();
-  // const [totalPages, setTotalPages] = useState();
-  // const [totalItems, setTotalItems] = useState();
-  // const [limit, setLimit] = useState();
   // Cell Components
   const CellComponents = {
     string: StringCell,
@@ -61,6 +63,15 @@ const DataTable = ({
     navigate(`${link}/update/${id}`);
   }
 
+  const toggleSelect = (id) => {
+    setSelected(prev =>
+      prev.includes(id)
+        ? prev.filter(i => i !== id)
+        : [...prev, id]
+    );
+  };
+
+
   // Snackbar listener
   useEffect(() => {
     if (location.state?.message) {
@@ -80,11 +91,28 @@ const DataTable = ({
       </div>
       <div className="overflow-x-auto w-full">
 
-        <section className=' border rounded-2xl overflow-hidden'>
+        <section className='border rounded-2xl overflow-auto'>
           <table className='table-auto w-full max-h-[calc(100vh-16rem)]'>
             <thead className='w-full border-b-2'>
+              {
+                selected.length > 0
+                  ? (
+                    <tr className='border-b p-2'>
+                      <td colSpan={headers.length + 2} className='p-3'>
+                        <div className="flex flex-row justify-end">
+                          <Dropdown
+                            placeholder={'Bulk Actions'}
+                            options={bulkActions}
+                            setValue={setBulkAction}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                  : ''
+              }
               <tr>
-                <td colSpan={headers.length + 1}>
+                <td colSpan={headers.length + 2}>
                   <div className={`w-full p-5 border-b flex flex-row items-center ${inner ? 'justify-between' : 'justify-end'}`}>
                     {inner && <h1 className={`text-xl font-bold`}>{tableName}</h1>}
                     <Link to={`${link}/create`} className='bg-(--color-green) text-(--color-dark-gray) text-lg flex flex-row items-center gap-2 font-medium rounded-md px-3 py-1'>
@@ -94,7 +122,7 @@ const DataTable = ({
                 </td>
               </tr>
               <tr>
-                <td className='w-full' colSpan={headers.length + 1}>
+                <td className='w-full' colSpan={headers.length + 2}>
                   <div className='w-full h-full p-2 flex flex-row items-center space-x-5 justify-end'>
                     <div className='flex flex-row items-center space-x-2 bg-gray-100 py-2 px-3 rounded-full'>
                       <Search size={18} color='#bfbfbf'/>  
@@ -111,6 +139,29 @@ const DataTable = ({
                 </td>
               </tr>
               <tr className='bg-gray-50 border-t'>
+                {
+                  inner ? '' : (
+                    <td className='px-2'>
+                      <Checkbox 
+                        checked={
+                          data.length > 0 &&
+                          data.every(item => selected.includes(item._id))
+                        } 
+                        onChange={() => {
+                          const ids = data.map(item => item._id);
+
+                          const allSelected = ids.every(id => selected.includes(id));
+
+                          setSelected(prev =>
+                            allSelected
+                              ? prev.filter(id => !ids.includes(id)) // unselect only this page
+                              : [...new Set([...prev, ...ids])]     // add this page
+                          );
+                        }}
+                      />
+                    </td>
+                  )
+                }
                 {headers.map((header, index) => (
                   <td 
                     key={index} 
@@ -132,7 +183,7 @@ const DataTable = ({
               {loading ? (
                 <tr>
                   <td
-                    colSpan={headers.length + 1}
+                    colSpan={headers.length + 2}
                     className="h-64 text-center"
                   >
                     <div className="flex items-center justify-center h-full">
@@ -143,6 +194,16 @@ const DataTable = ({
               ) : data && data.length > 0 ? (
                 data.map((item, rowIndex) => (
                   <tr key={rowIndex}>
+                    {
+                      inner ? '' : (
+                        <td className='px-2'>
+                          <Checkbox 
+                            checked={selected.includes(item._id)}
+                            onChange={() => toggleSelect(item._id)}
+                          />
+                        </td>
+                      )
+                    }
                     {headers.map((header, colIndx) => {
                       const Cell = CellComponents[header.type];
                       if (!Cell) return null;
@@ -183,7 +244,7 @@ const DataTable = ({
               ) : (
                 <tr>
                   <td
-                    colSpan={headers.length + 1}
+                    colSpan={headers.length + 2}
                     className="py-6 text-center text-base text-(--color-dark-gray)"
                   >
                     No data found
@@ -196,7 +257,7 @@ const DataTable = ({
                 (    
                   <tfoot>
                     <tr>
-                      <td colSpan={headers.length + 1}>
+                      <td colSpan={headers.length + 2}>
                         <div className='flex flex-row justify-center pb-2'>
                           <Pagination
                             currentPage={currentPage}

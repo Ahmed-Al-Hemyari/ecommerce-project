@@ -1,4 +1,5 @@
 import Brand from '../models/Brand.js'
+import Product from '../models/Product.js';
 import fs from "fs";
 import path from "path";
 
@@ -147,10 +148,44 @@ export const deleteBrand = async (req, res) => {
     // Delete DB record
     await brand.deleteOne();
 
+    await Product.deleteMany({
+      'brand._id': { $in: req.params.id },
+    });
+
     res.status(200).json({ message: 'Brand deleted successfully' });
 
   } catch (error) {
     console.error('Error deleting brand:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Delete many
+export const deleteMany = async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: "No IDs provided" });
+    }
+
+    const brandResult = await Brand.deleteMany({
+      _id: { $in: ids },
+    });
+
+    await Product.deleteMany({
+      'brand._id': { $in: ids },
+    });
+
+    res.status(200).json({
+      message: "Brands deleted successfully",
+      deletedBrands: brandResult.deletedCount,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error deleting brands",
+      error: error.message,
+    });
+    console.log(error);
   }
 };

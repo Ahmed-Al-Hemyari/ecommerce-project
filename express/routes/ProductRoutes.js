@@ -4,12 +4,16 @@ import {
     getProductById, 
     createProduct, 
     updateProduct, 
-    deleteProduct 
+    deleteProduct, 
+    deleteMany
 } from '../controllers/ProductController.js';
 import { requireAdmin } from '../middlewares/admin.js'
 import { uploadProduct } from '../config/multer.js';
 
 const productRoutes = express.Router();
+
+// Delete many
+productRoutes.delete('/bulk-delete', requireAdmin, deleteMany);
 
 // Get all products
 productRoutes.get('/', getAllProducts);

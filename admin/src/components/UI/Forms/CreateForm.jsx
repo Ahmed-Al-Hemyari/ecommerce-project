@@ -5,6 +5,7 @@ import { enqueueSnackbar } from 'notistack';
 import TextArea from './TextArea';
 import PhoneInput from './PhoneInput';
 import SearchableDropdown from './SearchableDropDown';
+import Dropdown from './Dropdown';
 
 const CreateForm = ({
     inputs = [],
@@ -67,6 +68,21 @@ const CreateForm = ({
                     if (input.type === 'select' || input.type === 'searchable') {
                         return (
                             <SearchableDropdown
+                                key={index}
+                                label={input.label}
+                                important={input.important}
+                                options={input.options}
+                                placeholder={input.placeholder}
+                                value={input.value}
+                                setValue={input.setValue}
+                                formError={formError}
+                            />
+                        );
+                    }
+
+                    if (input.type === 'dropdown' || input.type === 'searchable') {
+                        return (
+                            <Dropdown
                                 key={index}
                                 label={input.label}
                                 important={input.important}

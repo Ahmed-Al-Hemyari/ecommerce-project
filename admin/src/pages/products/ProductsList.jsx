@@ -22,6 +22,9 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [limit, setLimit] = useState(propLimit);
+  // bulk
+  const [selected, setSelected] = useState([]);
+  const [bulkAction, setBulkAction] = useState('');
 
   // Filters
   const [categoryFilter, setCategoryFilter] = useState(null);
@@ -73,6 +76,31 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
       console.error(error);
     }
   }
+  
+  // Bulk Actions functions
+  const deleteSeleted = async () => {
+    setBulkAction('');
+    const result = await Swal.fire({
+      title: 'Delete products',
+      text: `Are you sure you want to delete ${selected.length} products?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete them',
+      confirmButtonColor: '#d50101',
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await productService.deleteMany(selected);
+      enqueueSnackbar("Products deleted successfully", { variant: 'success' });
+      setSelected([]);
+      getProducts(search, categoryFilter, brandFilter, currentPage, limit);
+    } catch (error) {
+      enqueueSnackbar("Failed to delete categories", { variant: 'error' });
+      console.error(error);
+    }
+  }
 
   const handleDelete = async (id) => {
     const result = Swal.fire({
@@ -92,7 +120,7 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
       enqueueSnackbar("Product deleted successfully", {
         variant: 'success'
       });
-      getProducts();
+      getProducts(search, categoryFilter, brandFilter, currentPage, limit);
     } catch (error) {
       enqueueSnackbar("Failed to delete product", {
         variant: 'error'
@@ -103,18 +131,31 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
 
   // Initial useEffect
   useEffect(() => {
-  if (category) setCategoryFilter(category);
-  if (brand) setBrandFilter(brand);
+    if (category) setCategoryFilter(category);
+    if (brand) setBrandFilter(brand);
 
-  getCategories();
-  getBrands();
-}, [category, brand]);
+    getCategories();
+    getBrands();
+  }, [category, brand]);
 
 
   // Filter, pagination useEffect
   useEffect(() => {
     getProducts(search, categoryFilter, brandFilter, currentPage, limit);
   }, [search, categoryFilter, brandFilter, currentPage, limit]);
+
+  // Bulk Actions useEffect
+  useEffect(() => {
+    if (!bulkAction) return;
+
+    const runBulkAction = async () => {
+      if (bulkAction === 'delete') {
+        await deleteSeleted();
+      }
+    };
+
+    runBulkAction();
+  }, [bulkAction]);
 
   // Snackbar listener
   useEffect(() => {
@@ -184,6 +225,13 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
           totalItems={totalItems}
           limit={limit}
           setLimit={setLimit}
+          // bulk
+          selected={selected}
+          setSelected={setSelected}
+          setBulkAction={setBulkAction}
+          bulkActions={[
+            { name: 'Delete Selected', _id: 'delete', color: 'red-600'},
+          ]}
         />
       </MainLayout>
   );

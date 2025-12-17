@@ -18,6 +18,9 @@ const BrandsList = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [limit, setLimit] = useState(50);
+  // bulk
+  const [selected, setSelected] = useState([]);
+  const [bulkAction, setBulkAction] = useState('');
 
   const headers = [
     { label: "Name", field: "name", type: 'string' }
@@ -36,6 +39,31 @@ const BrandsList = () => {
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  // Bulk Actions functions
+  const deleteSeleted = async () => {
+    setBulkAction('');
+    const result = await Swal.fire({
+      title: 'Delete brands',
+      text: `Are you sure you want to delete ${selected.length} brands?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete them',
+      confirmButtonColor: '#d50101',
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await brandService.deleteMany(selected);
+      enqueueSnackbar("Brands deleted successfully", { variant: 'success' });
+      setSelected([]);
+      getBrands(search, currentPage, limit);
+    } catch (error) {
+      enqueueSnackbar("Failed to delete brands", { variant: 'error' });
+      console.error(error);
     }
   }
 
@@ -66,6 +94,19 @@ const BrandsList = () => {
       console.error(error);
     }
   }
+
+  // Bulk Actions useEffect
+  useEffect(() => {
+    if (!bulkAction) return;
+
+    const runBulkAction = async () => {
+      if (bulkAction === 'delete') {
+        await deleteSeleted();
+      }
+    };
+
+    runBulkAction();
+  }, [bulkAction]);
 
   useEffect(() => {
     getBrands(search, currentPage, limit);
@@ -100,6 +141,13 @@ const BrandsList = () => {
         totalPages={totalPages}
         totalItems={totalItems}
         limit={limit} setLimit={setLimit}
+        // bulk
+        selected={selected}
+        setSelected={setSelected}
+        setBulkAction={setBulkAction}
+        bulkActions={[
+          { name: 'Delete Selected', _id: 'delete', color: 'red-600'},
+        ]}
       />
     </MainLayout>
   )

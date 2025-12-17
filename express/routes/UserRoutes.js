@@ -5,11 +5,19 @@ import {
     createUser,
     updateUser,
     deleteUser,
+    deleteMany,
+    updateMany,
  } from "../controllers/UserController.js";
-import { requireAuth } from '../middlewares/auth.js'
+ 
 import { requireAdmin } from '../middlewares/admin.js';
 
 const userRoutes = express.Router();
+
+// Delete many
+userRoutes.delete('/bulk-delete', requireAdmin, deleteMany);
+// Update many
+userRoutes.put('/bulk-update', requireAdmin, updateMany);
+
 
 // Get All Users
 userRoutes.get('/', requireAdmin , getAllUsers);

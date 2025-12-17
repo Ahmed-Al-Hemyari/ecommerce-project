@@ -4,12 +4,16 @@ import {
     getBrandById,
     createBrand,
     updateBrand,
-    deleteBrand
+    deleteBrand,
+    deleteMany
 } from "../controllers/BrandController.js";
 import { requireAdmin } from '../middlewares/admin.js'
 import { uploadBrand } from '../config/multer.js'
 
 const brandRoutes = express.Router();
+
+// Delete many
+brandRoutes.delete('/bulk-delete', requireAdmin, deleteMany);
 
 // Get all products
 brandRoutes.get('/', getAllBrands);

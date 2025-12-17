@@ -20,6 +20,9 @@ const UsersList = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [limit, setLimit] = useState(50);
+  // bulk
+  const [selected, setSelected] = useState([]);
+  const [bulkAction, setBulkAction] = useState('');
 
   const headers = [
     { label: "Name", field: "name", type: 'string' },
@@ -43,7 +46,6 @@ const UsersList = () => {
         }),
       }));
       setUsers(formatted);
-      console.log(response.data.users)
       setTotalPages(response.data.totalPages);
       setTotalItems(response.data.totalItems);
     } catch (error) {
@@ -79,6 +81,98 @@ const UsersList = () => {
   useEffect(() => {
     getUsers(search, role, currentPage, limit);
   }, [search, role, currentPage, limit]);
+
+  // Bulk Actions useEffect
+  useEffect(() => {
+    if (!bulkAction) return;
+
+    const runBulkAction = async () => {
+      if (bulkAction === 'delete') {
+        await deleteSeleted();
+      } else if (bulkAction === 'grant-admin') {
+        await grantAdmin();
+      } else if (bulkAction === 'revoke-admin') {
+        await revokeAdmin();
+      }
+    };
+
+    runBulkAction();
+  }, [bulkAction]);
+
+
+  // Bulk Actions functions
+  const deleteSeleted = async () => {
+    setBulkAction('');
+    const result = await Swal.fire({
+      title: 'Delete Users',
+      text: `Are you sure you want to delete ${selected.length} users?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete them',
+      confirmButtonColor: '#d50101',
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await userService.deleteMany(selected);
+      enqueueSnackbar("Users deleted successfully", { variant: 'success' });
+      setSelected([]);
+      getUsers(search, role, currentPage, limit);
+    } catch (error) {
+      enqueueSnackbar("Failed to delete users", { variant: 'error' });
+      console.error(error);
+    }
+  }
+
+  const grantAdmin = async () => {
+    setBulkAction('');
+    const result = await Swal.fire({
+      title: 'Grant Admin',
+      text: `Are you sure you want to grant admin for selected users?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, grant them',
+      confirmButtonColor: '#1d7451',
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await userService.grantAdmin(selected);
+      enqueueSnackbar("Administration granted successfully", { variant: 'success' });
+      setSelected([]);
+      getUsers(search, role);
+    } catch (error) {
+      enqueueSnackbar("Failed to grant admin", { variant: 'error' });
+      console.error(error);
+    }
+  }
+
+  const revokeAdmin = async () => {
+    setBulkAction('');
+    const result = await Swal.fire({
+      title: 'Revoke Admin',
+      text: `Are you sure you want to revoke admin for selected users?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, revoke admin',
+      confirmButtonColor: '#1d7451',
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await userService.revokeAdmin(selected);
+      enqueueSnackbar("Administration revoked successfully", { variant: 'success' });
+      setSelected([]);
+      getUsers(search, role);
+    } catch (error) {
+      enqueueSnackbar("Failed to revoke admin", { variant: 'error' });
+      console.error(error);
+    }
+  }
+
 
   // Snackbar listener
   useEffect(() => {
@@ -116,11 +210,21 @@ const UsersList = () => {
         handleDelete={handleDelete}
         // Loading
         loading={loading}
+        setLoading={setLoading}
         // Pagination
         currentPage={currentPage} setCurrentPage={setCurrentPage}
         totalPages={totalPages}
         totalItems={totalItems}
         limit={limit} setLimit={setLimit}
+        // bulk
+        selected={selected}
+        setSelected={setSelected}
+        setBulkAction={setBulkAction}
+        bulkActions={[
+          { name: 'Grant admin', _id: 'grant-admin'},
+          { name: 'Revoke admin', _id: 'revoke-admin'},
+          { name: 'Delete Selected', _id: 'delete', color: 'red-600'},
+        ]}
       />
     </MainLayout>
   );

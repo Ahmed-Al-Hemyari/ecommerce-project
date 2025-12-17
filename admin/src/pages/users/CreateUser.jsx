@@ -111,6 +111,7 @@ const CreateUser = () => {
       important: true, 
       type: 'phone', 
       placeholder: 'User phone', 
+      formError: formError,
       countryCode: countryCode,
       setCountryCode: setCountryCode,
       phone: phone,
@@ -119,7 +120,7 @@ const CreateUser = () => {
     { 
       label: 'Role', 
       important: true, 
-      type: 'select',
+      type: 'dropdown',
       options: [
         { name: 'User' },
         { name: 'Admin' },

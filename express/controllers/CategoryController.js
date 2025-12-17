@@ -1,4 +1,5 @@
 import Category from '../models/Category.js';
+import Product from '../models/Product.js'
 
 // Get all products
 export const getAllCategories = async (req, res) => {
@@ -100,9 +101,44 @@ export const deleteCategory = async (req, res) => {
     if (!deletedCategory) {
       return res.status(404).json({ message: 'Category not found' });
     }
+    
+    await Product.deleteMany({
+      'category._id': { $in: req.params.id },
+    });
+    
     res.status(200).json({ message: 'Category deleted successfully' });
   } catch (error) {
     console.error('Error deleting category:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Delete many
+export const deleteMany = async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: "No IDs provided" });
+    }
+
+    const categoryResult = await Category.deleteMany({
+      _id: { $in: ids },
+    });
+
+    await Product.deleteMany({
+      'category._id': { $in: ids },
+    });
+
+    res.status(200).json({
+      message: "Categories deleted successfully",
+      deletedCategories: categoryResult.deletedCount,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error deleting categories",
+      error: error.message,
+    });
+    console.log(error);
   }
 };

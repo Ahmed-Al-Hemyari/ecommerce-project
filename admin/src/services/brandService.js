@@ -16,6 +16,11 @@ export const brandService = {
     createBrand : (data) => api.post("/brands", data),
     updateBrand : (id, data) => api.put(`/brands/${id}`, data),
     deleteBrand : (id) => api.delete(`/brands/${id}`),
+    deleteMany: (data) => api.delete('/brands/bulk-delete', {
+        data: {
+            ids: data,
+        }
+    })
 }
 
 export default brandService;

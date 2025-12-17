@@ -19,6 +19,9 @@ const CategoryList = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [limit, setLimit] = useState(50);
+  // bulk
+  const [selected, setSelected] = useState([]);
+  const [bulkAction, setBulkAction] = useState('');
 
   const headers = [
     { label: 'Name', field: 'name', type: 'string' },
@@ -36,6 +39,31 @@ const CategoryList = () => {
       enqueueSnackbar("Failed to load categories", { variant: 'error' });
     } finally {
       setLoading(false);
+    }
+  }
+
+  // Bulk Actions functions
+  const deleteSeleted = async () => {
+    setBulkAction('');
+    const result = await Swal.fire({
+      title: 'Delete categories',
+      text: `Are you sure you want to delete ${selected.length} categories?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete them',
+      confirmButtonColor: '#d50101',
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await categoryService.deleteMany(selected);
+      enqueueSnackbar("Categories deleted successfully", { variant: 'success' });
+      setSelected([]);
+      getCategories(search, currentPage, limit);
+    } catch (error) {
+      enqueueSnackbar("Failed to delete categories", { variant: 'error' });
+      console.error(error);
     }
   }
 
@@ -71,6 +99,19 @@ const CategoryList = () => {
     getCategories(search, currentPage, limit);
   }, [search, currentPage, limit]);
 
+  // Bulk Actions useEffect
+  useEffect(() => {
+    if (!bulkAction) return;
+
+    const runBulkAction = async () => {
+      if (bulkAction === 'delete') {
+        await deleteSeleted();
+      }
+    };
+
+    runBulkAction();
+  }, [bulkAction]);
+
   // Snackbar listener
   useEffect(() => {
     if (!location.state?.message) return;
@@ -99,6 +140,13 @@ const CategoryList = () => {
         totalPages={totalPages}
         totalItems={totalItems}
         limit={limit} setLimit={setLimit}
+        // bulk
+        selected={selected}
+        setSelected={setSelected}
+        setBulkAction={setBulkAction}
+        bulkActions={[
+          { name: 'Delete Selected', _id: 'delete', color: 'red-600'},
+        ]}
       />
     </MainLayout>
   )

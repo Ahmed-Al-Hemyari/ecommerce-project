@@ -130,7 +130,7 @@ const CreateProduct = () => {
     { 
       label: 'Description', 
       important: true, 
-      type: 'number', 
+      type: 'textarea', 
       placeholder: 'Description', 
       value: description, 
       setValue: setDescription 

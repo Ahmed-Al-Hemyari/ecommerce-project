@@ -36,7 +36,7 @@ const Dropdown = ({
           <option
             key={option._id}
             value={option._id}
-            className="text-gray-700"
+            className={option.color ? `text-${option.color}` : `text-gray-700`}
           >
             {option.name}
           </option>

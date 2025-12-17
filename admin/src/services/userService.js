@@ -14,6 +14,19 @@ export const userService = {
     createUser : (data) => api.post("/users", data),
     updateUser : (id, data) => api.put(`/users/${id}`, data),
     deleteUser : (id) => api.delete(`/users/${id}`),
+    deleteMany: (data) => api.delete(`/users/bulk-delete`, {
+        data: {
+            ids: data,
+        }
+    }),
+    grantAdmin: (data) => api.put('users/bulk-update', {
+        ids: data,
+        updates: { role: 'admin' }
+    }),
+    revokeAdmin: (data) => api.put('users/bulk-update', {
+        ids: data,
+        updates: { role: 'user' }
+    }),
 }
 
 export default userService; 
