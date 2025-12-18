@@ -6,6 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { enqueueSnackbar } from 'notistack';
 import { ArrowLeft } from 'lucide-react';
 import Swal from 'sweetalert2';
+import OrderItemCard from '@/components/UI/OrderItemCard';
 
 const ShowOrder = () => {
   const { id } = useParams();
@@ -107,11 +108,19 @@ const ShowOrder = () => {
       />
 
       <div className="h-6" />
+      <h1 className="text-2xl font-semibold mb-2">Products</h1>
+      {order.orderItems.map(item => (
+        <OrderItemCard
+          key={item._id}
+          item={item}
+        />
+      ))}
+      {/* <OrderItemCard/> */}
 
-      <ShowCard
+      {/* <ShowCard
         title="Order Items"
         data={itemsData}
-      />
+      /> */}
     </MainLayout>
   );
 };

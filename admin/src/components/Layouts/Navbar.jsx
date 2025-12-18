@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { HiOutlineMenu } from "react-icons/hi";
 import { FaUserCircle } from "react-icons/fa";
 import logo from "@/assets/quickbuylogo.svg";
+import GlobalSearch from "../UI/GlobalSearch";
 
 const Navbar = ({ user, logout }) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -18,13 +19,14 @@ const Navbar = ({ user, logout }) => {
         <div className="flex items-center gap-5">
 
           {/* User menu (always present) */}
-          <div className="relative flex">
+          <div className="relative flex items-center">
+            <GlobalSearch/>
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center gap-2 cursor-pointer"
+              className="flex flex-col items-center gap-2 cursor-pointer"
             >
               <FaUserCircle size={28} />
-              <span className="font-semibold">{user?.name}</span>
+              <span className="font-semibold hidden md:flex">{user?.name}</span>
             </button>
 
             {showUserMenu && (

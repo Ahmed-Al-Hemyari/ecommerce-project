@@ -3,7 +3,6 @@ import ShowCard from '@/components/UI/ShowCard';
 import { enqueueSnackbar } from 'notistack';
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import ProductsList from '../products/ProductsList';
 import { ArrowLeft } from 'lucide-react';
 import Swal from 'sweetalert2';
 import productService from '@/services/productService';
@@ -83,6 +82,7 @@ const ShowProduct = () => {
           </button>
           <ShowCard
             title={`${product.name} Details`}
+            image={product.image ? `${import.meta.env.VITE_BACKEND_IMAGES_URL}${product.image}` : null}
             data={data}
             onEdit={true}
             onRuplicate={true}
