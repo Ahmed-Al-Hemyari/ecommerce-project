@@ -21,7 +21,7 @@ const Filters = ({ inputs = [] }) => {
       </button>
 
       {showMenu && (
-        <div className="fixed top-auto right-3 w-50 bg-white shadow-lg flex flex-col items-center z-50 rounded-xl">
+        <div className="fixed top-auto right-3 w-fit bg-white shadow-lg flex flex-col items-center z-50 rounded-xl">
           <h2 className='p-2 text-xl font-bold'>Filters</h2>
 
           {inputs.map((input, index) => (

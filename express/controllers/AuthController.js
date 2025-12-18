@@ -25,6 +25,9 @@ export const loginByEmail = async (req, res) => {
         if (!user) {
             return res.status(400).json({ message: "Invalid email or password" });
         }
+        if (user.deleted) {
+          return res.status(401).json({ message: 'User has been deleted' });
+        }
         const isMatch = await user.comparePassword(password);
         if (!isMatch) {
             return res.status(400).json({ message: "Invalid email or password" });
@@ -42,6 +45,9 @@ export const loginByPhone = async (req, res) => {
         const user = await User.findOne({ phone });
         if (!user) {
             return res.status(400).json({ message: "Invalid phone or password" });
+        }
+        if (user.deleted) {
+          return res.status(401).json({ message: 'User has been deleted' });
         }
         const isMatch = await user.comparePassword(password);
         if (!isMatch) {

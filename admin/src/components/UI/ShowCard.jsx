@@ -1,5 +1,5 @@
 import React from "react";
-import { Pencil, ArrowLeft, Copy } from "lucide-react";
+import { Pencil, ArrowLeft, Copy, Trash, X, ArchiveRestoreIcon, RefreshCcw } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 
 const ShowCard = ({
@@ -9,39 +9,72 @@ const ShowCard = ({
   imageAlt = "Preview",
   data = [],
   onEdit,
+  onRuplicate,
+  onDelete,
+  onRestore,
+  // onAction,
+  onCancel,
+  deleted,
   link,
   actions,
 }) => {
+
   const navigate = useNavigate();
   const { id } = useParams();
 
   return (
-    <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-sm border">
+    <div className="w-full mx-auto bg-white rounded-2xl shadow-sm border">
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b">
         <div>
-          <h1 className="text-2xl font-semibold">{title}</h1>
+          <h1 className="text-2xl font-semibold">{title} {' '} {deleted ? <span className="text-red-600 font-normal text-xl">(Deleted)</span> : ''}</h1>
           {subtitle && (
             <p className="text-sm text-gray-500 mt-1">{subtitle}</p>
           )}
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => navigate(`${link}/create`)}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium bg-gray-100 hover:bg-gray-200"
-          >
-            <Copy size={16} />
-          </button>
-
           {onEdit && (
             <button
-              onClick={onEdit}
+              onClick={() => navigate(`${link}/update/${id}`)}
               className="flex items-center gap-1 px-2 py-2 rounded-md text-sm font-medium bg-(--color-green) text-(--color-dark-gray) hover:bg-(--color-green)/80"
             >
               <Pencil size={16} />
             </button>
           )}
+          {onRuplicate && (
+            <button
+              onClick={() => navigate(`${link}/create`)}
+              className="flex items-center gap-1 px-2 py-2 rounded-md text-sm font-medium bg-gray-100 hover:bg-gray-200"
+            >
+              <Copy size={16} />
+            </button>
+          )}
+          {(!deleted && onDelete) && (
+            <button
+              onClick={onDelete}
+              className="flex items-center gap-1 px-2 py-2 rounded-md text-sm font-medium bg-gray-100 hover:bg-gray-200"
+            >
+              <Trash size={16} color="#d50101"/>
+            </button>
+          )}
+          {(deleted && onRestore) && (
+            <button
+              onClick={onRestore}
+              className="flex items-center gap-1 px-2 py-2 rounded-md text-sm font-medium bg-gray-100 hover:bg-gray-200"
+            >
+              <RefreshCcw size={16}/>
+            </button>
+          )}
+          {(!deleted && onCancel) && (
+            <button
+              onClick={onCancel}
+              className="flex items-center gap-1 px-2 py-2 rounded-md text-sm font-medium bg-gray-100 hover:bg-gray-200"
+            >
+              <X size={16} color="#d50101"/>
+            </button>
+          )}
+
         </div>
       </div>
 

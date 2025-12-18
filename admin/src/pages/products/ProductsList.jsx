@@ -29,6 +29,7 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
   // Filters
   const [categoryFilter, setCategoryFilter] = useState(null);
   const [brandFilter, setBrandFilter] = useState(null);
+  const [deletedFilter, setDeletedFilter] = useState(null);
 
   const headers = [
     { label: 'Name', field: 'name', type: 'string' },
@@ -37,10 +38,10 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
     { label: 'Price', field: 'price', type: 'price' },
   ];
 
-  const getProducts = async (search, category, brand, currentPage, limit) => {
+  const getProducts = async (search, category, brand, deleted, currentPage, limit) => {
     setLoading(true);
     try {
-      const response = await productService.getProducts(search, category, brand, currentPage, limit);
+      const response = await productService.getProducts(search, category, brand, deleted, currentPage, limit);
       setProducts(response.data.products);
       setTotalPages(response.data.totalPages);
       setTotalItems(response.data.totalItems);
@@ -48,6 +49,7 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
       enqueueSnackbar("Failed to load products", {
         variant: 'error'
       });
+      console.error(error)
     } finally {
       setLoading(false);
     }
@@ -95,9 +97,34 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
       await productService.deleteMany(selected);
       enqueueSnackbar("Products deleted successfully", { variant: 'success' });
       setSelected([]);
-      getProducts(search, categoryFilter, brandFilter, currentPage, limit);
+      getProducts(search, categoryFilter, brandFilter, deletedFilter, currentPage, limit);
     } catch (error) {
       enqueueSnackbar("Failed to delete products", { variant: 'error' });
+      console.error(error);
+    }
+  }
+
+  const restoreSeleted = async () => {
+    setBulkAction('');
+    const result = await Swal.fire({
+      title: 'Restore products',
+      text: `Are you sure you want to restore ${selected.length} products?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, restore them',
+      confirmButtonColor: '#1d7451',
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await productService.restoreMany(selected);
+      enqueueSnackbar("Products restored successfully", { variant: 'success' });
+      setSelected([]);
+      setDeletedFilter(null);
+      getProducts(search, categoryFilter, brandFilter, deletedFilter, currentPage, limit);
+    } catch (error) {
+      enqueueSnackbar("Failed to restore products", { variant: 'error' });
       console.error(error);
     }
   }
@@ -120,9 +147,37 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
       enqueueSnackbar("Product deleted successfully", {
         variant: 'success'
       });
-      getProducts(search, categoryFilter, brandFilter, currentPage, limit);
+      getProducts(search, categoryFilter, brandFilter, deletedFilter, currentPage, limit);
     } catch (error) {
       enqueueSnackbar("Failed to delete product", {
+        variant: 'error'
+      });
+      console.error(error);
+    }
+  }
+
+  const handleRestore = async (id) => {
+    const result = Swal.fire({
+      title: 'Restore Product',
+      text: 'Sure you want to restore this product??',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, restore it',
+      confirmButtonColor: '#1d7451'
+    })
+
+    if (!(await result).isConfirmed) {
+      return;
+    }
+    try {
+      const response = await productService.restoreProduct(id);
+      enqueueSnackbar("Product restored successfully", {
+        variant: 'success'
+      });
+      setDeletedFilter(null);
+      getProducts(search, categoryFilter, brandFilter, deletedFilter, currentPage, limit);
+    } catch (error) {
+      enqueueSnackbar("Failed to restore product", {
         variant: 'error'
       });
       console.error(error);
@@ -141,8 +196,8 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
 
   // Filter, pagination useEffect
   useEffect(() => {
-    getProducts(search, categoryFilter, brandFilter, currentPage, limit);
-  }, [search, categoryFilter, brandFilter, currentPage, limit]);
+    getProducts(search, categoryFilter, brandFilter, deletedFilter, currentPage, limit);
+  }, [search, categoryFilter, brandFilter, deletedFilter, currentPage, limit]);
 
   // Bulk Actions useEffect
   useEffect(() => {
@@ -151,6 +206,9 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
     const runBulkAction = async () => {
       if (bulkAction === 'delete') {
         await deleteSeleted();
+      }
+      if (bulkAction === 'restore') {
+        await restoreSeleted();
       }
     };
 
@@ -183,6 +241,15 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
       placeholder: 'Choose Brand',
       value: brandFilter,
       setValue: setBrandFilter,
+    },
+    {
+      label: 'Deleted',
+      options: [
+        { _id: true, name: 'Deleted' },
+      ],
+      placeholder: 'Choose...',
+      value: deletedFilter,
+      setValue: setDeletedFilter,
     }
   ];
 
@@ -196,6 +263,7 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
       setSearch={setSearch}
       tableName="Products"
       handleDelete={handleDelete}
+      handleRestore={handleRestore}
       loading={loading}
       // Pagination
       currentPage={currentPage}
@@ -217,6 +285,7 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
           setSearch={setSearch}
           tableName="Products"
           handleDelete={handleDelete}
+          handleRestore={handleRestore}
           loading={loading}
           // Pagination
           currentPage={currentPage}
@@ -230,7 +299,7 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
           setSelected={setSelected}
           setBulkAction={setBulkAction}
           bulkActions={[
-            { name: 'Delete Selected', _id: 'delete', color: 'red-600'},
+            deletedFilter ? { name: 'Restore selected', _id: 'restore'} : { name: 'Delete Selected', _id: 'delete', color: 'red' },
           ]}
         />
       </MainLayout>

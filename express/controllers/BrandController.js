@@ -6,13 +6,19 @@ import path from "path";
 // Get all products
 export const getAllBrands = async (req, res) => {
   try {
-    const { search } = req.query;
+    const { search, deleted } = req.query;
     const query = {};
 
     if (search) {
         query.$or = [
             { name: { $regex: search, $options: "i" } }
         ];
+    }
+
+    if (deleted !== undefined) {
+      query.deleted = deleted; // use the boolean directly
+    } else {
+      query.deleted = { $ne: true }; // include all where deleted is not true
     }
 
     // Pagination
@@ -22,7 +28,7 @@ export const getAllBrands = async (req, res) => {
 
     const totalItems = await Brand.countDocuments(query);
 
-    let brandsQuery = Brand.find({...query, deleted: false });
+    let brandsQuery = Brand.find(query);
     if (limit) {
       brandsQuery = brandsQuery.skip(skip).limit(limit);
     }
@@ -140,6 +146,23 @@ export const deleteBrand = async (req, res) => {
   }
 };
 
+// Restore a product
+export const restoreBrand = async (req, res) => {
+  try {
+    const brand = await Brand.findByIdAndUpdate(req.params.id, { deleted: false });
+
+    if (!brand) {
+      return res.status(404).json({ message: 'Brand not found' });
+    }
+
+    res.status(200).json({ message: 'Brand restored successfully' });
+
+  } catch (error) {
+    console.error('Error restoring brand:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 // Delete many
 export const deleteMany = async (req, res) => {
   try {
@@ -161,6 +184,32 @@ export const deleteMany = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: "Error deleting brands",
+      error: error.message,
+    });
+    console.log(error);
+  }
+};
+
+// Restore many
+export const restoreMany = async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: "No IDs provided" });
+    }
+
+    const brandResult = await Brand.updateMany(
+      { _id: { $in: ids } },
+      { $set: { deleted: false }},
+    );
+
+    res.status(200).json({
+      message: "Brands restored successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error restored brands",
       error: error.message,
     });
     console.log(error);

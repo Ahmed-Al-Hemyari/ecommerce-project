@@ -16,6 +16,9 @@ export const requireAdmin = async (req, res, next) => {
         if (!user) {
             return res.status(401).json({ message: "User no longer exists" });
         }
+        if (user.deleted) {
+          return res.status(401).json({ message: 'User has been deleted' });
+        }
         
         req.user = user;
         

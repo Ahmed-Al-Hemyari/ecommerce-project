@@ -1,12 +1,12 @@
 import api from "./api";
 
 export const orderService = {
-    getOrders: (search, user, status, payed, page, limit) => {
+    getOrders: ({search, user, status, payed, page, limit}) => {
         const params = {};
         if (search) params.search = search;
         if (user) params.user = user;
         if (status !== undefined && status !== null) params.status = status;
-        if (payed !== undefined ) params.payed = payed;
+        if (payed !== undefined && payed !== null) params.payed = payed;
         if (page) params.page = page;
         if (limit) params.limit = limit;
 

@@ -22,15 +22,18 @@ const BrandsList = () => {
   const [selected, setSelected] = useState([]);
   const [bulkAction, setBulkAction] = useState('');
 
+  // Filters
+  const [deletedFilter, setDeletedFilter] = useState(null);
+
   const headers = [
     { label: "Name", field: "name", type: 'string' }
   ];
 
 
-  const getBrands = async (search, currentPage, limit) => {
+  const getBrands = async (search, deleted, currentPage, limit) => {
     setLoading(true);
     try {
-      const response = await brandService.getBrands(search, currentPage, limit);
+      const response = await brandService.getBrands(search, deleted, currentPage, limit);
       setBrands(response.data.brands);
       setTotalPages(response.data.totalPages);
       setTotalItems(response.data.totalItems);
@@ -60,9 +63,34 @@ const BrandsList = () => {
       await brandService.deleteMany(selected);
       enqueueSnackbar("Brands deleted successfully", { variant: 'success' });
       setSelected([]);
-      getBrands(search, currentPage, limit);
+      getBrands(search, deletedFilter, currentPage, limit);
     } catch (error) {
       enqueueSnackbar("Failed to delete brands", { variant: 'error' });
+      console.error(error);
+    }
+  }
+
+  const restoreSeleted = async () => {
+    setBulkAction('');
+    const result = await Swal.fire({
+      title: 'Restore brands',
+      text: `Are you sure you want to restore ${selected.length} brands?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, restore them',
+      confirmButtonColor: '#1d7451',
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await brandService.restoreMany(selected);
+      enqueueSnackbar("Brands restored successfully", { variant: 'success' });
+      setSelected([]);
+      setDeletedFilter(null);
+      getBrands(search, deletedFilter, currentPage, limit);
+    } catch (error) {
+      enqueueSnackbar("Failed to restore brands", { variant: 'error' });
       console.error(error);
     }
   }
@@ -86,9 +114,38 @@ const BrandsList = () => {
       enqueueSnackbar("Brand deleted successfully", {
         variant: 'success'
       });
-      getBrands();
+      getBrands(search, deletedFilter, currentPage, limit);
     } catch (error) {
       enqueueSnackbar("Failed to delete brand", {
+        variant: 'error'
+      });
+      console.error(error);
+    }
+  }
+
+  const handleRestore = async (id) => {
+    try {
+      const result = Swal.fire({
+        title: 'Restore Brand',
+        text: 'Sure you want to restore this brand??',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, restore it',
+        confirmButtonColor: '#1d7451'
+      })
+
+      if (!(await result).isConfirmed) {
+        return;
+      }
+
+      const response = await brandService.restoreBrand(id);
+      enqueueSnackbar("Brand restored successfully", {
+        variant: 'success'
+      });
+      setDeletedFilter(null);
+      getBrands(search, deletedFilter, currentPage, limit);
+    } catch (error) {
+      enqueueSnackbar("Failed to restore brand", {
         variant: 'error'
       });
       console.error(error);
@@ -103,14 +160,17 @@ const BrandsList = () => {
       if (bulkAction === 'delete') {
         await deleteSeleted();
       }
+      if (bulkAction === 'restore') {
+        await restoreSeleted();
+      }
     };
 
     runBulkAction();
   }, [bulkAction]);
 
   useEffect(() => {
-    getBrands(search, currentPage, limit);
-  }, [search, currentPage, limit]);
+    getBrands(search, deletedFilter, currentPage, limit);
+  }, [search, deletedFilter, currentPage, limit]);
 
   // Snackbar listener
   useEffect(() => {
@@ -124,16 +184,30 @@ const BrandsList = () => {
     }
   }, [location.state]);
 
+  const filters = [
+    {
+      label: 'Deleted',
+      options: [
+        { _id: true, name: 'Deleted' },
+      ],
+      placeholder: 'Choose...',
+      value: deletedFilter,
+      setValue: setDeletedFilter,
+    }
+  ];
+
   return (
     <MainLayout>
       <DataTable
         headers={headers}
         link='/brands'
         data={brands}
+        filters={filters}
         search={search}
         setSearch={setSearch}
         tableName='Brands'
         handleDelete={handleDelete}
+        handleRestore={handleRestore}
         // Loading
         loading={loading}
         // Pagination
@@ -146,7 +220,7 @@ const BrandsList = () => {
         setSelected={setSelected}
         setBulkAction={setBulkAction}
         bulkActions={[
-          { name: 'Delete Selected', _id: 'delete', color: 'red-600'},
+          deletedFilter ? { name: 'Restore selected', _id: 'restore'} : { name: 'Delete Selected', _id: 'delete', color: 'red' },
         ]}
       />
     </MainLayout>

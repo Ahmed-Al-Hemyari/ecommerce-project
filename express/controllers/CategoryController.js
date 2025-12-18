@@ -4,7 +4,7 @@ import Product from '../models/Product.js'
 // Get all products
 export const getAllCategories = async (req, res) => {
   try {
-    const { search } = req.query;
+    const { search, deleted } = req.query;
     const query = {};
 
     if (search) {
@@ -14,6 +14,12 @@ export const getAllCategories = async (req, res) => {
         ];
     }
 
+    if (deleted !== undefined) {
+      query.deleted = deleted; // use the boolean directly
+    } else {
+      query.deleted = { $ne: true }; // include all where deleted is not true
+    }
+
     // Pagination
     const page = Number(req.query.page) || 1;
     const limit = req.query.limit !== undefined ? Number(req.query.limit) : null;
@@ -21,7 +27,7 @@ export const getAllCategories = async (req, res) => {
 
     const totalItems = await Category.countDocuments(query);
 
-    let categoryQuery = Category.find({...query, deleted: false });
+    let categoryQuery = Category.find(query);
     if (limit) {
       categoryQuery = categoryQuery.skip(skip).limit(limit);
     }
@@ -92,7 +98,7 @@ export const updateCategory = async (req, res) => {
   }
 };
 
-// Delete a product
+// Delete a category
 export const deleteCategory = async (req, res) => {
   try {
     const deletedCategory = await Category.findByIdAndUpdate(req.params.id, { deleted: true });
@@ -103,6 +109,20 @@ export const deleteCategory = async (req, res) => {
     res.status(200).json({ message: 'Category deleted successfully' });
   } catch (error) {
     console.error('Error deleting category:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+// Restore a category
+export const restoreCategory = async (req, res) => {
+  try {
+    const restoredCategory = await Category.findByIdAndUpdate(req.params.id, { deleted: false });
+    if (!restoredCategory) {
+      return res.status(404).json({ message: 'Category not found' });
+    }
+    
+    res.status(200).json({ message: 'Category restored successfully' });
+  } catch (error) {
+    console.error('Error restoring category:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -128,6 +148,33 @@ export const deleteMany = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: "Error deleting categories",
+      error: error.message,
+    });
+    console.log(error);
+  }
+};
+
+// Delete many
+export const restoreMany = async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: "No IDs provided" });
+    }
+
+    const categoryResult = await Category.updateMany(
+      { _id: { $in: ids } },
+      { $set: { deleted: false } }
+    );
+
+    res.status(200).json({
+      message: "Categories restored successfully",
+      // deletedCategories: categoryResult.deletedCount,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error restoring categories",
       error: error.message,
     });
     console.log(error);

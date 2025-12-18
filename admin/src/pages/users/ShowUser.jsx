@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import OrdersList from '../orders/OrdersList';
 import { ArrowLeft } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const ShowUser = () => {
   const { id } = useParams();
@@ -29,9 +30,42 @@ const ShowUser = () => {
       enqueueSnackbar("Failed to load user", { variant: 'error' });
     }
   }
+  
+  const onAction = async () => {
+    const deleted = user.deleted;
+    try {
+      const result = await Swal.fire({
+        title: `${deleted ? 'Restore User' : 'Delete User'}`,
+        text: `Sure you want to ${deleted ? 'restore' : 'delete'} this user??`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: `Yes, ${deleted ? 'restore' : 'delete'} it`,
+        confirmButtonColor: `${deleted ? '#1d7451' : '#d50101'}`
+      });
 
-  const edit = () => {
-    navigate(`/users/update/${user._id}`);
+      if (!result.isConfirmed) return;
+      
+      if (deleted) {
+        const response = await userService.restoreUser([id]);
+        navigate('/users', {
+          state: {
+            message: "User restored successfully",
+            status: 'success'
+          }
+        })
+      } else {
+        const response = await userService.deleteUser([id]);
+        navigate('/users', {
+          state: {
+            message: "User deleted successfully",
+            status: 'success'
+          }
+        })
+        
+      }
+    } catch (error) {
+      enqueueSnackbar(`Failed to ${deleted ? 'restore' : 'delete'} user`);
+    }
   }
 
   useEffect(() => {
@@ -74,10 +108,14 @@ const ShowUser = () => {
           <ShowCard
             title={`${user.name} Details`}
             data={data}
-            onEdit={edit}
-            backTo={'/users'}
+            onEdit={true}
+            onRuplicate={true}
+            onDelete={!user.deleted ? onAction : null}
+            onRestore={user.deleted ? onAction : null}
+            deleted={user.deleted}
+            link={'/users'}
           />
-          <OrdersList propLimit={10} inner user={user._id}/>
+          <OrdersList propLimit={10} inner user={user}/>
         </>
       )}
     </MainLayout>

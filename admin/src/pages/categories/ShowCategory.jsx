@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import ProductsList from '../products/ProductsList';
 import { ArrowLeft } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const ShowCategory = () => {
   const { id } = useParams();
@@ -21,10 +22,41 @@ const ShowCategory = () => {
     }
   }
 
+  const onAction = async () => {
+    const deleted = category.deleted;
+    try {
+      const result = await Swal.fire({
+        title: `${deleted ? 'Restore Category' : 'Delete Category'}`,
+        text: `Sure you want to ${deleted ? 'restore' : 'delete'} this category??`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: `Yes, ${deleted ? 'restore' : 'delete'} it`,
+        confirmButtonColor: `${deleted ? '#1d7451' : '#d50101'}`
+      });
 
-
-  const edit = () => {
-    navigate(`/category/update/${category._id}`);
+      if (!result.isConfirmed) return;
+      
+      if (deleted) {
+        const response = await categoryService.restoreCategory([id]);
+        navigate('/categories', {
+          state: {
+            message: "Category restored successfully",
+            status: 'success'
+          }
+        })
+      } else {
+        const response = await categoryService.deleteCategory([id]);
+        navigate('/categories', {
+          state: {
+            message: "Category deleted successfully",
+            status: 'success'
+          }
+        })
+        
+      }
+    } catch (error) {
+      enqueueSnackbar(`Failed to ${deleted ? 'restore' : 'delete'} category`);
+    }
   }
 
   useEffect(() => {
@@ -55,8 +87,12 @@ const ShowCategory = () => {
           <ShowCard
             title={`${category.name} Details`}
             data={data}
-            onEdit={edit}
-            backTo={'/categories'}
+            onEdit={true}
+            onRuplicate={true}
+            onDelete={!category.deleted ? onAction : null}
+            onRestore={category.deleted ? onAction : null}
+            deleted={category.deleted}
+            link={'/categories'}
           />
           <div className='h-15'/>
           <ProductsList propLimit={10} inner category={category._id}/>

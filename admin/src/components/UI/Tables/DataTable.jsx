@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import ActionButton from './ActionButton';
-import { Edit, Eye, Plus, Search, Square, SquarePlus, Trash, X } from 'lucide-react';
+import { Edit, Eye, Plus, RefreshCcw, Search, Square, SquarePlus, Trash, X } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import StringCell from './StringCell';
 import BoolCell from './BoolCell';
@@ -23,9 +23,9 @@ const DataTable = ({
   search,
   setSearch,
   handleDelete,
+  handleRestore,
   handleCancel,
   loading = true,
-  setLoading,
   // Pagination
   currentPage, setCurrentPage,
   totalPages, 
@@ -220,7 +220,7 @@ const DataTable = ({
 
                       return (
                         <Cell
-                          key={header.accessor}
+                          key={header.field}
                           item={item}
                           colIndx={colIndx}
                           header={header}
@@ -229,8 +229,11 @@ const DataTable = ({
                     })}
                     <td className="border-b">
                       <div className="flex flex-row-reverse items-center justify-center">
-                        {link !== '/orders' && (
+                        {(link !== '/orders' && !item.deleted) && (
                           <ActionButton Icon={Trash} size={18} color="#d50101" handleClick={() => handleDelete(item._id)} />
+                        )}
+                        {item.deleted && (
+                          <ActionButton Icon={RefreshCcw} size={18} color="#2563EB" handleClick={() => handleRestore(item._id)} />
                         )}
                         {link === '/orders' && (
                           <ActionButton Icon={X} size={18} color="#d50101" handleClick={() => handleCancel(item._id)} />

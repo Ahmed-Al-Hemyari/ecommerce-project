@@ -7,44 +7,39 @@ export const getAllOrders = async (req, res) => {
     let { search, user, status, payed, page, limit } = req.query;
 
     const query = {};
-
+    
     // Convert pagination values
     page = Number(page) || 1;
     limit = Number(limit) || 50;
     const skip = (page - 1) * limit;
-
+    
     // Search filter
     if (search) {
       const orQuery = [
         { 'user.name': { $regex: search, $options: 'i' } },
         { status: { $regex: search, $options: 'i' } }
       ];
-
+      
       const totalAmount = Number(search);
       if (!isNaN(totalAmount)) {
         orQuery.push({ totalAmount });
       }
-
+      
       query.$or = orQuery;
     }
-
+    
     // Status filter
     if (status) query.status = status;
-
+    
     // User filter (match by ObjectId)
-    if (user) query.user = user;
+    if (user) query['user._id'] = user;
 
-    // Payed filter (convert string 'true'/'false' to boolean)
-    if (payed !== undefined) {
-      if (payed === 'true') query.payed = true;
-      else if (payed === 'false') query.payed = false;
-    }
+    if(payed !== undefined) query.payed = payed;
 
     const totalItems = await Order.countDocuments(query);
 
     // Find orders and populate user info
     const orders = await Order.find(query)
-      .populate('user', 'name email') // populate user name and email
       .skip(skip)
       .limit(limit); // optional: latest first
 

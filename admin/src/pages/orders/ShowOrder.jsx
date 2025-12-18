@@ -5,6 +5,7 @@ import orderService from '@/services/orderService';
 import { useNavigate, useParams } from 'react-router-dom';
 import { enqueueSnackbar } from 'notistack';
 import { ArrowLeft } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const ShowOrder = () => {
   const { id } = useParams();
@@ -19,6 +20,31 @@ const ShowOrder = () => {
       enqueueSnackbar("Failed to load order", { variant: 'error' });
     }
   };
+
+  const onCancel = async () => {
+    try {
+      const result = await Swal.fire({
+        title: 'Cancel Order',
+        text: 'Sure you want to delete this order??',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, cancel it',
+        confirmButtonColor: '#dd2222'
+      });
+
+      if (!result.isConfirmed) return;
+      
+      const response = await orderService.updateToCancelled([id]);
+      navigate('/orders', {
+        state: {
+          message: "Order deleted successfully",
+          status: 'success'
+        }
+      })
+    } catch (error) {
+      enqueueSnackbar("Failed to cancel order");
+    }
+  }
 
   useEffect(() => {
     getOrder();
@@ -67,8 +93,10 @@ const ShowOrder = () => {
       <ShowCard
         title={`Order #${order.orderId}`}
         data={data}
-        backTo="/orders"
-        onEdit={() => navigate(`/orders/update/${order._id}`)}
+        onEdit
+        onRuplicate
+        onCancel={order.status === 'Cancelled' ? '' : onCancel}
+        link={'/orders'}
       />
 
       <div className="h-6" />

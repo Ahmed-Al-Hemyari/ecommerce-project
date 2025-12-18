@@ -7,7 +7,7 @@ import fs from 'fs';
 // Get all products
 export const getAllProducts = async (req, res) => {
   try {
-    const { search, category, brand, minPrice, maxPrice } = req.query;
+    const { search, category, brand, minPrice, maxPrice, deleted } = req.query;
     const query = {};
 
     if (search) {
@@ -32,6 +32,12 @@ export const getAllProducts = async (req, res) => {
       if (maxPrice) query.price.$lte = Number(maxPrice);
     }
 
+    if (deleted !== undefined) {
+      query.deleted = deleted; // use the boolean directly
+    } else {
+      query.deleted = { $ne: true }; // include all where deleted is not true
+    }
+
     // Pagination
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 50;
@@ -39,7 +45,7 @@ export const getAllProducts = async (req, res) => {
 
     const totalItems = await Product.countDocuments(query);
 
-    const products = await Product.find({...query, deleted: false })
+    const products = await Product.find(query)
       .skip(skip)
       .limit(limit);
     res.status(200).json({
@@ -198,6 +204,20 @@ export const deleteProduct = async (req, res) => {
   }
 };
 
+// Restore a product
+export const restoreProduct = async (req, res) => {
+  try {
+    const restoredProduct = await Product.findByIdAndUpdate(req.params.id, { deleted: false });
+    if (!restoredProduct) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+    res.status(200).json({ message: 'Product restored successfully' });
+  } catch (error) {
+    console.error('Error restoring product:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 // Delete many
 export const deleteMany = async (req, res) => {
   try {
@@ -219,6 +239,33 @@ export const deleteMany = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: "Error deleting products",
+      error: error.message,
+    });
+    console.log(error);
+  }
+};
+
+// Restore many
+export const restoreMany = async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: "No IDs provided" });
+    }
+
+    const productResult = await Product.updateMany(
+      { _id: { $in: ids } },
+      { $set: { deleted: false }},
+    );
+
+    res.status(200).json({
+      message: "Products restored successfully",
+      // deletedProducts: productResult.deletedCount,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error restoring products",
       error: error.message,
     });
     console.log(error);

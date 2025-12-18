@@ -7,6 +7,8 @@ import {
     deleteUser,
     deleteMany,
     updateMany,
+    restoreMany,
+    restoreUser,
  } from "../controllers/UserController.js";
  
 import { requireAdmin } from '../middlewares/admin.js';
@@ -15,6 +17,8 @@ const userRoutes = express.Router();
 
 // Delete many
 userRoutes.patch('/bulk-delete', requireAdmin, deleteMany);
+// Restore many
+userRoutes.patch('/bulk-restore', requireAdmin, restoreMany);
 // Update many
 userRoutes.patch('/bulk-update', requireAdmin, updateMany);
 
@@ -29,5 +33,7 @@ userRoutes.post('/', requireAdmin , createUser);
 userRoutes.put('/:id', requireAdmin , updateUser);
 // Delete User
 userRoutes.patch('/:id', requireAdmin , deleteUser);
+// Restore User
+userRoutes.patch('/restore/:id', requireAdmin , restoreUser);
 
 export default userRoutes;

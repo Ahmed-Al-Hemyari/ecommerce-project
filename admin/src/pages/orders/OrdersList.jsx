@@ -9,22 +9,20 @@ import Swal from 'sweetalert2';
 const OrdersList = ({ propLimit = 50, inner = false, user }) => {
   const location = useLocation();
   const navigate = useNavigate();
-
-  // Data & Filters
+  // Data
   const [orders, setOrders] = useState([]);
   const [search, setSearch] = useState('');
+  // Filters
   const [statusFilter, setStatusFilter] = useState(null);
   const [payedFilter, setPayedFilter] = useState(null);
-  const userFilter = inner ? user : undefined;
-
-  // Loading & Pagination
+  const [userFilter, setUserFilter] = useState(null);
+  // Pagination
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [limit, setLimit] = useState(propLimit);
-
-  // Bulk
+  const [limit, setLimit] = useState(50);
+  // bulk
   const [selected, setSelected] = useState([]);
   const [bulkAction, setBulkAction] = useState('');
 
@@ -35,27 +33,10 @@ const OrdersList = ({ propLimit = 50, inner = false, user }) => {
     { label: 'Total Price', field: 'totalAmount', type: 'price' },
   ];
 
-  // -----------------------------
-  // Fetch Orders
-  // -----------------------------
-  const getOrders = async (search, user, status, payed, page, limit) => {
-    setLoading(true);
+  const getOrders = async (search, user, status, payed, currentPage, limit) => {
     try {
-      const response = await orderService.getOrders(
-        search,
-        user,
-        status,
-        payed,
-        page,
-        limit
-      );
-
-      const formatted = response.data.orders.map(order => ({
-        ...order,
-        user: order.user ? { _id: order.user._id, name: order.user.name } : null,
-      }));
-
-      setOrders(formatted);
+      const response = await orderService.getOrders({search, user, status, payed, page: currentPage, limit});
+      setOrders(response.data.orders);
       setTotalPages(response.data.totalPages);
       setTotalItems(response.data.totalItems);
     } catch (error) {
@@ -66,9 +47,6 @@ const OrdersList = ({ propLimit = 50, inner = false, user }) => {
     }
   };
 
-  // -----------------------------
-  // Cancel Single Order
-  // -----------------------------
   const handleCancel = async (id) => {
     const result = await Swal.fire({
       title: 'Cancel Order',
@@ -84,89 +62,71 @@ const OrdersList = ({ propLimit = 50, inner = false, user }) => {
     try {
       await orderService.updateToCancelled([id]);
       enqueueSnackbar('Order cancelled successfully', { variant: 'success' });
-      fetchOrders();
+      getOrders(search, userFilter, statusFilter, payedFilter, currentPage, limit);
     } catch (error) {
-      enqueueSnackbar('Failed to cancel order', { variant: 'error' });
-    }
-  };
-
-  // -----------------------------
-  // Bulk Actions
-  // -----------------------------
-  const bulkUpdate = async (type) => {
-    if (!selected.length) return;
-
-    const actionNames = {
-      pending: 'Pending',
-      processing: 'Processing',
-      shipped: 'Shipped',
-      delivered: 'Delivered',
-      cancelled: 'Cancelled',
-      payed: 'Payed',
-      'not-payed': 'Not Payed',
-    };
-
-    const result = await Swal.fire({
-      title: 'Update Orders',
-      text: `Are you sure you want to update ${selected.length} orders to ${actionNames[type]}?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, update them',
-      confirmButtonColor: '#1d7451',
-    });
-
-    if (!result.isConfirmed) return;
-
-    try {
-      switch (type) {
-        case 'pending':
-          await orderService.updateToPending(selected); break;
-        case 'processing':
-          await orderService.updateToProcessing(selected); break;
-        case 'shipped':
-          await orderService.updateToShipped(selected); break;
-        case 'delivered':
-          await orderService.updateToDelivered(selected); break;
-        case 'cancelled':
-          await orderService.updateToCancelled(selected); break;
-        case 'payed':
-          await orderService.updateToPayed(selected); break;
-        case 'not-payed':
-          await orderService.updateToNotPayed(selected); break;
-        default: return;
-      }
-      enqueueSnackbar('Orders updated successfully', { variant: 'success' });
-      setSelected([]);
-      fetchOrders();
-    } catch (error) {
-      enqueueSnackbar('Failed to update orders', { variant: 'error' });
+      enqueueSnackbar('Failed to delete order', { variant: 'error' });
       console.error(error);
     }
   };
 
-  // -----------------------------
-  // Fetch Orders Helper
-  // -----------------------------
-  const fetchOrders = () => {
-    const normalizedStatus = statusFilter ?? undefined;
-    const normalizedPayed = payedFilter ?? undefined;
-
-    getOrders(search, userFilter, normalizedStatus, normalizedPayed, currentPage, limit);
-  };
-
-  // -----------------------------
-  // Effects
-  // -----------------------------
+  // Fetch orders when search/filter changes
   useEffect(() => {
-    fetchOrders();
+    setLoading(true);
+    getOrders(search, userFilter, statusFilter, payedFilter, currentPage, limit);
   }, [search, userFilter, statusFilter, payedFilter, currentPage, limit]);
 
+  // Bulk actions useEffect
   useEffect(() => {
-    if (!bulkAction) return;
-    bulkUpdate(bulkAction);
-    setBulkAction('');
+    if (!bulkAction || selected.length === 0) return;
+
+    const runBulkAction = async () => {
+      try {
+        switch (bulkAction) {
+          case 'pending':
+            await orderService.updateToPending(selected);
+            break;
+          case 'processing':
+            await orderService.updateToProcessing(selected);
+            break;
+          case 'shipped':
+            await orderService.updateToShipped(selected);
+            break;
+          case 'delivered':
+            await orderService.updateToDelivered(selected);
+            break;
+          case 'cancelled':
+            await orderService.updateToCancelled(selected);
+            break;
+          case 'payed':
+            await orderService.updateToPayed(selected);
+            break;
+          case 'not-payed':
+            await orderService.updateToNotPayed(selected);
+            break;
+          default:
+            return;
+        }
+
+        enqueueSnackbar('Orders updated successfully', { variant: 'success' });
+        setSelected([]);
+        setBulkAction('');
+        getOrders(search, userFilter, statusFilter, payedFilter, currentPage, limit);
+      } catch (err) {
+        enqueueSnackbar('Bulk update failed', { variant: 'error' });
+        console.error(err);
+      }
+    };
+
+    runBulkAction();
   }, [bulkAction]);
 
+  // Initial useEffect
+  useEffect(() => {
+    if(user) setUserFilter(user._id);
+  }, [user]);
+
+
+  // Snackbar listener
   useEffect(() => {
     if (location.state?.message) {
       enqueueSnackbar(location.state.message, { variant: location.state.status });
@@ -174,9 +134,6 @@ const OrdersList = ({ propLimit = 50, inner = false, user }) => {
     }
   }, [location.state]);
 
-  // -----------------------------
-  // Filters
-  // -----------------------------
   const filters = [
     {
       label: 'Status',
@@ -209,9 +166,6 @@ const OrdersList = ({ propLimit = 50, inner = false, user }) => {
     setSearch('');
   };
 
-  // -----------------------------
-  // Render
-  // -----------------------------
   return inner ? (
     <DataTable
       headers={headers}
@@ -223,22 +177,12 @@ const OrdersList = ({ propLimit = 50, inner = false, user }) => {
       tableName='Orders'
       handleCancel={handleCancel}
       loading={loading}
+      // Pagination
       currentPage={currentPage} setCurrentPage={setCurrentPage}
       totalPages={totalPages}
       totalItems={totalItems}
       limit={limit} setLimit={setLimit}
-      selected={selected} setSelected={setSelected}
-      setBulkAction={setBulkAction}
       inner
-      bulkActions={[
-        { name: 'Update to Pending', _id: 'pending'},
-        { name: 'Update to Processing', _id: 'processing'},
-        { name: 'Update to Shipped', _id: 'shipped'},
-        { name: 'Update to Delivered', _id: 'delivered'},
-        { name: 'Update to Cancelled', _id: 'cancelled'},
-        { name: 'Update to Payed', _id: 'payed'},
-        { name: 'Update to Not Payed', _id: 'not-payed'},
-      ]}
     />
   ) : (
     <MainLayout>
@@ -252,21 +196,31 @@ const OrdersList = ({ propLimit = 50, inner = false, user }) => {
         tableName='Orders'
         handleCancel={handleCancel}
         loading={loading}
+        // Pagination
         currentPage={currentPage} setCurrentPage={setCurrentPage}
         totalPages={totalPages}
         totalItems={totalItems}
         limit={limit} setLimit={setLimit}
-        selected={selected} setSelected={setSelected}
+        // bulk
+        selected={selected}
+        setSelected={setSelected}
         setBulkAction={setBulkAction}
         bulkActions={[
-          { name: 'Update to Pending', _id: 'pending'},
-          { name: 'Update to Processing', _id: 'processing'},
-          { name: 'Update to Shipped', _id: 'shipped'},
-          { name: 'Update to Delivered', _id: 'delivered'},
-          { name: 'Update to Cancelled', _id: 'cancelled'},
-          { name: 'Update to Payed', _id: 'payed'},
-          { name: 'Update to Not Payed', _id: 'not-payed'},
+          { _id: 'pending', name: 'Mark as Pending' },
+          { _id: 'processing', name: 'Mark as Processing' },
+          { _id: 'shipped', name: 'Mark as Shipped' },
+          { _id: 'delivered', name: 'Mark as Delivered' },
+
+          { _id: 'divider' },
+
+          { _id: 'payed', name: 'Mark as Paid' },
+          { _id: 'not-payed', name: 'Mark as Unpaid' },
+
+          { _id: 'divider' },
+
+          { _id: 'cancelled', name: 'Cancel Orders', danger: true },
         ]}
+
       />
     </MainLayout>
   );

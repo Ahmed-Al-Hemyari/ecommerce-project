@@ -4,7 +4,7 @@ import Order from '../models/Order.js'
 // Get all users
 export const getAllUsers = async (req, res) => {
     try {
-        const { search, role } = req.query;
+        const { search, role, deleted } = req.query;
         const query = {};
 
         if (search) {
@@ -19,6 +19,11 @@ export const getAllUsers = async (req, res) => {
         }
 
         if (role) query.role = role;
+        if (deleted !== undefined) {
+            query.deleted = deleted; // use the boolean directly
+        } else {
+            query.deleted = { $ne: true }; // include all where deleted is not true
+        }
 
         // Pagination
         const page = Number(req.query.page) || 1;
@@ -27,7 +32,7 @@ export const getAllUsers = async (req, res) => {
     
         const totalItems = await User.countDocuments(query);
 
-        const users = await User.find({ ...query, deleted: false }).select('-password')
+        const users = await User.find(query).select('-password')
             .skip(skip)
             .limit(limit);
         res.status(200).json({
@@ -109,6 +114,20 @@ export const deleteUser = async (req, res) => {
     }
 };
 
+// Restore user
+export const restoreUser = async (req, res) => {
+    try {
+        const user = await User.findByIdAndUpdate(req.params.id, { deleted: false });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        
+        res.status(200).json({ message: "User restored successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "Error restoring user", error });
+    }
+};
+
 // Delete many
 export const deleteMany = async (req, res) => {
   try {
@@ -130,6 +149,33 @@ export const deleteMany = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: "Error deleting users",
+      error: error.message,
+    });
+    console.log(error);
+  }
+};
+
+// Restore many
+export const restoreMany = async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: "No user IDs provided" });
+    }
+
+    const usersResult = await User.updateMany(
+      { _id: { $in: ids } },
+      { $set: { deleted: false } },
+    );
+
+    res.status(200).json({
+      message: "Users and restored successfully",
+    //   deletedUsers: usersResult.deletedCount,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error restoring users",
       error: error.message,
     });
     console.log(error);

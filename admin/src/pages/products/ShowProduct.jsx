@@ -3,8 +3,10 @@ import ShowCard from '@/components/UI/ShowCard';
 import { enqueueSnackbar } from 'notistack';
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import productService from '@/services/productService';
+import ProductsList from '../products/ProductsList';
 import { ArrowLeft } from 'lucide-react';
+import Swal from 'sweetalert2';
+import productService from '@/services/productService';
 
 const ShowProduct = () => {
   const { id } = useParams();
@@ -20,8 +22,41 @@ const ShowProduct = () => {
     }
   }
 
-  const edit = () => {
-    navigate(`/products/update/${product._id}`);
+  const onAction = async () => {
+    const deleted = product.deleted;
+    try {
+      const result = await Swal.fire({
+        title: `${deleted ? 'Restore Product' : 'Delete Product'}`,
+        text: `Sure you want to ${deleted ? 'restore' : 'delete'} this product??`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: `Yes, ${deleted ? 'restore' : 'delete'} it`,
+        confirmButtonColor: `${deleted ? '#1d7451' : '#d50101'}`
+      });
+
+      if (!result.isConfirmed) return;
+      
+      if (deleted) {
+        const response = await productService.restoreProduct([id]);
+        navigate('/products', {
+          state: {
+            message: "Product restored successfully",
+            status: 'success'
+          }
+        })
+      } else {
+        const response = await productService.deleteProduct([id]);
+        navigate('/products', {
+          state: {
+            message: "Product deleted successfully",
+            status: 'success'
+          }
+        })
+        
+      }
+    } catch (error) {
+      enqueueSnackbar(`Failed to ${deleted ? 'restore' : 'delete'} product`);
+    }
   }
 
   useEffect(() => {
@@ -36,7 +71,6 @@ const ShowProduct = () => {
     { label: 'Description', value: product.description || '-' },
   ] : [];
 
-
   return (
     <MainLayout>
       {product && (
@@ -49,15 +83,20 @@ const ShowProduct = () => {
           </button>
           <ShowCard
             title={`${product.name} Details`}
-            image={product.image ? `${import.meta.env.VITE_BACKEND_IMAGES_URL}${product.image}` : null}
             data={data}
-            onEdit={() => navigate(`/products/update/${product._id}`)}
-            backTo={'/products'}
+            onEdit={true}
+            onRuplicate={true}
+            onDelete={!product.deleted ? onAction : null}
+            onRestore={product.deleted ? onAction : null}
+            deleted={product.deleted}
+            link={'/products'}
           />
+          <div className='h-15'/>
         </>
       )}
     </MainLayout>
-  );
+  )
 }
 
 export default ShowProduct
+
