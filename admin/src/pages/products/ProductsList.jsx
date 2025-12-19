@@ -35,6 +35,7 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
     { label: 'Name', field: 'name', type: 'string' },
     { label: 'Category', field: 'category', type: 'link', link: 'categories' },
     { label: 'Brand', field: 'brand', type: 'link', link: 'brands' },
+    { label: 'Stock', field: 'stock', type: 'string' },
     { label: 'Price', field: 'price', type: 'price' },
   ];
 
@@ -156,6 +157,69 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
     }
   }
 
+  const handleAddStock = async (id) => {
+    const result = Swal.fire({
+      title: 'Add Stock',
+      text: 'Enter the value to add...',
+      icon: 'question',
+      input: 'number',
+      inputPlaceholder: 'Type...',
+      showCancelButton: true,
+      confirmButtonColor: '#1d7451',
+      confirmButtonText: 'Add',
+    })
+
+    if (!(await result).value) {
+      return;
+    }
+
+    
+    const stock = (await result).value;
+    console.log(stock);
+
+    try {
+      const response = await productService.addStock(id, Number(stock));
+      enqueueSnackbar(response.data, {
+        variant: 'success'
+      });
+      getProducts(search, categoryFilter, brandFilter, deletedFilter, currentPage, limit);
+    } catch (error) {
+      enqueueSnackbar(error, {
+        variant: 'error'
+      });
+      console.error(error);
+    }
+  }
+
+  const hardDeleteMany = async () => {
+    setBulkAction('');
+    const result = Swal.fire({
+      title: 'Delete Product Permenantly',
+      text: 'Sure you want to delete this product permenantly??',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it',
+      confirmButtonColor: '#d50101'
+    })
+
+    if (!(await result).isConfirmed) {
+      return;
+    }
+    try {
+      await productService.hardDelete(selected);
+      enqueueSnackbar("Product deleted successfully", {
+        variant: 'success'
+      });
+      setSelected([]);
+      getProducts(search, categoryFilter, brandFilter, deletedFilter, currentPage, limit);
+    } catch (error) {
+      enqueueSnackbar(error, {
+        variant: 'error'
+      });
+      console.error(error);
+    }
+  }
+
   const handleRestore = async (id) => {
     const result = Swal.fire({
       title: 'Restore Product',
@@ -210,6 +274,9 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
       if (bulkAction === 'restore') {
         await restoreSeleted();
       }
+      if (bulkAction === 'hard-delete') {
+        await hardDeleteMany();
+      }
     };
 
     runBulkAction();
@@ -263,6 +330,7 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
       setSearch={setSearch}
       tableName="Products"
       handleDelete={handleDelete}
+      handleAddStock={handleAddStock}
       handleRestore={handleRestore}
       loading={loading}
       // Pagination
@@ -285,6 +353,7 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
           setSearch={setSearch}
           tableName="Products"
           handleDelete={handleDelete}
+          handleAddStock={handleAddStock}
           handleRestore={handleRestore}
           loading={loading}
           // Pagination
@@ -298,9 +367,16 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
           selected={selected}
           setSelected={setSelected}
           setBulkAction={setBulkAction}
-          bulkActions={[
-            deletedFilter ? { name: 'Restore selected', _id: 'restore'} : { name: 'Delete Selected', _id: 'delete', color: 'red' },
-          ]}
+          bulkActions={
+            deletedFilter
+              ? [
+                  { name: 'Restore selected', _id: 'restore' },
+                  { name: 'Delete permanently', _id: 'hard-delete', color: 'red' }
+                ]
+              : [
+                  { name: 'Delete Selected', _id: 'delete', color: 'red' }
+                ]
+          }
         />
       </MainLayout>
   );

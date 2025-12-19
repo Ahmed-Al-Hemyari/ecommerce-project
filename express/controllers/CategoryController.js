@@ -180,3 +180,34 @@ export const restoreMany = async (req, res) => {
     console.log(error);
   }
 };
+
+// Hard delete
+export const hardDelete = async (req, res) => {
+  try {
+    const { ids } = req.body;
+  
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: "No IDs provided" });
+    }
+    
+    const products = await Product.find({ "category._id": { $in: ids } });
+
+    if (products.length > 0) {
+      return res.status(400).json({ message: "Can't delete category with products" });
+    }
+  
+    await Category.deleteMany(
+      { _id: { $in: ids } },
+    );
+  
+    res.status(200).json({
+      message: "Categories deleted permenantly successfully"
+    });
+    
+  } catch (error) {
+    res.status(500).json({
+      message: "Error deleting categories",
+      error: error.message,
+    });
+  }
+}

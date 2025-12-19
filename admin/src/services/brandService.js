@@ -17,6 +17,11 @@ export const brandService = {
     createBrand : (data) => api.post("/brands", data),
     updateBrand : (id, data) => api.put(`/brands/${id}`, data),
     deleteBrand : (id) => api.patch(`/brands/${id}`),
+    hardDelete : (data) => api.delete(`/brands`, {
+        data: {
+            ids: data
+        }
+    }),
     restoreBrand: (id) => api.patch(`/brands/restore/${id}`),
 
     // Bulk

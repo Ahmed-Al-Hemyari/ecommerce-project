@@ -70,6 +70,35 @@ const CategoryList = () => {
     }
   }
 
+  const hardDeleteMany = async () => {
+    setBulkAction('');
+    const result = Swal.fire({
+      title: 'Delete Category Permenantly',
+      text: 'Sure you want to delete this product permenantly??',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it',
+      confirmButtonColor: '#d50101'
+    })
+
+    if (!(await result).isConfirmed) {
+      return;
+    }
+    try {
+      await categoryService.hardDelete(selected);
+      enqueueSnackbar("Category deleted successfully", {
+        variant: 'success'
+      });
+      setSelected([]);
+      getCategories(search, deletedFilter, currentPage, limit);
+    } catch (error) {
+      enqueueSnackbar(error, {
+        variant: 'error'
+      });
+      console.error(error);
+    }
+  }
+
   const restoreSeleted = async () => {
     setBulkAction('');
     const result = await Swal.fire({
@@ -166,6 +195,9 @@ const CategoryList = () => {
       if (bulkAction === 'restore') {
         await restoreSeleted();
       }
+      if (bulkAction === 'hard-delete') {
+        await hardDeleteMany();
+      }
     };
 
     runBulkAction();
@@ -217,9 +249,16 @@ const CategoryList = () => {
         selected={selected}
         setSelected={setSelected}
         setBulkAction={setBulkAction}
-        bulkActions={[
-          deletedFilter ? { name: 'Restore selected', _id: 'restore'} : { name: 'Delete Selected', _id: 'delete', color: 'red' },
-        ]}
+       bulkActions={
+          deletedFilter
+            ? [
+                { name: 'Restore selected', _id: 'restore' },
+                { name: 'Delete permanently', _id: 'hard-delete', color: 'red' }
+              ]
+            : [
+                { name: 'Delete Selected', _id: 'delete', color: 'red' }
+              ]
+        }
       />
     </MainLayout>
   )

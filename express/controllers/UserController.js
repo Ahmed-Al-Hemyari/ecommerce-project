@@ -210,3 +210,34 @@ export const updateMany = async (req, res) => {
         res.status(500).json({message: error.message });
     }
 }
+
+// Hard delete
+export const hardDelete = async (req, res) => {
+  try {
+    const { ids } = req.body;
+  
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: "No IDs provided" });
+    }
+    
+    const orders = await Order.find({ "user._id": { $in: ids } });
+
+    if (orders.length > 0) {
+      return res.status(400).json({ message: "Can't delete user with orders" });
+    }
+  
+    await User.deleteMany(
+      { _id: { $in: ids } },
+    );
+  
+    res.status(200).json({
+      message: "Users deleted permenantly successfully"
+    });
+    
+  } catch (error) {
+    res.status(500).json({
+      message: "Error deleting users",
+      error: error.message,
+    });
+  }
+}

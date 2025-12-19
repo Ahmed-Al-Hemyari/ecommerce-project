@@ -7,7 +7,9 @@ import {
     deleteProduct, 
     deleteMany,
     restoreMany,
-    restoreProduct
+    restoreProduct,
+    hardDelete,
+    addStock
 } from '../controllers/ProductController.js';
 import { requireAdmin } from '../middlewares/admin.js'
 import { uploadProduct } from '../config/multer.js';
@@ -16,6 +18,8 @@ const productRoutes = express.Router();
 
 // Delete many
 productRoutes.patch('/bulk-delete', requireAdmin, deleteMany);
+// Hard delete many
+productRoutes.delete('/hard-delete', requireAdmin, hardDelete);
 // Restore many
 productRoutes.patch('/bulk-restore', requireAdmin, restoreMany);
 
@@ -30,6 +34,9 @@ productRoutes.post('/', requireAdmin, uploadProduct.single("file") , createProdu
 
 // Update an existing product
 productRoutes.put('/:id', requireAdmin, uploadProduct.single("file") , updateProduct);
+
+// Add stock to a product
+productRoutes.patch('/add-stock/:id', requireAdmin , addStock);
 
 // Delete a product
 productRoutes.patch('/:id', requireAdmin , deleteProduct);

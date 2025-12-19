@@ -16,6 +16,11 @@ export const userService = {
     updateUser : (id, data) => api.put(`/users/${id}`, data),
     deleteUser : (id) => api.patch(`/users/${id}`),
     restoreUser : (id) => api.patch(`/users/restore/${id}`),
+    hardDelete : (data) => api.delete(`/users`, {
+        data: {
+            ids: data
+        }
+    }),
     deleteMany: (data) => api.patch(`/users/bulk-delete`, {
         ids: data,
     }),

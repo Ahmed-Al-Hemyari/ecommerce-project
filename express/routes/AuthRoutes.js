@@ -1,5 +1,11 @@
 import express from 'express';
-import { register, loginByEmail, loginByPhone, updateProfile, changePassword } from "../controllers/AuthController.js";
+import { 
+    register, 
+    loginByEmail, 
+    loginByPhone, 
+    updateProfile, 
+    changePassword 
+} from "../controllers/AuthController.js";
 import { requireAuth } from '../middlewares/auth.js';
 import { requireAdmin } from '../middlewares/admin.js';
 

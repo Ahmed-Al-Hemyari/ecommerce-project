@@ -4,9 +4,9 @@ import {
     getOrderById,
     createOrder,
     updateOrder,
-    deleteOrder,
     getOrdersForUser,
     updateMany,
+    deleteOrders,
  } from "../controllers/OrderController.js";
 import { requireAuth } from '../middlewares/auth.js'
 import { requireAdmin } from '../middlewares/admin.js'
@@ -28,7 +28,7 @@ orderRoutes.post('/', requireAuth , createOrder);
 orderRoutes.put('/:id', requireAdmin , updateOrder);
 // // Cancel order
 // orderRoutes.put('/:id/cancel', requireAuth , cancelOrder);
-// Delete order
-// orderRoutes.delete('/:id', requireAdmin , deleteOrder);
+// Delete orders
+orderRoutes.delete('/', requireAdmin , deleteOrders);
 
 export default orderRoutes;

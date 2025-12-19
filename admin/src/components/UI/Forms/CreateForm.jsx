@@ -25,9 +25,9 @@ const CreateForm = ({
         const result = await handleSubmit();
 
         if (!result) {
-            enqueueSnackbar('Failed to add', {
-                variant: 'error'
-            });
+            // enqueueSnackbar('Failed to add', {
+            //     variant: 'error'
+            // });
             return;
         }
 

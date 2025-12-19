@@ -6,7 +6,7 @@ import orderService from '@/services/orderService';
 import DataTable from '@/components/UI/Tables/DataTable';
 import Swal from 'sweetalert2';
 
-const OrdersList = ({ propLimit = 50, inner = false, user }) => {
+const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
   const location = useLocation();
   const navigate = useNavigate();
   // Data
@@ -16,12 +16,13 @@ const OrdersList = ({ propLimit = 50, inner = false, user }) => {
   const [statusFilter, setStatusFilter] = useState(null);
   const [payedFilter, setPayedFilter] = useState(null);
   const [userFilter, setUserFilter] = useState(null);
+  const [productFilter, setProductFilter] = useState(null);
   // Pagination
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [limit, setLimit] = useState(50);
+  const [limit, setLimit] = useState(propLimit);
   // bulk
   const [selected, setSelected] = useState([]);
   const [bulkAction, setBulkAction] = useState('');
@@ -33,9 +34,9 @@ const OrdersList = ({ propLimit = 50, inner = false, user }) => {
     { label: 'Total Price', field: 'totalAmount', type: 'price' },
   ];
 
-  const getOrders = async (search, user, status, payed, currentPage, limit) => {
+  const getOrders = async (search, user, product, status, payed, currentPage, limit) => {
     try {
-      const response = await orderService.getOrders({search, user, status, payed, page: currentPage, limit});
+      const response = await orderService.getOrders({search, user, product, status, payed, page: currentPage, limit});
       setOrders(response.data.orders);
       setTotalPages(response.data.totalPages);
       setTotalItems(response.data.totalItems);
@@ -62,7 +63,29 @@ const OrdersList = ({ propLimit = 50, inner = false, user }) => {
     try {
       await orderService.updateToCancelled([id]);
       enqueueSnackbar('Order cancelled successfully', { variant: 'success' });
-      getOrders(search, userFilter, statusFilter, payedFilter, currentPage, limit);
+      getOrders(search, userFilter, productFilter, statusFilter, payedFilter, currentPage, limit);
+    } catch (error) {
+      enqueueSnackbar('Failed to delete order', { variant: 'error' });
+      console.error(error);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    const result = await Swal.fire({
+      title: 'Delete Order',
+      text: 'Are you sure you want to delete these orders?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it',
+      confirmButtonColor: '#d50101',
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await orderService.deleteOrders(selected);
+      enqueueSnackbar('Order deleted successfully', { variant: 'success' });
+      getOrders(search, userFilter, productFilter, statusFilter, payedFilter, currentPage, limit);
     } catch (error) {
       enqueueSnackbar('Failed to delete order', { variant: 'error' });
       console.error(error);
@@ -72,8 +95,8 @@ const OrdersList = ({ propLimit = 50, inner = false, user }) => {
   // Fetch orders when search/filter changes
   useEffect(() => {
     setLoading(true);
-    getOrders(search, userFilter, statusFilter, payedFilter, currentPage, limit);
-  }, [search, userFilter, statusFilter, payedFilter, currentPage, limit]);
+    getOrders(search, userFilter, productFilter, statusFilter, payedFilter, currentPage, limit);
+  }, [search, userFilter, productFilter, statusFilter, payedFilter, currentPage, limit]);
 
   // Bulk actions useEffect
   useEffect(() => {
@@ -103,6 +126,9 @@ const OrdersList = ({ propLimit = 50, inner = false, user }) => {
           case 'not-payed':
             await orderService.updateToNotPayed(selected);
             break;
+          case 'delete':
+            await handleDelete();
+            break;
           default:
             return;
         }
@@ -110,7 +136,7 @@ const OrdersList = ({ propLimit = 50, inner = false, user }) => {
         enqueueSnackbar('Orders updated successfully', { variant: 'success' });
         setSelected([]);
         setBulkAction('');
-        getOrders(search, userFilter, statusFilter, payedFilter, currentPage, limit);
+        getOrders(search, userFilter, productFilter, statusFilter, payedFilter, currentPage, limit);
       } catch (err) {
         enqueueSnackbar('Bulk update failed', { variant: 'error' });
         console.error(err);
@@ -123,7 +149,8 @@ const OrdersList = ({ propLimit = 50, inner = false, user }) => {
   // Initial useEffect
   useEffect(() => {
     if(user) setUserFilter(user._id);
-  }, [user]);
+    if(product) setProductFilter(product._id);
+  }, [user, product]);
 
 
   // Snackbar listener
@@ -218,7 +245,8 @@ const OrdersList = ({ propLimit = 50, inner = false, user }) => {
 
           { _id: 'divider' },
 
-          { _id: 'cancelled', name: 'Cancel Orders', danger: true },
+          { _id: 'cancelled', name: 'Cancel Orders', color: 'red' },
+          { _id: 'delete', name: 'Delete Orders', color: 'red' },
         ]}
 
       />

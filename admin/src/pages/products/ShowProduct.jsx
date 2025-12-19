@@ -6,6 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react';
 import Swal from 'sweetalert2';
 import productService from '@/services/productService';
+import OrdersList from '../orders/OrdersList';
 
 const ShowProduct = () => {
   const { id } = useParams();
@@ -66,6 +67,7 @@ const ShowProduct = () => {
     { label: 'Name', value: product.name },
     { label: 'Brand', value: product.brand?.name || '-' },
     { label: 'Category', value: product.category?.name || '-' },
+    { label: 'Stock', value: product.stock },
     { label: 'Price', value: `$${product.price}` },
     { label: 'Description', value: product.description || '-' },
   ] : [];
@@ -92,6 +94,7 @@ const ShowProduct = () => {
             link={'/products'}
           />
           <div className='h-15'/>
+          <OrdersList propLimit={10} inner product={product}/>
         </>
       )}
     </MainLayout>

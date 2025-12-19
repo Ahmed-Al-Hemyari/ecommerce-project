@@ -12,6 +12,7 @@ import brandRoutes from './routes/BrandRoutes.js';
 import productRoutes from './routes/ProductRoutes.js';
 import orderRoutes from './routes/OrderRoutes.js';
 import multer from 'multer';
+import dashboardRoutes from './routes/dashboardRoutes.js';
 
 // Load environment variables
 const app = express();
@@ -42,6 +43,8 @@ app.get('/', (req, res) => {
 
 // Auth Routes
 app.use('/api', authRoutes);
+// Dashboard Routes
+app.use('/api', dashboardRoutes);
 // User Routes
 app.use('/api/users', userRoutes);
 // Category Routes

@@ -7,7 +7,8 @@ import {
     deleteCategory, 
     deleteMany,
     restoreMany,
-    restoreCategory
+    restoreCategory,
+    hardDelete
 } from "../controllers/CategoryController.js";
 import { requireAuth } from '../middlewares/auth.js'
 import { requireAdmin } from '../middlewares/admin.js'
@@ -36,5 +37,8 @@ categoryRoutes.patch('/:id', requireAdmin , deleteCategory);
 
 // Restore a category
 categoryRoutes.patch('/restore/:id', requireAdmin , restoreCategory);
+
+// Hard delete a category
+categoryRoutes.delete('/', requireAdmin , hardDelete);
 
 export default categoryRoutes;

@@ -1,6 +1,7 @@
 import Category from '../models/Category.js';
 import Brand from '../models/Brand.js'
 import Product from '../models/Product.js';
+import Order from '../models/Order.js';
 import path from 'path';
 import fs from 'fs';
 
@@ -94,11 +95,13 @@ export const createProduct = async (req, res) => {
       return res.status(400).json({ message: 'Brand not found' });
     }
 
-    const imageUrl = `/uploads/products/${req.file.filename}`;
+    const imageUrl = req.file ? `/uploads/products/${req.file.filename}` : '';
+    // const imageUrl = `/uploads/products/${req.file.filename}`;
 
     // Create Product
     const newProduct = Product({
       name: req.body.name,
+      stock: req.body.stock || 0,
       price: req.body.price,
       brand: {
         _id: brand._id,
@@ -133,6 +136,7 @@ export const updateProduct = async (req, res) => {
     if (req.body.brand) newData.brand = req.body.brand;
     if (req.body.category) newData.category = req.body.category;
     if (req.body.description) newData.description = req.body.description;
+    if (req.body.stock) newData.stock = req.body.stock;
     if (req.body.price) newData.price = req.body.price;
 
     // Check Category
@@ -189,6 +193,30 @@ export const updateProduct = async (req, res) => {
   }
 };
 
+
+// Add stock
+export const addStock = async (req, res) => {
+  try {
+    const stockToAdd = Number(req.body.stock); // Ensure it's a number
+
+    if (isNaN(stockToAdd)) {
+      return res.status(400).json({ message: 'Stock must be a number' });
+    }
+
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    product.stock += stockToAdd; // Add the stock
+    await product.save(); // Save changes to DB
+
+    res.status(200).json({ message: 'Added stock successfully', stock: product.stock });
+  } catch (error) {
+    console.error('Error updating product:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
 
 // Delete a product
 export const deleteProduct = async (req, res) => {
@@ -271,3 +299,34 @@ export const restoreMany = async (req, res) => {
     console.log(error);
   }
 };
+
+// Hard delete
+export const hardDelete = async (req, res) => {
+  try {
+    const { ids } = req.body;
+  
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: "No IDs provided" });
+    }
+    
+    const orders = await Order.find({ "orderItems.product._id": { $in: ids } });
+
+    if (orders.length > 0) {
+      return res.status(400).json({ message: "Can't delete product with orders" });
+    }
+  
+    await Product.deleteMany(
+      { _id: { $in: ids } },
+    );
+  
+    res.status(200).json({
+      message: "Products deleted permenantly successfully"
+    });
+    
+  } catch (error) {
+    res.status(500).json({
+      message: "Error deleting products",
+      error: error.message,
+    });
+  }
+}

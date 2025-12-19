@@ -17,6 +17,7 @@ const CreateProduct = () => {
   const [brand, setBrand] = useState();
   const [category, setCategory] = useState();
   const [price, setPrice] = useState(0);
+  const [stock, setStock] = useState(0);
   const [description, setDescription] = useState('');
   const [image, setImage] = useState();
 
@@ -70,6 +71,7 @@ const CreateProduct = () => {
       formData.append('name', name);
       formData.append('brand', brand);
       formData.append('category', category);
+      formData.append('stock', stock);
       formData.append('price', price);
       formData.append('description', description);
       if (image) formData.append('file', image); // MUST MATCH multer field name
@@ -77,7 +79,8 @@ const CreateProduct = () => {
       const response = await productService.createProduct(formData);
       return true;
     } catch (error) {
-      // enqueueSnackbar('Failed to add product');
+      enqueueSnackbar(error, { variant: "error"});
+      console.log(error);
       return false;
     }
   }
@@ -86,6 +89,7 @@ const CreateProduct = () => {
       setName("");
       setCategory("");
       setBrand("");
+      setStock(0);
       setPrice(0);
       setDescription("");
       setImage('');
@@ -118,6 +122,14 @@ const CreateProduct = () => {
       placeholder: 'Choose category', 
       value: category, 
       setValue: setCategory 
+    },
+    { 
+      label: 'Stock', 
+      important: true, 
+      type: 'number', 
+      placeholder: 'Stock', 
+      value: stock, 
+      setValue: setStock 
     },
     { 
       label: 'Price', 

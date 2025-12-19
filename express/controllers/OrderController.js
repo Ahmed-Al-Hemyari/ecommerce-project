@@ -4,7 +4,7 @@ import User from "../models/User.js";
 // Get all orders
 export const getAllOrders = async (req, res) => {
   try {
-    let { search, user, status, payed, page, limit } = req.query;
+    let { search, user, product, status, payed, page, limit } = req.query;
 
     const query = {};
     
@@ -33,6 +33,7 @@ export const getAllOrders = async (req, res) => {
     
     // User filter (match by ObjectId)
     if (user) query['user._id'] = user;
+    if (product) query['orderItems.product._id'] = product;
 
     if(payed !== undefined) query.payed = payed;
 
@@ -117,13 +118,20 @@ export const createOrder = async (req, res) => {
       if (!product) {
         return res.status(400).json({ message: "Invalid product in order" });
       }
-
+      
       const quantity = Number(item.quantity) || 0;
       const price = Number(product.price) || 0;
-
+      
       if (quantity <= 0) {
         return res.status(400).json({ message: "Invalid quantity" });
       }
+
+      if (product.stock < quantity) {
+        return res.status(400).json({ message: "Not enough stock" });
+      }
+
+      product.stock -= quantity;
+      await product.save();
 
       totalAmount += price * quantity;
 
@@ -157,13 +165,11 @@ export const createOrder = async (req, res) => {
   }
 };
 
-
 // Update an existing order
 export const updateOrder = async (req, res) => {
   try {
     const { userId, orderItems, shipping, payed } = req.body;
 
-    // 🔐 Basic validation
     if (!Array.isArray(orderItems) || orderItems.length === 0) {
       return res.status(400).json({ message: "Invalid order data" });
     }
@@ -178,10 +184,14 @@ export const updateOrder = async (req, res) => {
       return res.status(400).json({ message: "Incomplete shipping data" });
     }
 
-    // 👤 Validate user
     const existingUser = await User.findById(userId);
     if (!existingUser) {
       return res.status(400).json({ message: "User not found" });
+    }
+
+    const existingOrder = await Order.findById(req.params.id);
+    if (!existingOrder) {
+      return res.status(404).json({ message: "Order not found" });
     }
 
     let totalAmount = 0;
@@ -189,28 +199,39 @@ export const updateOrder = async (req, res) => {
 
     for (const item of orderItems) {
       const productId = item.product?._id || item.product;
-
       const product = await Product.findById(productId);
       if (!product) {
-        return res.status(400).json({ message: `Invalid product in order: ${productId}` });
+        return res.status(400).json({ message: `Invalid product: ${productId}` });
       }
 
-      const quantity = Number(item.quantity) || 0;
-      const price = Number(product.price) || 0;
-
-      if (quantity <= 0) {
+      const newQty = Number(item.quantity) || 0;
+      if (newQty <= 0) {
         return res.status(400).json({ message: "Invalid quantity" });
       }
 
-      totalAmount += price * quantity;
+      // Get old quantity in the existing order
+      const oldItem = existingOrder.orderItems.find(i => i.product._id.toString() === productId.toString());
+      const oldQty = oldItem ? oldItem.quantity : 0;
+
+      const diff = newQty - oldQty; // positive → increase, negative → decrease
+
+      if (diff > 0 && product.stock < diff) {
+        return res.status(400).json({ message: `Not enough stock for product ${product.name}` });
+      }
+
+      // Update stock
+      product.stock -= diff; // diff can be negative → returns stock
+      await product.save();
+
+      totalAmount += product.price * newQty;
 
       itemsSnapshot.push({
         product: {
           _id: product._id,
           name: product.name,
         },
-        quantity,
-        price,
+        quantity: newQty,
+        price: product.price,
       });
     }
 
@@ -219,10 +240,7 @@ export const updateOrder = async (req, res) => {
     const updatedOrder = await Order.findByIdAndUpdate(
       req.params.id,
       {
-        user: {
-          _id: existingUser._id,
-          name: existingUser.name,
-        },
+        user: { _id: existingUser._id, name: existingUser.name },
         orderItems: itemsSnapshot,
         shipping,
         totalAmount,
@@ -231,35 +249,13 @@ export const updateOrder = async (req, res) => {
       { new: true }
     );
 
-    if (!updatedOrder) {
-      return res.status(404).json({ message: "Order not found" });
-    }
-
     res.status(200).json(updatedOrder);
+
   } catch (error) {
     console.error("UPDATE ORDER ERROR:", error);
     res.status(500).json({ message: error.message });
   }
 };
-
-// // Cancel order
-// export const cancelOrder = async (req, res) => {
-//   try {
-//     const updatedOrder = await Order.findByIdAndUpdate(
-//       req.params.id,
-//       { status: "Cancelled" },
-//       { new: true }
-//     );
-
-//     if (!updatedOrder) {
-//       return res.status(404).json({ message: "Order not found" });
-//     }
-
-//     res.status(200).json(updatedOrder);
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
 
 // Update many
 export const updateMany = async (req, res) => {
@@ -291,13 +287,17 @@ export const updateMany = async (req, res) => {
 }
 
 // Delete an order
-export const deleteOrder = async (req, res) => {
+export const deleteOrders = async (req, res) => {
   try {
-    const order = await Order.findByIdAndDelete(req.params.id);
-
-    if (!order) {
-      return res.status(404).json({ message: "Order not found" });
+    const { ids } = req.body;
+    
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: "No IDs provided" });
     }
+    
+    await Order.deleteMany(
+      { _id: { $in: ids }}
+    );
 
     res.status(200).json({ message: "Order deleted successfully" });
   } catch (error) {

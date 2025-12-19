@@ -18,6 +18,11 @@ export const categoryService = {
     updateCategory : (id, data) => api.put(`/categories/${id}`, data),
     deleteCategory : (id) => api.patch(`/categories/${id}`),
     restoreCategory : (id) => api.patch(`/categories/restore/${id}`),
+    hardDelete : (data) => api.delete(`/categories`, {
+        data: {
+            ids: data
+        }
+    }),
     deleteMany: (data) => api.patch('/categories/bulk-delete', {
         ids: data,
     }),

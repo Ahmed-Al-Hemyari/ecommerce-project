@@ -1,10 +1,11 @@
 import api from "./api";
 
 export const orderService = {
-    getOrders: ({search, user, status, payed, page, limit}) => {
+    getOrders: ({search, user, product, status, payed, page, limit}) => {
         const params = {};
         if (search) params.search = search;
         if (user) params.user = user;
+        if (product) params.product = product;
         if (status !== undefined && status !== null) params.status = status;
         if (payed !== undefined && payed !== null) params.payed = payed;
         if (page) params.page = page;
@@ -15,6 +16,11 @@ export const orderService = {
     getOrder : (id) => api.get(`/orders/${id}`),
     createOrder : (data) => api.post("/orders", data),
     updateOrder : (id, data) => api.put(`/orders/${id}`, data),
+    deleteOrders: (data) => api.delete('/orders', {
+        data: {
+            ids: data
+        }
+    }),
     // Status
     updateToPending: (data) => api.patch('/orders/bulk-update', {
         ids: data,

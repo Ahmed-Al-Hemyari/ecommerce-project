@@ -120,6 +120,8 @@ const UsersList = () => {
         await grantAdmin();
       } else if (bulkAction === 'revoke-admin') {
         await revokeAdmin();
+      } else if (bulkAction === 'hard-delete') {
+        await hardDeleteMany();
       }
     };
 
@@ -148,6 +150,35 @@ const UsersList = () => {
       getUsers(search, role, deletedFilter, currentPage, limit);
     } catch (error) {
       enqueueSnackbar("Failed to delete users", { variant: 'error' });
+      console.error(error);
+    }
+  }
+
+  const hardDeleteMany = async () => {
+    setBulkAction('');
+    const result = Swal.fire({
+      title: 'Delete User Permenantly',
+      text: 'Sure you want to delete this user permenantly??',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it',
+      confirmButtonColor: '#d50101'
+    })
+
+    if (!(await result).isConfirmed) {
+      return;
+    }
+    try {
+      const response = await userService.hardDelete(selected);
+      enqueueSnackbar(response.data, {
+        variant: 'success'
+      });
+      setSelected([]);
+      getUsers(search, role, deletedFilter, currentPage, limit);
+    } catch (error) {
+      enqueueSnackbar(error, {
+        variant: 'error'
+      });
       console.error(error);
     }
   }
@@ -283,9 +314,17 @@ const UsersList = () => {
         setSelected={setSelected}
         setBulkAction={setBulkAction}
         bulkActions={[
-          { name: 'Grant admin', _id: 'grant-admin'},
-          { name: 'Revoke admin', _id: 'revoke-admin'},
-          deletedFilter ? { name: 'Restore selected', _id: 'restore'} : { name: 'Delete Selected', _id: 'delete', color: 'red' },
+          { name: 'Grant admin', _id: 'grant-admin' },
+          { name: 'Revoke admin', _id: 'revoke-admin' },
+
+          ...(deletedFilter
+            ? [
+                { name: 'Restore selected', _id: 'restore' },
+                { name: 'Delete permanently', _id: 'hard-delete', color: 'red' },
+              ]
+            : [
+                { name: 'Delete Selected', _id: 'delete', color: 'red' },
+              ]),
         ]}
       />
     </MainLayout>

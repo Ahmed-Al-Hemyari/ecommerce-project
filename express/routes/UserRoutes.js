@@ -9,6 +9,7 @@ import {
     updateMany,
     restoreMany,
     restoreUser,
+    hardDelete,
  } from "../controllers/UserController.js";
  
 import { requireAdmin } from '../middlewares/admin.js';
@@ -35,5 +36,8 @@ userRoutes.put('/:id', requireAdmin , updateUser);
 userRoutes.patch('/:id', requireAdmin , deleteUser);
 // Restore User
 userRoutes.patch('/restore/:id', requireAdmin , restoreUser);
+
+// Hard delete User
+userRoutes.delete('/', requireAdmin , hardDelete);
 
 export default userRoutes;

@@ -52,6 +52,7 @@ const CreateUser = () => {
 
   const handleSubmit = async () => {
     setFormError('');
+    console.log(name, email, phone, role);
 
     if (!name || !email || !phone || !role) {
       setFormError('Please fill all fields with * ');
@@ -122,8 +123,8 @@ const CreateUser = () => {
       important: true, 
       type: 'dropdown',
       options: [
-        { name: 'User' },
-        { name: 'Admin' },
+        { name: 'User', _id: 'user' },
+        { name: 'Admin', _id: 'admin' },
       ],
       placeholder: 'User role', 
       value: role,

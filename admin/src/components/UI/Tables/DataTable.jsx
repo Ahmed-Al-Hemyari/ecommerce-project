@@ -25,6 +25,7 @@ const DataTable = ({
   handleDelete,
   handleRestore,
   handleCancel,
+  handleAddStock,
   loading = true,
   // Pagination
   currentPage, setCurrentPage,
@@ -89,9 +90,9 @@ const DataTable = ({
       <div className='flex flex-row justify-between mb-5 px-2 py-3'>
         <h1 className={`text-3xl w-full ${inner ? 'text-center font-bold' : 'font-medium'}`}>{tableName}</h1>
       </div>
-      <div className="overflow-x-auto w-full">
+      <div className=" w-full">
 
-        <section className='border rounded-2xl overflow-auto'>
+        <section className='border rounded-2xl'>
           <table className='table-auto w-full max-h-[calc(100vh-16rem)]'>
             <thead className='w-full border-b-2'>
               {
@@ -240,6 +241,9 @@ const DataTable = ({
                         )}
                         <ActionButton Icon={Edit} size={18} color="#333333" handleClick={() => handleEdit(item._id)} />
                         <ActionButton Icon={Eye} size={18} color="#333333" handleClick={() => handleShow(item._id)} />
+                        {handleAddStock && (
+                          <ActionButton Icon={Plus} size={18} handleClick={() => handleAddStock(item._id)} />
+                        )}
                       </div>
                     </td>
                   </tr>

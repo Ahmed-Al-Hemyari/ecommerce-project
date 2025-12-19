@@ -21,6 +21,7 @@ const UpdateProduct = () => {
   const [name, setName] = useState('');
   const [brand, setBrand] = useState();
   const [category, setCategory] = useState();
+  const [stock, setStock] = useState(0);
   const [price, setPrice] = useState(0);
   const [image, setImage] = useState();
   const [description, setDescription] = useState('');
@@ -66,6 +67,7 @@ const UpdateProduct = () => {
     setName(product.name);
     setBrand(product.brand?._id);
     setCategory(product.category?._id);
+    setStock(product.stock);
     setPrice(product.price);
     setDescription(product.description);
     setImage(product.image);
@@ -84,6 +86,7 @@ const UpdateProduct = () => {
       formData.append('name', name);
       formData.append('brand', brand);
       formData.append('category', category);
+      formData.append('stock', stock);
       formData.append('price', price);
       formData.append('description', description);
       if (image) formData.append('file', image); // MUST MATCH multer field name
@@ -101,6 +104,7 @@ const UpdateProduct = () => {
     setName(product.name || '');
     setBrand(product.brand?._id);
     setCategory(product.category?._id);
+    setStock(product.stock);
     setPrice(product.price);
     setDescription(product.description || '');
     setImage(product.image);
@@ -134,6 +138,14 @@ const UpdateProduct = () => {
       options: categories,
       value: category || '', 
       setValue: setCategory 
+    },
+    {
+      label: 'Stock', 
+      important: true, 
+      type: 'text', 
+      placeholder: 'Enter Stock', 
+      value: stock || '', 
+      setValue: setStock 
     },
     {
       label: 'Price', 

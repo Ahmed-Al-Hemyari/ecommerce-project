@@ -13,6 +13,7 @@ const productSchema = new mongoose.Schema({
         _id: { type: ObjectId, ref: "Brand" },
         name: { type: String, required: true }
     },
+    stock: { type: Number, default: 0, min: 0 },
     image: { type: String, default: '' },
     deleted: { type: Boolean, default: false },
 }, { timestamps: true });
