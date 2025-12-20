@@ -9,11 +9,13 @@ const CreateCategory = () => {
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [formError, setFormError] = useState('');
+  // Ruplicate
+  const [category, setCategory] = useState();
 
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Snackbar listener
+  // State listener
   useEffect(() => {
     if (location.state?.message) {
       enqueueSnackbar(location.state.message, {
@@ -23,7 +25,28 @@ const CreateCategory = () => {
       // Clear state to prevent showing again
       navigate(location.pathname, { replace: true, state: {} });
     }
+
+    if (location.state?.id) {
+      const id = location.state?.id;
+      const fetchCategory = async () => {        
+        try {
+          const response = await categoryService.getCategory(id);
+          setCategory(response.data);
+        } catch (error) {
+          enqueueSnackbar("Failed to load category");
+        }
+      }
+      
+      fetchCategory();
+    }
   }, [location.state]);
+  
+  useEffect(() => {
+    if(!category) return;
+    
+    setName(category.name);
+    setSlug(category.slug);
+  }, [category]);
 
   useEffect(() => {
     const slugified = name

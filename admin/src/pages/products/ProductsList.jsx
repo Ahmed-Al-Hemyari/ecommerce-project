@@ -29,6 +29,7 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
   // Filters
   const [categoryFilter, setCategoryFilter] = useState(null);
   const [brandFilter, setBrandFilter] = useState(null);
+  const [stockFilter, setStockFilter] = useState(null);
   const [deletedFilter, setDeletedFilter] = useState(null);
 
   const headers = [
@@ -39,10 +40,10 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
     { label: 'Price', field: 'price', type: 'price' },
   ];
 
-  const getProducts = async (search, category, brand, deleted, currentPage, limit) => {
+  const getProducts = async (search, category, brand, stock, deleted, currentPage, limit) => {
     setLoading(true);
     try {
-      const response = await productService.getProducts(search, category, brand, deleted, currentPage, limit);
+      const response = await productService.getProducts(search, category, brand, stock, deleted, currentPage, limit);
       setProducts(response.data.products);
       setTotalPages(response.data.totalPages);
       setTotalItems(response.data.totalItems);
@@ -98,7 +99,7 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
       await productService.deleteMany(selected);
       enqueueSnackbar("Products deleted successfully", { variant: 'success' });
       setSelected([]);
-      getProducts(search, categoryFilter, brandFilter, deletedFilter, currentPage, limit);
+      getProducts(search, categoryFilter, brandFilter, stockFilter, deletedFilter, currentPage, limit);
     } catch (error) {
       enqueueSnackbar("Failed to delete products", { variant: 'error' });
       console.error(error);
@@ -123,7 +124,7 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
       enqueueSnackbar("Products restored successfully", { variant: 'success' });
       setSelected([]);
       setDeletedFilter(null);
-      getProducts(search, categoryFilter, brandFilter, deletedFilter, currentPage, limit);
+      getProducts(search, categoryFilter, brandFilter, stockFilter, deletedFilter, currentPage, limit);
     } catch (error) {
       enqueueSnackbar("Failed to restore products", { variant: 'error' });
       console.error(error);
@@ -148,7 +149,7 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
       enqueueSnackbar("Product deleted successfully", {
         variant: 'success'
       });
-      getProducts(search, categoryFilter, brandFilter, deletedFilter, currentPage, limit);
+      getProducts(search, categoryFilter, brandFilter, stockFilter, deletedFilter, currentPage, limit);
     } catch (error) {
       enqueueSnackbar("Failed to delete product", {
         variant: 'error'
@@ -182,7 +183,7 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
       enqueueSnackbar(response.data, {
         variant: 'success'
       });
-      getProducts(search, categoryFilter, brandFilter, deletedFilter, currentPage, limit);
+      getProducts(search, categoryFilter, brandFilter, stockFilter, deletedFilter, currentPage, limit);
     } catch (error) {
       enqueueSnackbar(error, {
         variant: 'error'
@@ -211,7 +212,7 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
         variant: 'success'
       });
       setSelected([]);
-      getProducts(search, categoryFilter, brandFilter, deletedFilter, currentPage, limit);
+      getProducts(search, categoryFilter, brandFilter, stockFilter, deletedFilter, currentPage, limit);
     } catch (error) {
       enqueueSnackbar(error, {
         variant: 'error'
@@ -239,7 +240,7 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
         variant: 'success'
       });
       setDeletedFilter(null);
-      getProducts(search, categoryFilter, brandFilter, deletedFilter, currentPage, limit);
+      getProducts(search, categoryFilter, brandFilter, stockFilter, deletedFilter, currentPage, limit);
     } catch (error) {
       enqueueSnackbar("Failed to restore product", {
         variant: 'error'
@@ -260,8 +261,8 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
 
   // Filter, pagination useEffect
   useEffect(() => {
-    getProducts(search, categoryFilter, brandFilter, deletedFilter, currentPage, limit);
-  }, [search, categoryFilter, brandFilter, deletedFilter, currentPage, limit]);
+    getProducts(search, categoryFilter, brandFilter, stockFilter, deletedFilter, currentPage, limit);
+  }, [search, categoryFilter, brandFilter, deletedFilter, stockFilter, currentPage, limit]);
 
   // Bulk Actions useEffect
   useEffect(() => {
@@ -308,6 +309,17 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
       placeholder: 'Choose Brand',
       value: brandFilter,
       setValue: setBrandFilter,
+    },
+    {
+      label: 'Stock',
+      options: [
+        { _id: 'in-stock', name: 'In Stock' },
+        { _id: 'low-stock', name: 'Low Stock' },
+        { _id: 'out-of-stock', name: 'Out of Stock' },
+      ],
+      placeholder: 'Choose Brand',
+      value: stockFilter,
+      setValue: setStockFilter,
     },
     {
       label: 'Deleted',

@@ -33,6 +33,8 @@ const CreateOrder = () => {
   })
   // Errors
   const [formError, setFromError] = useState('');
+  // Ruplicate
+  const [order, setOrder] = useState();
   
   // Handlers
   const updateItem = (index, field, value) => {
@@ -191,7 +193,36 @@ const CreateOrder = () => {
       // Clear state to prevent showing again
       navigate(location.pathname, { replace: true, state: {} });
     }
+
+    if (location.state?.id) {
+      const id = location.state?.id;
+      const fetchOrder = async () => {        
+        try {
+          const response = await orderService.getOrder(id);
+          setOrder(response.data);
+        } catch (error) {
+          enqueueSnackbar("Failed to load product");
+        }
+      }
+
+      fetchOrder();
+    }
   }, [location.state]);
+
+  useEffect(() => {
+    if(!order) return;
+
+    setUser(order.user._id || order.user);
+
+    // Format orderItems to have just product IDs
+    const formattedOrderItems = order.orderItems.map(item => ({
+      ...item,
+      product: item.product._id,
+    }));
+
+    setOrderItems(formattedOrderItems);
+    setShipping(order.shipping);
+  }, [order]);
 
   return (
     <MainLayout>

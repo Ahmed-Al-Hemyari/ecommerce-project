@@ -5,6 +5,8 @@ import categoryService from '@/services/categoryService';
 import { enqueueSnackbar } from 'notistack';
 import { useLocation, useNavigate } from 'react-router-dom';
 import userService from '@/services/userService';
+import extractPhoneParts from '@/utils/ExtractPhoneParts';
+import { allCountries } from 'country-telephone-data';
 
 const CreateUser = () => {
   // Fields
@@ -13,6 +15,8 @@ const CreateUser = () => {
   const [countryCode, setCountryCode] = useState('');
   const [phone, setPhone] = useState('');
   const [role, setRole] = useState('');
+  // Ruplicate
+  const [user, setUser] = useState();
 
   // Errors
   const [formError, setFormError] = useState('');
@@ -48,7 +52,33 @@ const CreateUser = () => {
       // Clear state to prevent showing again
       navigate(location.pathname, { replace: true, state: {} });
     }
+
+    if (location.state?.id) {
+      const id = location.state?.id;
+      const fetchUser = async () => {        
+        try {
+          const response = await userService.getUser(id);
+          setUser(response.data);
+        } catch (error) {
+          enqueueSnackbar("Failed to load user");
+        }
+      }
+
+      fetchUser();
+    }
   }, [location.state]);
+
+  useEffect(() => {
+    if(!user) return;
+
+    setName(user.name);
+    setEmail(user.email);
+    const { countryCode: code, number } =
+      extractPhoneParts(user.phone, allCountries);
+    setCountryCode(code);
+    setPhone(number);
+    setRole(user.role);
+  }, [user])
 
   const handleSubmit = async () => {
     setFormError('');

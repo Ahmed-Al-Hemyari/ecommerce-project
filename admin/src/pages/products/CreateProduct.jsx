@@ -6,8 +6,13 @@ import brandService from '@/services/brandService';
 import Dropdown from '@/components/UI/Forms/Dropdown';
 import CreateForm from '@/components/UI/Forms/CreateForm';
 import productService from '@/services/productService';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const CreateProduct = () => {
+  // Essentials
+  const navigate = useNavigate();
+  const location = useLocation();
+  // Data
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   // Errors
@@ -20,6 +25,8 @@ const CreateProduct = () => {
   const [stock, setStock] = useState(0);
   const [description, setDescription] = useState('');
   const [image, setImage] = useState();
+  // Ruplicate
+  const [product, setProduct] = useState();
 
   const getCategories = async () => {
     try {
@@ -56,13 +63,43 @@ const CreateProduct = () => {
       // Clear state to prevent showing again
       navigate(location.pathname, { replace: true, state: {} });
     }
+
+    if (location.state?.id) {
+      const id = location.state?.id;
+      const fetchProduct = async () => {        
+        try {
+          const response = await productService.getProduct(id);
+          setProduct(response.data);
+        } catch (error) {
+          enqueueSnackbar("Failed to load product");
+        }
+      }
+
+      fetchProduct();
+    }
   }, [location.state]);
+
+  useEffect(() => {
+    if(!product) return;
+
+    setName(product.name);
+    setBrand(product.brand?._id);
+    setCategory(product.category?._id);
+    setStock(product.stock);
+    setPrice(product.price);
+    setDescription(product.description);
+  }, [product]);
 
   const handleSubmit = async () => {
     setFormError('');
 
     if (!name || !brand || !category || !price) {
       setFormError('Please fill all fields with * ');
+      return false;
+    }
+
+    if (stock < 0) {
+      setFormError("Stock can't be lower than 0");
       return false;
     }
 

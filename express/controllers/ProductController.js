@@ -8,7 +8,7 @@ import fs from 'fs';
 // Get all products
 export const getAllProducts = async (req, res) => {
   try {
-    const { search, category, brand, minPrice, maxPrice, deleted } = req.query;
+    const { search, category, brand, stock, minPrice, maxPrice, deleted } = req.query;
     const query = {};
 
     if (search) {
@@ -31,6 +31,24 @@ export const getAllProducts = async (req, res) => {
       query.price = {};
       if (minPrice) query.price.$gte = Number(minPrice);
       if (maxPrice) query.price.$lte = Number(maxPrice);
+    }
+
+    if(stock) {
+      query.stock = {};
+      switch (stock) {
+        case 'in-stock':
+          query.stock.$gte = 10;
+          break;
+        case 'out-of-stock':
+          query.stock = 0;
+          break;
+        case 'low-stock':
+          query.stock.$lte = 10;
+          query.stock.$gte = 1;
+          break;
+        default:
+          break;
+      }
     }
 
     if (deleted !== undefined) {

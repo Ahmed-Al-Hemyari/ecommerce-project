@@ -44,7 +44,11 @@ const ShowCard = ({
           )}
           {onRuplicate && (
             <button
-              onClick={() => navigate(`${link}/create`)}
+              onClick={() => navigate(`${link}/create`, {
+                state: {
+                  id: id,
+                }
+              })}
               className="flex items-center gap-1 px-2 py-2 rounded-md text-sm font-medium bg-gray-100 hover:bg-gray-200"
             >
               <Copy size={16} />

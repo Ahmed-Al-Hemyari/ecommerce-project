@@ -27,6 +27,10 @@ const DataTable = ({
   handleCancel,
   handleAddStock,
   loading = true,
+  // Customize
+  header = true,
+  pagination = true,
+  actions = true,
   // Pagination
   currentPage, setCurrentPage,
   totalPages, 
@@ -112,33 +116,42 @@ const DataTable = ({
                   )
                   : ''
               }
-              <tr>
-                <td colSpan={headers.length + 2}>
-                  <div className={`w-full p-5 border-b flex flex-row items-center ${inner ? 'justify-between' : 'justify-end'}`}>
-                    {inner && <h1 className={`text-xl font-bold`}>{tableName}</h1>}
-                    <Link to={`${link}/create`} className='bg-(--color-green) text-(--color-dark-gray) text-lg flex flex-row items-center gap-2 font-medium rounded-md px-3 py-1'>
-                      Create
-                    </Link>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td className='w-full' colSpan={headers.length + 2}>
-                  <div className='w-full h-full p-2 flex flex-row items-center space-x-5 justify-end'>
-                    <div className='flex flex-row items-center space-x-2 bg-gray-100 py-2 px-3 rounded-full'>
-                      <Search size={18} color='#bfbfbf'/>  
-                      <input
-                        placeholder="Search..."
-                        type="text"
-                        name="text"
-                        className="focus:outline-none"
-                        onChange={(e) => setSearch(e.target.value)}
-                      />
-                    </div>
-                    {(filters.length && !inner) > 0 && <Filters inputs={filters}/>}
-                  </div>
-                </td>
-              </tr>
+              {
+                header ? (
+                  <>
+                    <tr>
+                      <td colSpan={headers.length + 2}>
+                        <div className={`w-full p-5 border-b flex flex-row items-center ${inner ? 'justify-between' : 'justify-end'}`}>
+                          {inner && <h1 className={`text-xl font-bold`}>{tableName}</h1>}
+                          <Link to={`${link}/create`} className='bg-(--color-green) text-(--color-dark-gray) text-lg flex flex-row items-center gap-2 font-medium rounded-md px-3 py-1'>
+                            Create
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className='w-full' colSpan={headers.length + 2}>
+                        <div className='w-full h-full p-2 flex flex-row items-center space-x-5 justify-end'>
+                          <div className='flex flex-row items-center space-x-2 bg-gray-100 py-2 px-3 rounded-full'>
+                            <Search size={18} color='#bfbfbf'/>  
+                            <input
+                              placeholder="Search..."
+                              type="text"
+                              name="text"
+                              className="focus:outline-none"
+                              onChange={(e) => setSearch(e.target.value)}
+                            />
+                          </div>
+                          {(filters.length && !inner) > 0 && <Filters inputs={filters}/>}
+                        </div>
+                      </td>
+                    </tr>
+                  </>
+                ) : 
+                (
+                  ''
+                )
+              }
               <tr className='bg-gray-50 border-t'>
                 {
                   inner ? '' : (
@@ -172,12 +185,16 @@ const DataTable = ({
                     {header.label}
                   </td>
                 ))}
-                <td 
-                  style={{ width: `${100/ headers.length}%`}}
-                  className={`p-3 text-lg text-center font-bold text-black`}
-                >
-                  Actions
-                </td>
+                {
+                  actions ? (
+                    <td 
+                      style={{ width: `${100/ headers.length}%`}}
+                      className={`p-3 text-lg text-center font-bold text-black`}
+                    >
+                      Actions
+                    </td>
+                  ) : ''
+                }
               </tr>
             </thead>
             <tbody>
@@ -228,24 +245,28 @@ const DataTable = ({
                         />
                       );
                     })}
-                    <td className="border-b">
-                      <div className="flex flex-row-reverse items-center justify-center">
-                        {(link !== '/orders' && !item.deleted) && (
-                          <ActionButton Icon={Trash} size={18} color="#d50101" handleClick={() => handleDelete(item._id)} />
-                        )}
-                        {item.deleted && (
-                          <ActionButton Icon={RefreshCcw} size={18} color="#2563EB" handleClick={() => handleRestore(item._id)} />
-                        )}
-                        {link === '/orders' && (
-                          <ActionButton Icon={X} size={18} color="#d50101" handleClick={() => handleCancel(item._id)} />
-                        )}
-                        <ActionButton Icon={Edit} size={18} color="#333333" handleClick={() => handleEdit(item._id)} />
-                        <ActionButton Icon={Eye} size={18} color="#333333" handleClick={() => handleShow(item._id)} />
-                        {handleAddStock && (
-                          <ActionButton Icon={Plus} size={18} handleClick={() => handleAddStock(item._id)} />
-                        )}
-                      </div>
-                    </td>
+                    {
+                      actions ? (
+                        <td className="border-b">
+                          <div className="flex flex-row-reverse items-center justify-center">
+                            {(link !== '/orders' && !item.deleted) && (
+                              <ActionButton Icon={Trash} size={18} color="#d50101" handleClick={() => handleDelete(item._id)} />
+                            )}
+                            {item.deleted && (
+                              <ActionButton Icon={RefreshCcw} size={18} color="#2563EB" handleClick={() => handleRestore(item._id)} />
+                            )}
+                            {link === '/orders' && (
+                              <ActionButton Icon={X} size={18} color="#d50101" handleClick={() => handleCancel(item._id)} />
+                            )}
+                            <ActionButton Icon={Edit} size={18} color="#333333" handleClick={() => handleEdit(item._id)} />
+                            <ActionButton Icon={Eye} size={18} color="#333333" handleClick={() => handleShow(item._id)} />
+                            {handleAddStock && (
+                              <ActionButton Icon={Plus} size={18} handleClick={() => handleAddStock(item._id)} />
+                            )}
+                          </div>
+                        </td>
+                      ) : ''
+                    }
                   </tr>
                 ))
               ) : (

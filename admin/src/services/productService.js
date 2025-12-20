@@ -1,11 +1,12 @@
 import api from "./api";
 
 export const productService = {
-    getProducts: (search, category, brand, deleted, page, limit) => {
+    getProducts: (search, category, brand, stock, deleted, page, limit) => {
         const params = {};
         if (search) params.search = search;
         if (category) params.category = category;
         if (brand) params.brand = brand;
+        if (stock) params.stock = stock;
         if (page) params.page = page;
         if (limit) params.limit = limit;
         if (deleted !== undefined) params.deleted = deleted;

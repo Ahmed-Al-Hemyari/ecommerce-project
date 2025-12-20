@@ -9,6 +9,8 @@ const CreateBrand = () => {
   const [name, setName] = useState('');
   const [logo, setLogo] = useState('');
   const [formError, setFormError] = useState('');
+  // Ruplicate
+  const [brand, setBrand] = useState();
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -23,7 +25,27 @@ const CreateBrand = () => {
       // Clear state to prevent showing again
       navigate(location.pathname, { replace: true, state: {} });
     }
+
+    if (location.state?.id) {
+      const id = location.state?.id;
+      const fetchBrand = async () => {        
+        try {
+          const response = await brandService.getBrand(id);
+          setBrand(response.data);
+        } catch (error) {
+          enqueueSnackbar("Failed to load brand");
+        }
+      }
+      
+      fetchBrand();
+    }
   }, [location.state]);
+  
+  useEffect(() => {
+    if(!brand) return;
+    
+    setName(brand.name);
+  }, [brand]);
 
   const handleSubmit = async () => {
     setFormError('');
