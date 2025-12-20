@@ -99,6 +99,34 @@ const BrandsList = () => {
     }
   }
 
+  const hardDelete = async (id) => {
+    const result = Swal.fire({
+      title: 'Delete Brand Permenantly',
+      text: 'Sure you want to delete this product permenantly??',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it',
+      confirmButtonColor: '#d50101'
+    })
+
+    if (!(await result).isConfirmed) {
+      return;
+    }
+    try {
+      await brandService.hardDelete([id]);
+      enqueueSnackbar("Brand deleted successfully", {
+        variant: 'success'
+      });
+      setSelected([]);
+      getBrands(search, deletedFilter, currentPage, limit);
+    } catch (error) {
+      enqueueSnackbar(error, {
+        variant: 'error'
+      });
+      console.error(error);
+    }
+  }
+
   const restoreSeleted = async () => {
     setBulkAction('');
     const result = await Swal.fire({
@@ -239,6 +267,7 @@ const BrandsList = () => {
         setSearch={setSearch}
         tableName='Brands'
         handleDelete={handleDelete}
+        hardDelete={hardDelete}
         handleRestore={handleRestore}
         // Loading
         loading={loading}

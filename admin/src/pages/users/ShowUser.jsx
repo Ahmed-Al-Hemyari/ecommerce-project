@@ -68,6 +68,38 @@ const ShowUser = () => {
     }
   }
 
+  const onHardDelete = async () => {
+    const result = Swal.fire({
+      title: 'Delete User Permenantly',
+      text: 'Sure you want to delete this user permenantly??',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it',
+      confirmButtonColor: '#d50101'
+    })
+
+    if (!(await result).isConfirmed) {
+      return;
+    }
+    try {
+      const response = await userService.hardDelete([id]);
+      enqueueSnackbar(response.data, {
+        variant: 'success'
+      });
+      navigate('/users', {
+        state: {
+          message: "User deleted successfully",
+          status: 'success'
+        }
+      })
+    } catch (error) {
+      enqueueSnackbar(error, {
+        variant: 'error'
+      });
+      console.error(error);
+    }
+  }
+
   useEffect(() => {
     getUser();
   }, []);
@@ -112,6 +144,7 @@ const ShowUser = () => {
             onRuplicate={true}
             onDelete={!user.deleted ? onAction : null}
             onRestore={user.deleted ? onAction : null}
+            onHardDelete={onHardDelete}
             deleted={user.deleted}
             link={'/users'}
           />

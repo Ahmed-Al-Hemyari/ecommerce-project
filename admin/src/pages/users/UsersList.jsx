@@ -183,6 +183,34 @@ const UsersList = () => {
     }
   }
 
+  const hardDelete = async (id) => {
+    const result = Swal.fire({
+      title: 'Delete User Permenantly',
+      text: 'Sure you want to delete this user permenantly??',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it',
+      confirmButtonColor: '#d50101'
+    })
+
+    if (!(await result).isConfirmed) {
+      return;
+    }
+    try {
+      const response = await userService.hardDelete([id]);
+      enqueueSnackbar(response.data, {
+        variant: 'success'
+      });
+      setSelected([]);
+      getUsers(search, role, deletedFilter, currentPage, limit);
+    } catch (error) {
+      enqueueSnackbar(error, {
+        variant: 'error'
+      });
+      console.error(error);
+    }
+  }
+
   const restoreSeleted = async () => {
     setBulkAction('');
     const result = await Swal.fire({
@@ -300,6 +328,7 @@ const UsersList = () => {
         filters={filters}
         tableName='Users'
         handleDelete={handleDelete}
+        hardDelete={hardDelete}
         handleRestore={handleRestore}
         // Loading
         loading={loading}

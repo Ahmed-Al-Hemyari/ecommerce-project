@@ -47,6 +47,38 @@ const ShowOrder = () => {
     }
   }
 
+  const onHardDelete = async () => {
+    const result = Swal.fire({
+      title: 'Delete Order Permenantly',
+      text: 'Sure you want to delete this order permenantly??',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it',
+      confirmButtonColor: '#d50101'
+    })
+
+    if (!(await result).isConfirmed) {
+      return;
+    }
+    try {
+      const response = await orderService.deleteOrders([id]);
+      enqueueSnackbar(response.data, {
+        variant: 'success'
+      });
+      navigate('/orders', {
+        state: {
+          message: "Order deleted successfully",
+          status: 'success'
+        }
+      })
+    } catch (error) {
+      enqueueSnackbar(error, {
+        variant: 'error'
+      });
+      console.error(error);
+    }
+  }
+
   useEffect(() => {
     getOrder();
   }, [id]);
@@ -96,6 +128,7 @@ const ShowOrder = () => {
         data={data}
         onEdit
         onRuplicate
+        onDelete={onHardDelete}
         onCancel={order.status === 'Cancelled' ? '' : onCancel}
         link={'/orders'}
       />

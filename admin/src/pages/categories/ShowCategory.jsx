@@ -59,6 +59,38 @@ const ShowCategory = () => {
     }
   }
 
+  const onHardDelete = async () => {
+    const result = Swal.fire({
+      title: 'Delete Category Permenantly',
+      text: 'Sure you want to delete this category permenantly??',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it',
+      confirmButtonColor: '#d50101'
+    })
+
+    if (!(await result).isConfirmed) {
+      return;
+    }
+    try {
+      const response = await categoryService.hardDelete([id]);
+      enqueueSnackbar(response.data, {
+        variant: 'success'
+      });
+      navigate('/categories', {
+        state: {
+          message: "Category deleted successfully",
+          status: 'success'
+        }
+      })
+    } catch (error) {
+      enqueueSnackbar(error, {
+        variant: 'error'
+      });
+      console.error(error);
+    }
+  }
+
   useEffect(() => {
     getCategory();
   }, []);
@@ -91,6 +123,7 @@ const ShowCategory = () => {
             onRuplicate={true}
             onDelete={!category.deleted ? onAction : null}
             onRestore={category.deleted ? onAction : null}
+            onHardDelete={onHardDelete}
             deleted={category.deleted}
             link={'/categories'}
           />

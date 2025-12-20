@@ -70,10 +70,10 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDeleteMany = async () => {
     const result = await Swal.fire({
-      title: 'Delete Order',
-      text: 'Are you sure you want to delete these orders?',
+      title: 'Delete Order Permenantly',
+      text: 'Are you sure you want to delete these orders permenantly?',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, delete it',
@@ -84,6 +84,28 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
 
     try {
       await orderService.deleteOrders(selected);
+      enqueueSnackbar('Order deleted successfully', { variant: 'success' });
+      getOrders(search, userFilter, productFilter, statusFilter, payedFilter, currentPage, limit);
+    } catch (error) {
+      enqueueSnackbar('Failed to delete order', { variant: 'error' });
+      console.error(error);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    const result = await Swal.fire({
+      title: 'Delete Order Permenantly',
+      text: 'Are you sure you want to delete this order permenantly?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it',
+      confirmButtonColor: '#d50101',
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await orderService.deleteOrders([id]);
       enqueueSnackbar('Order deleted successfully', { variant: 'success' });
       getOrders(search, userFilter, productFilter, statusFilter, payedFilter, currentPage, limit);
     } catch (error) {
@@ -127,7 +149,7 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
             await orderService.updateToNotPayed(selected);
             break;
           case 'delete':
-            await handleDelete();
+            await handleDeleteMany();
             break;
           default:
             return;
@@ -203,6 +225,7 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
       filters={filters}
       tableName='Orders'
       handleCancel={handleCancel}
+      handleDelete={handleDelete}
       loading={loading}
       // Pagination
       currentPage={currentPage} setCurrentPage={setCurrentPage}
@@ -222,6 +245,7 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
         filters={filters}
         tableName='Orders'
         handleCancel={handleCancel}
+        handleDelete={handleDelete}
         loading={loading}
         // Pagination
         currentPage={currentPage} setCurrentPage={setCurrentPage}

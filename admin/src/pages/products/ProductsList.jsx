@@ -221,6 +221,35 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
     }
   }
 
+  const hardDelete = async (id) => {
+    setBulkAction('');
+    const result = Swal.fire({
+      title: 'Delete Product Permenantly',
+      text: 'Sure you want to delete this product permenantly??',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it',
+      confirmButtonColor: '#d50101'
+    })
+
+    if (!(await result).isConfirmed) {
+      return;
+    }
+    try {
+      await productService.hardDelete([id]);
+      enqueueSnackbar("Product deleted successfully", {
+        variant: 'success'
+      });
+      setSelected([]);
+      getProducts(search, categoryFilter, brandFilter, stockFilter, deletedFilter, currentPage, limit);
+    } catch (error) {
+      enqueueSnackbar(error, {
+        variant: 'error'
+      });
+      console.error(error);
+    }
+  }
+
   const handleRestore = async (id) => {
     const result = Swal.fire({
       title: 'Restore Product',
@@ -342,6 +371,7 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
       setSearch={setSearch}
       tableName="Products"
       handleDelete={handleDelete}
+      hardDelete={hardDelete}
       handleAddStock={handleAddStock}
       handleRestore={handleRestore}
       loading={loading}

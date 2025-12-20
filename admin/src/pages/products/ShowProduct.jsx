@@ -59,6 +59,38 @@ const ShowProduct = () => {
     }
   }
 
+  const onHardDelete = async () => {
+    const result = Swal.fire({
+      title: 'Delete Product Permenantly',
+      text: 'Sure you want to delete this product permenantly??',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it',
+      confirmButtonColor: '#d50101'
+    })
+
+    if (!(await result).isConfirmed) {
+      return;
+    }
+    try {
+      const response = await productService.hardDelete([id]);
+      enqueueSnackbar(response.data, {
+        variant: 'success'
+      });
+      navigate('/products', {
+        state: {
+          message: "Product deleted successfully",
+          status: 'success'
+        }
+      })
+    } catch (error) {
+      enqueueSnackbar(error, {
+        variant: 'error'
+      });
+      console.error(error);
+    }
+  }
+
   useEffect(() => {
     getProduct();
   }, []);
@@ -90,6 +122,7 @@ const ShowProduct = () => {
             onRuplicate={true}
             onDelete={!product.deleted ? onAction : null}
             onRestore={product.deleted ? onAction : null}
+            onHardDelete={onHardDelete}
             deleted={product.deleted}
             link={'/products'}
           />

@@ -59,6 +59,38 @@ const ShowBrand = () => {
     }
   }
 
+  const onHardDelete = async () => {
+    const result = Swal.fire({
+      title: 'Delete Brand Permenantly',
+      text: 'Sure you want to delete this brand permenantly??',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it',
+      confirmButtonColor: '#d50101'
+    })
+
+    if (!(await result).isConfirmed) {
+      return;
+    }
+    try {
+      const response = await brandService.hardDelete([id]);
+      enqueueSnackbar(response.data, {
+        variant: 'success'
+      });
+      navigate('/brands', {
+        state: {
+          message: "Brand deleted successfully",
+          status: 'success'
+        }
+      })
+    } catch (error) {
+      enqueueSnackbar(error, {
+        variant: 'error'
+      });
+      console.error(error);
+    }
+  }
+
   useEffect(() => {
     getBrand();
   }, []);
@@ -88,6 +120,7 @@ const ShowBrand = () => {
             onRuplicate={true}
             onDelete={!brand.deleted ? onAction : null}
             onRestore={brand.deleted ? onAction : null}
+            onHardDelete={onHardDelete}
             deleted={brand.deleted}
             link={'/brands'}
           />

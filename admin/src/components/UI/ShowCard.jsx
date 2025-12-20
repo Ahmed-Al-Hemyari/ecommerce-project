@@ -1,5 +1,5 @@
 import React from "react";
-import { Pencil, ArrowLeft, Copy, Trash, X, ArchiveRestoreIcon, RefreshCcw } from "lucide-react";
+import { Pencil, ArrowLeft, Copy, Trash, X, ArchiveRestoreIcon, RefreshCcw, Trash2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 
 const ShowCard = ({
@@ -11,6 +11,7 @@ const ShowCard = ({
   onEdit,
   onRuplicate,
   onDelete,
+  onHardDelete,
   onRestore,
   // onAction,
   onCancel,
@@ -62,14 +63,6 @@ const ShowCard = ({
               <Trash size={16} color="#d50101"/>
             </button>
           )}
-          {(deleted && onRestore) && (
-            <button
-              onClick={onRestore}
-              className="flex items-center gap-1 px-2 py-2 rounded-md text-sm font-medium bg-gray-100 hover:bg-gray-200"
-            >
-              <RefreshCcw size={16}/>
-            </button>
-          )}
           {(!deleted && onCancel) && (
             <button
               onClick={onCancel}
@@ -78,7 +71,22 @@ const ShowCard = ({
               <X size={16} color="#d50101"/>
             </button>
           )}
-
+          {(deleted && onRestore) && (
+            <>
+              <button
+                onClick={onRestore}
+                className="flex items-center gap-1 px-2 py-2 rounded-md text-sm font-medium bg-gray-100 hover:bg-gray-200"
+              >
+                <RefreshCcw size={16}/>
+              </button>
+              <button
+                onClick={onHardDelete}
+                className="flex items-center gap-1 px-2 py-2 rounded-md text-sm font-medium bg-gray-100 hover:bg-gray-200"
+              >
+                <Trash2 size={16} color="#d50101"/>
+              </button>
+            </>
+          )}
         </div>
       </div>
 

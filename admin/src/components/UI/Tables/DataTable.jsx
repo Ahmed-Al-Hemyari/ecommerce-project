@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import ActionButton from './ActionButton';
-import { Edit, Eye, Plus, RefreshCcw, Search, Square, SquarePlus, Trash, X } from 'lucide-react';
+import { Edit, Eye, Plus, RefreshCcw, Search, Square, SquarePlus, Trash, Trash2, X } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import StringCell from './StringCell';
 import BoolCell from './BoolCell';
@@ -23,6 +23,7 @@ const DataTable = ({
   search,
   setSearch,
   handleDelete,
+  hardDelete,
   handleRestore,
   handleCancel,
   handleAddStock,
@@ -253,10 +254,16 @@ const DataTable = ({
                               <ActionButton Icon={Trash} size={18} color="#d50101" handleClick={() => handleDelete(item._id)} />
                             )}
                             {item.deleted && (
-                              <ActionButton Icon={RefreshCcw} size={18} color="#2563EB" handleClick={() => handleRestore(item._id)} />
+                              <>
+                                <ActionButton Icon={Trash2} size={18} color="#d50101" handleClick={() => hardDelete(item._id)} />
+                                <ActionButton Icon={RefreshCcw} size={18} color="#2563EB" handleClick={() => handleRestore(item._id)} />
+                              </>
                             )}
                             {link === '/orders' && (
-                              <ActionButton Icon={X} size={18} color="#d50101" handleClick={() => handleCancel(item._id)} />
+                              <>
+                                <ActionButton Icon={Trash2} size={18} color="#d50101" handleClick={() => hardDelete(item._id)} />
+                                <ActionButton Icon={X} size={18} color="#d50101" handleClick={() => handleCancel(item._id)} />
+                              </>
                             )}
                             <ActionButton Icon={Edit} size={18} color="#333333" handleClick={() => handleEdit(item._id)} />
                             <ActionButton Icon={Eye} size={18} color="#333333" handleClick={() => handleShow(item._id)} />
