@@ -122,6 +122,7 @@ const UpdateUser = () => {
       });
       return true;
     } catch (error) {
+      enqueueSnackbar(error || 'Failed to update user');
       return false;
     }
   }

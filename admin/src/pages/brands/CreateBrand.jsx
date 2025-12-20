@@ -33,7 +33,7 @@ const CreateBrand = () => {
           const response = await brandService.getBrand(id);
           setBrand(response.data);
         } catch (error) {
-          enqueueSnackbar("Failed to load brand");
+          enqueueSnackbar(error || "Failed to add brand");
         }
       }
       

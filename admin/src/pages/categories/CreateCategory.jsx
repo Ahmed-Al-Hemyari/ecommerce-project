@@ -72,7 +72,7 @@ const CreateCategory = () => {
       });
       return true;
     } catch (error) {
-      enqueueSnackbar('Failed to add category');
+      enqueueSnackbar(error || 'Failed to add category');
       return false;
     }
   }

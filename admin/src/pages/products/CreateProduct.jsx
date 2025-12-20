@@ -116,7 +116,7 @@ const CreateProduct = () => {
       const response = await productService.createProduct(formData);
       return true;
     } catch (error) {
-      enqueueSnackbar(error, { variant: "error"});
+      enqueueSnackbar(error || 'Failed to add product', { variant: "error"});
       console.log(error);
       return false;
     }

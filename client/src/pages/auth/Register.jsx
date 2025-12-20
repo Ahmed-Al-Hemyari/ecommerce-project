@@ -78,8 +78,8 @@ const Register = () => {
         }
       });
     } catch (error) {
-      console.error("Registration error:", error.message);
-      setFormError(error.message || "Something went wrong");
+      console.error("Registration error:", error);
+      setFormError(error || "Something went wrong");
     }
   };
 

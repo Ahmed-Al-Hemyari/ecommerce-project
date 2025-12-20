@@ -54,7 +54,7 @@ const UpdateOrder = () => {
       }));
       setProducts(formatted);
     } catch (error) {
-      enqueueSnackbar('Failed to load products', { variant: 'error' });
+      enqueueSnackbar(error || 'Failed to update order', { variant: 'error' });
       console.error(error);
     }
   };

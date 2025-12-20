@@ -25,9 +25,9 @@ const UpdateForm = ({
         const result = await handleSubmit();
 
         if (!result) {
-            enqueueSnackbar('Failed to update', {
-                variant: 'error'
-            });
+            // enqueueSnackbar('Failed to update', {
+            //     variant: 'error'
+            // });
             return;
         }
 

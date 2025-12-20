@@ -107,7 +107,7 @@ const CreateUser = () => {
       });
       return true;
     } catch (error) {
-      enqueueSnackbar('Failed to add user');
+      enqueueSnackbar(error || 'Failed to add user');
       return false;
     }
   }

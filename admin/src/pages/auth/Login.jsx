@@ -99,7 +99,7 @@ const Login = () => {
       });
     } catch (error) {
       console.error(error);
-      setFormError(error.message || "Login failed. Please try again.");
+      setFormError(error || "Login failed. Please try again.");
     }
 };
 

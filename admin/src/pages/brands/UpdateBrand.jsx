@@ -53,6 +53,7 @@ const UpdateBrand = () => {
       const response = await brandService.updateBrand(id, formData);
       return true;
     } catch (error) {
+      enqueueSnackbar(error || 'Failed to update brand', { variant: 'error' });
       return false;
     }
   }

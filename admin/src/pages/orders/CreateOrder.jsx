@@ -201,7 +201,7 @@ const CreateOrder = () => {
           const response = await orderService.getOrder(id);
           setOrder(response.data);
         } catch (error) {
-          enqueueSnackbar("Failed to load product");
+          enqueueSnackbar(error || "Failed to add order");
         }
       }
 

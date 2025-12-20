@@ -94,7 +94,7 @@ const UpdateProduct = () => {
       const response = await productService.updateProduct(id, formData);
       return true;
     } catch (error) {
-      // enqueueSnackbar('Failed to add product');
+      enqueueSnackbar(error || 'Failed to update product');
       return false;
     }
   }

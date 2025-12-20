@@ -21,7 +21,7 @@ const UpdateCategory = () => {
       setSlug(response.data.slug);
       setCategory(response.data);
     } catch (error) {
-      enqueueSnackbar("Failed to load category", { variant: 'error' });
+      enqueueSnackbar(error || "Failed to update category", { variant: 'error' });
     }
   }
 

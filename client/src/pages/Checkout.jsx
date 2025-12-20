@@ -80,7 +80,7 @@ const Checkout = () => {
         });
     } catch (error) {
         console.log("Failed to submit order, error: ", error);
-        enqueueSnackbar("Failed to submit order!", { variant: 'error'});
+        enqueueSnackbar(error || "Failed to submit order!", { variant: 'error'});
     }
   };
 
