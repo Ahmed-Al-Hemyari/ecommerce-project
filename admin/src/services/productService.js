@@ -17,20 +17,20 @@ export const productService = {
     createProduct : (data) => api.post("/products", data),
     updateProduct : (id, data) => api.put(`/products/${id}`, data),
     addStock : (id, stock) => api.patch(`/products/add-stock/${id}`, { stock }),
-    deleteProduct : (id) => api.patch(`/products/${id}`),
-    restoreProduct : (id) => api.patch(`/products/restore/${id}`),
-    deleteMany: (data) => api.patch('/products/bulk-delete', {
+   
+    
+    // // Delete
+    softDelete: (data) => api.patch('/products/delete', {
         ids: data,
     }),
-    restoreMany: (data) => api.patch('/products/bulk-restore', {
+    restore: (data) => api.patch(`/products/restore`, {
         ids: data,
     }),
-    // Hard Delete
-    hardDelete: (data) => api.delete('/products/hard-delete', {
+    hardDelete : (data) => api.delete(`/products/delete`, {
         data: {
-            ids: data,
+            ids: data
         }
-    })
+    }),
 }
 
 export default productService;

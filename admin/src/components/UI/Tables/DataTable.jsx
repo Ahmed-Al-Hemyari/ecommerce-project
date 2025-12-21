@@ -227,16 +227,6 @@ const DataTable = ({
                       const Cell = CellComponents[header.type];
                       if (!Cell) return null;
 
-                      if (header.type === 'link') {
-                        return (
-                          <LinkCell
-                            key={header.field}
-                            item={item}
-                            header={header}
-                          />
-                        );
-                      }
-
                       return (
                         <Cell
                           key={header.field}

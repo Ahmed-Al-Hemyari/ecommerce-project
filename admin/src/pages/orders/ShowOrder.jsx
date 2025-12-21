@@ -61,7 +61,7 @@ const ShowOrder = () => {
       return;
     }
     try {
-      const response = await orderService.deleteOrders([id]);
+      const response = await orderService.hardDelete([id]);
       enqueueSnackbar(response.data, {
         variant: 'success'
       });

@@ -26,9 +26,8 @@ orderRoutes.get('/:id', requireAdmin , getOrderById);
 orderRoutes.post('/', requireAuth , createOrder);
 // Update order
 orderRoutes.put('/:id', requireAdmin , updateOrder);
-// // Cancel order
-// orderRoutes.put('/:id/cancel', requireAuth , cancelOrder);
-// Delete orders
-orderRoutes.delete('/', requireAdmin , deleteOrders);
+
+// Hard Delete
+orderRoutes.delete('/delete', requireAdmin , deleteOrders);
 
 export default orderRoutes;

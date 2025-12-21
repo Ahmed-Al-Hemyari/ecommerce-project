@@ -129,42 +129,44 @@ export const updateBrand = async (req, res) => {
   }
 };
 
-// Delete a product
-export const deleteBrand = async (req, res) => {
-  try {
-    const brand = await Brand.findByIdAndUpdate(req.params.id, { deleted: true });
+// // Delete a product
+// export const deleteBrand = async (req, res) => {
+//   try {
+//     const brand = await Brand.findByIdAndUpdate(req.params.id, { deleted: true });
 
-    if (!brand) {
-      return res.status(404).json({ message: 'Brand not found' });
-    }
+//     if (!brand) {
+//       return res.status(404).json({ message: 'Brand not found' });
+//     }
 
-    res.status(200).json({ message: 'Brand deleted successfully' });
+//     res.status(200).json({ message: 'Brand deleted successfully' });
 
-  } catch (error) {
-    console.error('Error deleting brand:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
+//   } catch (error) {
+//     console.error('Error deleting brand:', error);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// };
 
-// Restore a product
-export const restoreBrand = async (req, res) => {
-  try {
-    const brand = await Brand.findByIdAndUpdate(req.params.id, { deleted: false });
+// // Restore a product
+// export const restoreBrand = async (req, res) => {
+//   try {
+//     const brand = await Brand.findByIdAndUpdate(req.params.id, { deleted: false });
 
-    if (!brand) {
-      return res.status(404).json({ message: 'Brand not found' });
-    }
+//     if (!brand) {
+//       return res.status(404).json({ message: 'Brand not found' });
+//     }
 
-    res.status(200).json({ message: 'Brand restored successfully' });
+//     res.status(200).json({ message: 'Brand restored successfully' });
 
-  } catch (error) {
-    console.error('Error restoring brand:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
+//   } catch (error) {
+//     console.error('Error restoring brand:', error);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// };
 
-// Delete many
-export const deleteMany = async (req, res) => {
+
+// // Delete
+// Soft Delete
+export const softDelete = async (req, res) => {
   try {
     const { ids } = req.body;
 
@@ -190,8 +192,8 @@ export const deleteMany = async (req, res) => {
   }
 };
 
-// Restore many
-export const restoreMany = async (req, res) => {
+// Restore
+export const restore = async (req, res) => {
   try {
     const { ids } = req.body;
 

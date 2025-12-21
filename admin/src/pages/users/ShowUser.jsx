@@ -46,7 +46,7 @@ const ShowUser = () => {
       if (!result.isConfirmed) return;
       
       if (deleted) {
-        const response = await userService.restoreUser([id]);
+        const response = await userService.restore([id]);
         navigate('/users', {
           state: {
             message: "User restored successfully",
@@ -54,7 +54,7 @@ const ShowUser = () => {
           }
         })
       } else {
-        const response = await userService.deleteUser([id]);
+        const response = await userService.softDelete([id]);
         navigate('/users', {
           state: {
             message: "User deleted successfully",

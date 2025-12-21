@@ -37,7 +37,7 @@ const ShowCategory = () => {
       if (!result.isConfirmed) return;
       
       if (deleted) {
-        const response = await categoryService.restoreCategory([id]);
+        const response = await categoryService.restore([id]);
         navigate('/categories', {
           state: {
             message: "Category restored successfully",
@@ -45,7 +45,7 @@ const ShowCategory = () => {
           }
         })
       } else {
-        const response = await categoryService.deleteCategory([id]);
+        const response = await categoryService.softDelete([id]);
         navigate('/categories', {
           state: {
             message: "Category deleted successfully",

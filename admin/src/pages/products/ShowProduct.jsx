@@ -37,7 +37,7 @@ const ShowProduct = () => {
       if (!result.isConfirmed) return;
       
       if (deleted) {
-        const response = await productService.restoreProduct([id]);
+        const response = await productService.restore([id]);
         navigate('/products', {
           state: {
             message: "Product restored successfully",
@@ -45,7 +45,7 @@ const ShowProduct = () => {
           }
         })
       } else {
-        const response = await productService.deleteProduct([id]);
+        const response = await productService.softDelete([id]);
         navigate('/products', {
           state: {
             message: "Product deleted successfully",

@@ -5,11 +5,16 @@ import userService from '@/services/userService';
 import { enqueueSnackbar } from 'notistack';
 import DataTable from '@/components/UI/Tables/DataTable';
 import Swal from 'sweetalert2';
+import { grantAdmin, hardDelete, restore, revokeAdmin, softDelete } from '@/utils/Functions';
 
 const UsersList = () => {
+
+  // Essentials
   const location = useLocation();
   const navigate = useNavigate();
-
+  // Type
+  const type = 'User';
+  // Data
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState('');
   const [role, setRole] = useState(null);
@@ -25,6 +30,27 @@ const UsersList = () => {
   const [bulkAction, setBulkAction] = useState('');
   // Filters
   const [deletedFilter, setDeletedFilter] = useState(null);
+  const filters = [
+    {
+      label: 'Role',
+      options: [
+        { name: 'Admin', _id: 'admin' },
+        { name: 'User', _id: 'user' },
+      ],
+      placeholder: 'Choose role',
+      value: role,
+      setValue: setRole,
+    },
+    {
+      label: 'Deleted',
+      options: [
+        { _id: true, name: 'Deleted' },
+      ],
+      placeholder: 'Choose...',
+      value: deletedFilter,
+      setValue: setDeletedFilter,
+    }
+  ];
 
   const headers = [
     { label: "Name", field: "name", type: 'string' },
@@ -33,6 +59,8 @@ const UsersList = () => {
     { label: "Role", field: "role", type: 'string' },
     { label: "Joined", field: "createdAt", type: 'string' },
   ];
+
+  // Handlers
 
   const getUsers = async (search, role, deleted, currentPage, limit) => {
     setLoading(true);
@@ -58,53 +86,38 @@ const UsersList = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    const result = await Swal.fire({
-      title: 'Delete User',
-      text: 'Are you sure you want to delete this user?',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete it',
-      confirmButtonColor: '#d50101',
-    });
-
-    if (!result.isConfirmed) return;
-
-    try {
-      await userService.deleteUser(id);
-      enqueueSnackbar("User deleted successfully", { variant: 'success' });
-      getUsers(search, role, deletedFilter, currentPage, limit);
-    } catch (error) {
-      enqueueSnackbar("Failed to delete user", { variant: 'error' });
-      console.error(error);
-    }
-  };
-  
-  const handleRestore = async (id) => {
-    const result = await Swal.fire({
-      title: 'Restore User',
-      text: 'Are you sure you want to restore this user?',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, restore it',
-      confirmButtonColor: '#d50101',
-    });
-
-    if (!result.isConfirmed) return;
-
-    try {
-      await userService.restoreUser(id);
-      enqueueSnackbar("User restored successfully", { variant: 'success' });
-      setDeletedFilter(null);
-      getUsers(search, role, deletedFilter, currentPage, limit);
-    } catch (error) {
-      enqueueSnackbar("Failed to restore user", { variant: 'error' });
-      console.error(error);
-    }
-  };
-
-  useEffect(() => {
+  const refreshUsers = () => 
     getUsers(search, role, deletedFilter, currentPage, limit);
+
+  const handleSoftDelete = async (id) => {
+    await softDelete(
+      [id],
+      type,
+      setSelected,
+      refreshUsers
+    );
+  }
+  const handleRestore = async (id) => {
+    await restore(
+      [id],
+      type,
+      setSelected,
+      refreshUsers
+    );
+  }
+  const handleHardDelete = async (id) => {
+    await hardDelete(
+      [id],
+      type,
+      setSelected,
+      refreshUsers
+    );
+  }
+
+  // useEffects
+  useEffect(() => {
+    setLoading(true);
+    refreshUsers();
   }, [search, role, deletedFilter, currentPage, limit]);
 
   // Bulk Actions useEffect
@@ -112,178 +125,44 @@ const UsersList = () => {
     if (!bulkAction) return;
 
     const runBulkAction = async () => {
-      if (bulkAction === 'delete') {
-        await deleteSeleted();
-      } else if (bulkAction === 'restore') {
-        await restoreSeleted();
-      } else if (bulkAction === 'grant-admin') {
-        await grantAdmin();
-      } else if (bulkAction === 'revoke-admin') {
-        await revokeAdmin();
-      } else if (bulkAction === 'hard-delete') {
-        await hardDeleteMany();
+      switch (bulkAction) {
+        case 'delete':
+          await softDelete(
+            selected,
+            type,
+            setSelected,
+            refreshUsers
+          );
+          break;
+        case 'restore':
+          await restore(
+            selected,
+            type,
+            setSelected,
+            refreshUsers
+          );
+          break;
+        case 'hard-delete':
+          await hardDelete(
+            selected,
+            type,
+            setSelected,
+            refreshUsers
+          );
+          break;
+        case 'grant-admin':
+          await grantAdmin(selected, setSelected, refreshUsers);
+          break;
+        case 'revoke-admin':
+          await revokeAdmin(selected, setSelected, refreshUsers);
+          break;
+        default:
+          break;
       }
     };
 
     runBulkAction();
   }, [bulkAction]);
-
-
-  // Bulk Actions functions
-  const deleteSeleted = async () => {
-    setBulkAction('');
-    const result = await Swal.fire({
-      title: 'Delete Users',
-      text: `Are you sure you want to delete ${selected.length} users?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete them',
-      confirmButtonColor: '#d50101',
-    });
-
-    if (!result.isConfirmed) return;
-
-    try {
-      await userService.deleteMany(selected);
-      enqueueSnackbar("Users deleted successfully", { variant: 'success' });
-      setSelected([]);
-      getUsers(search, role, deletedFilter, currentPage, limit);
-    } catch (error) {
-      enqueueSnackbar("Failed to delete users", { variant: 'error' });
-      console.error(error);
-    }
-  }
-
-  const hardDeleteMany = async () => {
-    setBulkAction('');
-    const result = Swal.fire({
-      title: 'Delete User Permenantly',
-      text: 'Sure you want to delete this user permenantly??',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete it',
-      confirmButtonColor: '#d50101'
-    })
-
-    if (!(await result).isConfirmed) {
-      return;
-    }
-    try {
-      const response = await userService.hardDelete(selected);
-      enqueueSnackbar(response.data, {
-        variant: 'success'
-      });
-      setSelected([]);
-      getUsers(search, role, deletedFilter, currentPage, limit);
-    } catch (error) {
-      enqueueSnackbar(error, {
-        variant: 'error'
-      });
-      console.error(error);
-    }
-  }
-
-  const hardDelete = async (id) => {
-    const result = Swal.fire({
-      title: 'Delete User Permenantly',
-      text: 'Sure you want to delete this user permenantly??',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete it',
-      confirmButtonColor: '#d50101'
-    })
-
-    if (!(await result).isConfirmed) {
-      return;
-    }
-    try {
-      const response = await userService.hardDelete([id]);
-      enqueueSnackbar(response.data, {
-        variant: 'success'
-      });
-      setSelected([]);
-      getUsers(search, role, deletedFilter, currentPage, limit);
-    } catch (error) {
-      enqueueSnackbar(error, {
-        variant: 'error'
-      });
-      console.error(error);
-    }
-  }
-
-  const restoreSeleted = async () => {
-    setBulkAction('');
-    const result = await Swal.fire({
-      title: 'Restore Users',
-      text: `Are you sure you want to restore ${selected.length} users?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, restore them',
-      confirmButtonColor: '#d50101',
-    });
-
-    if (!result.isConfirmed) return;
-
-    try {
-      await userService.restoreMany(selected);
-      enqueueSnackbar("Users restored successfully", { variant: 'success' });
-      setSelected([]);
-      setDeletedFilter(null);
-      getUsers(search, role, deletedFilter, currentPage, limit);
-    } catch (error) {
-      enqueueSnackbar("Failed to restore users", { variant: 'error' });
-      console.error(error);
-    }
-  }
-
-  const grantAdmin = async () => {
-    setBulkAction('');
-    const result = await Swal.fire({
-      title: 'Grant Admin',
-      text: `Are you sure you want to grant admin for selected users?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, grant them',
-      confirmButtonColor: '#1d7451',
-    });
-
-    if (!result.isConfirmed) return;
-
-    try {
-      await userService.grantAdmin(selected);
-      enqueueSnackbar("Administration granted successfully", { variant: 'success' });
-      setSelected([]);
-      getUsers(search, role, deletedFilter, currentPage, limit);
-    } catch (error) {
-      enqueueSnackbar("Failed to grant admin", { variant: 'error' });
-      console.error(error);
-    }
-  }
-
-  const revokeAdmin = async () => {
-    setBulkAction('');
-    const result = await Swal.fire({
-      title: 'Revoke Admin',
-      text: `Are you sure you want to revoke admin for selected users?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, revoke admin',
-      confirmButtonColor: '#1d7451',
-    });
-
-    if (!result.isConfirmed) return;
-
-    try {
-      await userService.revokeAdmin(selected);
-      enqueueSnackbar("Administration revoked successfully", { variant: 'success' });
-      setSelected([]);
-      getUsers(search, role, deletedFilter, currentPage, limit);
-    } catch (error) {
-      enqueueSnackbar("Failed to revoke admin", { variant: 'error' });
-      console.error(error);
-    }
-  }
-
 
   // Snackbar listener
   useEffect(() => {
@@ -295,28 +174,6 @@ const UsersList = () => {
     }
   }, [location.state]);
 
-  const filters = [
-    {
-      label: 'Role',
-      options: [
-        { name: 'Admin', _id: 'admin' },
-        { name: 'User', _id: 'user' },
-      ],
-      placeholder: 'Choose role',
-      value: role,
-      setValue: setRole,
-    },
-    {
-      label: 'Deleted',
-      options: [
-        { _id: true, name: 'Deleted' },
-      ],
-      placeholder: 'Choose...',
-      value: deletedFilter,
-      setValue: setDeletedFilter,
-    }
-  ];
-
   return (
     <MainLayout>
       <DataTable
@@ -327,9 +184,9 @@ const UsersList = () => {
         setSearch={setSearch}
         filters={filters}
         tableName='Users'
-        handleDelete={handleDelete}
-        hardDelete={hardDelete}
+        handleDelete={handleSoftDelete}
         handleRestore={handleRestore}
+        hardDelete={handleHardDelete}
         // Loading
         loading={loading}
         setLoading={setLoading}

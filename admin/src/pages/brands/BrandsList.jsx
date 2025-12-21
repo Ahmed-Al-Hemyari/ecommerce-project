@@ -5,10 +5,15 @@ import { enqueueSnackbar } from 'notistack';
 import brandService from '@/services/brandService';
 import DataTable from '@/components/UI/Tables/DataTable';
 import Swal from 'sweetalert2';
+import { hardDelete, restore, softDelete } from '@/utils/Functions';
 
 const BrandsList = () => {
+  // Essentails
   const location = useLocation();
   const navigate = useNavigate();
+  // Type
+  const type = 'Brand';
+  // Data
   const [brands, setBrands] = useState([]);
   const [search, setSearch] = useState([]);
   // Loading
@@ -24,6 +29,17 @@ const BrandsList = () => {
 
   // Filters
   const [deletedFilter, setDeletedFilter] = useState(null);
+  const filters = [
+    {
+      label: 'Deleted',
+      options: [
+        { _id: true, name: 'Deleted' },
+      ],
+      placeholder: 'Choose...',
+      value: deletedFilter,
+      setValue: setDeletedFilter,
+    }
+  ];
 
   const headers = [
     { label: "Name", field: "name", type: 'string' }
@@ -44,192 +60,79 @@ const BrandsList = () => {
       setLoading(false);
     }
   }
+  
+  const refreshBrands = () => 
+    getBrands(search, deletedFilter, currentPage, limit);
 
-  // Bulk Actions functions
-  const deleteSeleted = async () => {
-    setBulkAction('');
-    const result = await Swal.fire({
-      title: 'Delete brands',
-      text: `Are you sure you want to delete ${selected.length} brands?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete them',
-      confirmButtonColor: '#d50101',
-    });
-
-    if (!result.isConfirmed) return;
-
-    try {
-      await brandService.deleteMany(selected);
-      enqueueSnackbar("Brands deleted successfully", { variant: 'success' });
-      setSelected([]);
-      getBrands(search, deletedFilter, currentPage, limit);
-    } catch (error) {
-      enqueueSnackbar("Failed to delete brands", { variant: 'error' });
-      console.error(error);
-    }
+  const handleSoftDelete = async (id) => {
+    await softDelete(
+      [id],
+      type,
+      setSelected,
+      refreshBrands
+    );
   }
-
-  const hardDeleteMany = async () => {
-    setBulkAction('');
-    const result = Swal.fire({
-      title: 'Delete Brand Permenantly',
-      text: 'Sure you want to delete this product permenantly??',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete it',
-      confirmButtonColor: '#d50101'
-    })
-
-    if (!(await result).isConfirmed) {
-      return;
-    }
-    try {
-      await brandService.hardDelete(selected);
-      enqueueSnackbar("Brand deleted successfully", {
-        variant: 'success'
-      });
-      setSelected([]);
-      getBrands(search, deletedFilter, currentPage, limit);
-    } catch (error) {
-      enqueueSnackbar(error, {
-        variant: 'error'
-      });
-      console.error(error);
-    }
-  }
-
-  const hardDelete = async (id) => {
-    const result = Swal.fire({
-      title: 'Delete Brand Permenantly',
-      text: 'Sure you want to delete this product permenantly??',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete it',
-      confirmButtonColor: '#d50101'
-    })
-
-    if (!(await result).isConfirmed) {
-      return;
-    }
-    try {
-      await brandService.hardDelete([id]);
-      enqueueSnackbar("Brand deleted successfully", {
-        variant: 'success'
-      });
-      setSelected([]);
-      getBrands(search, deletedFilter, currentPage, limit);
-    } catch (error) {
-      enqueueSnackbar(error, {
-        variant: 'error'
-      });
-      console.error(error);
-    }
-  }
-
-  const restoreSeleted = async () => {
-    setBulkAction('');
-    const result = await Swal.fire({
-      title: 'Restore brands',
-      text: `Are you sure you want to restore ${selected.length} brands?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, restore them',
-      confirmButtonColor: '#1d7451',
-    });
-
-    if (!result.isConfirmed) return;
-
-    try {
-      await brandService.restoreMany(selected);
-      enqueueSnackbar("Brands restored successfully", { variant: 'success' });
-      setSelected([]);
-      setDeletedFilter(null);
-      getBrands(search, deletedFilter, currentPage, limit);
-    } catch (error) {
-      enqueueSnackbar("Failed to restore brands", { variant: 'error' });
-      console.error(error);
-    }
-  }
-
-  const handleDelete = async (id) => {
-    try {
-      const result = Swal.fire({
-        title: 'Delete Brand',
-        text: 'Sure you want to delete this brand??',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, delete it',
-        confirmButtonColor: '#d50101'
-      })
-
-      if (!(await result).isConfirmed) {
-        return;
-      }
-
-      const response = await brandService.deleteBrand(id);
-      enqueueSnackbar("Brand deleted successfully", {
-        variant: 'success'
-      });
-      getBrands(search, deletedFilter, currentPage, limit);
-    } catch (error) {
-      enqueueSnackbar("Failed to delete brand", {
-        variant: 'error'
-      });
-      console.error(error);
-    }
-  }
-
   const handleRestore = async (id) => {
-    try {
-      const result = Swal.fire({
-        title: 'Restore Brand',
-        text: 'Sure you want to restore this brand??',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, restore it',
-        confirmButtonColor: '#1d7451'
-      })
-
-      if (!(await result).isConfirmed) {
-        return;
-      }
-
-      const response = await brandService.restoreBrand(id);
-      enqueueSnackbar("Brand restored successfully", {
-        variant: 'success'
-      });
-      setDeletedFilter(null);
-      getBrands(search, deletedFilter, currentPage, limit);
-    } catch (error) {
-      enqueueSnackbar("Failed to restore brand", {
-        variant: 'error'
-      });
-      console.error(error);
-    }
+    await restore(
+      [id],
+      type,
+      setSelected,
+      refreshBrands
+    );
   }
+  const handleHardDelete = async (id) => {
+    await hardDelete(
+      [id],
+      type,
+      setSelected,
+      refreshBrands
+    );
+  }
+  
 
   // Bulk Actions useEffect
   useEffect(() => {
     if (!bulkAction) return;
-
+    
     const runBulkAction = async () => {
-      if (bulkAction === 'delete') {
-        await deleteSeleted();
+      switch (bulkAction) {
+        case 'delete':
+          await softDelete(
+            selected,
+            type,
+            setSelected,
+            refreshBrands
+          )
+          break;
+        case 'restore':
+          await restore(
+            selected,
+            type,
+            setSelected,
+            refreshBrands
+          )
+          break;
+        case 'hard-delete':
+          await hardDelete(
+            selected,
+            type,
+            setSelected,
+            refreshBrands
+          )
+          break;
+        default:
+          break;
       }
-      if (bulkAction === 'restore') {
-        await restoreSeleted();
-      }
-      if (bulkAction === 'hard-delete') {
-        await hardDeleteMany();
-      }
+
+      setBulkAction('');
     };
 
     runBulkAction();
   }, [bulkAction]);
 
   useEffect(() => {
-    getBrands(search, deletedFilter, currentPage, limit);
+    setLoading(true);
+    refreshBrands();
   }, [search, deletedFilter, currentPage, limit]);
 
   // Snackbar listener
@@ -244,18 +147,6 @@ const BrandsList = () => {
     }
   }, [location.state]);
 
-  const filters = [
-    {
-      label: 'Deleted',
-      options: [
-        { _id: true, name: 'Deleted' },
-      ],
-      placeholder: 'Choose...',
-      value: deletedFilter,
-      setValue: setDeletedFilter,
-    }
-  ];
-
   return (
     <MainLayout>
       <DataTable
@@ -266,9 +157,9 @@ const BrandsList = () => {
         search={search}
         setSearch={setSearch}
         tableName='Brands'
-        handleDelete={handleDelete}
-        hardDelete={hardDelete}
+        handleDelete={handleSoftDelete}
         handleRestore={handleRestore}
+        hardDelete={handleHardDelete}
         // Loading
         loading={loading}
         // Pagination

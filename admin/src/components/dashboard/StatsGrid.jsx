@@ -3,7 +3,7 @@ import StatCard from "./StatCard";
 const StatsGrid = ({ stats }) => {
   const items = [
     { label: "Orders", value: stats.totalOrders },
-    { label: "Revenue", value: stats.totalRevenue },
+    { label: "Revenue", value: `$${stats.totalRevenue}` },
     { label: "Products", value: stats.totalProducts },
     { label: "Users", value: stats.totalUsers },
     { label: "Pending", value: stats.pendingOrders }

@@ -5,10 +5,13 @@ import { enqueueSnackbar } from 'notistack';
 import orderService from '@/services/orderService';
 import DataTable from '@/components/UI/Tables/DataTable';
 import Swal from 'sweetalert2';
+import { handleCancel, hardDelete } from '@/utils/Functions';
 
 const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  // Type 
+  const type = 'Order';
   // Data
   const [orders, setOrders] = useState([]);
   const [search, setSearch] = useState('');
@@ -26,6 +29,32 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
   // bulk
   const [selected, setSelected] = useState([]);
   const [bulkAction, setBulkAction] = useState('');
+
+  const filters = [
+  {
+    label: 'Status',
+    options: [
+      { name: 'Pending', _id: 'Pending' },
+      { name: 'Processing', _id: 'Processing' },
+      { name: 'Shipped', _id: 'Shipped' },
+      { name: 'Delivered', _id: 'Delivered' },
+      { name: 'Cancelled', _id: 'Cancelled' },
+    ],
+    placeholder: 'Choose Status',
+    value: statusFilter,
+    setValue: setStatusFilter,
+  },
+  {
+    label: 'Payed',
+    options: [
+      { name: 'Payed', _id: true },
+      { name: 'Not Payed', _id: false },
+    ],
+    placeholder: 'Choose...',
+    value: payedFilter,
+    setValue: setPayedFilter,
+  },
+];
 
   const headers = [
     { label: 'User', field: 'user', type: 'link', link: 'users' },
@@ -48,76 +77,22 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
     }
   };
 
-  const handleCancel = async (id) => {
-    const result = await Swal.fire({
-      title: 'Cancel Order',
-      text: 'Are you sure you want to cancel this order?',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, cancel it',
-      confirmButtonColor: '#d50101',
-    });
+  const refreshOrders = () => 
+    getOrders(search, userFilter, productFilter, statusFilter, payedFilter, currentPage, limit);
 
-    if (!result.isConfirmed) return;
-
-    try {
-      await orderService.updateToCancelled([id]);
-      enqueueSnackbar('Order cancelled successfully', { variant: 'success' });
-      getOrders(search, userFilter, productFilter, statusFilter, payedFilter, currentPage, limit);
-    } catch (error) {
-      enqueueSnackbar('Failed to delete order', { variant: 'error' });
-      console.error(error);
-    }
-  };
-
-  const handleDeleteMany = async () => {
-    const result = await Swal.fire({
-      title: 'Delete Order Permenantly',
-      text: 'Are you sure you want to delete these orders permenantly?',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete it',
-      confirmButtonColor: '#d50101',
-    });
-
-    if (!result.isConfirmed) return;
-
-    try {
-      await orderService.deleteOrders(selected);
-      enqueueSnackbar('Order deleted successfully', { variant: 'success' });
-      getOrders(search, userFilter, productFilter, statusFilter, payedFilter, currentPage, limit);
-    } catch (error) {
-      enqueueSnackbar('Failed to delete order', { variant: 'error' });
-      console.error(error);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    const result = await Swal.fire({
-      title: 'Delete Order Permenantly',
-      text: 'Are you sure you want to delete this order permenantly?',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete it',
-      confirmButtonColor: '#d50101',
-    });
-
-    if (!result.isConfirmed) return;
-
-    try {
-      await orderService.deleteOrders([id]);
-      enqueueSnackbar('Order deleted successfully', { variant: 'success' });
-      getOrders(search, userFilter, productFilter, statusFilter, payedFilter, currentPage, limit);
-    } catch (error) {
-      enqueueSnackbar('Failed to delete order', { variant: 'error' });
-      console.error(error);
-    }
+  const handleHardDelete = async (id) => {
+    await hardDelete(
+      [id],
+      type,
+      setSelected,
+      refreshOrders
+    )
   };
 
   // Fetch orders when search/filter changes
   useEffect(() => {
     setLoading(true);
-    getOrders(search, userFilter, productFilter, statusFilter, payedFilter, currentPage, limit);
+    refreshOrders();
   }, [search, userFilter, productFilter, statusFilter, payedFilter, currentPage, limit]);
 
   // Bulk actions useEffect
@@ -149,7 +124,12 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
             await orderService.updateToNotPayed(selected);
             break;
           case 'delete':
-            await handleDeleteMany();
+            await hardDelete(
+              selected,
+              type,
+              setSelected,
+              refreshOrders
+            );
             break;
           default:
             return;
@@ -158,7 +138,7 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
         enqueueSnackbar('Orders updated successfully', { variant: 'success' });
         setSelected([]);
         setBulkAction('');
-        getOrders(search, userFilter, productFilter, statusFilter, payedFilter, currentPage, limit);
+        refreshOrders();
       } catch (err) {
         enqueueSnackbar('Bulk update failed', { variant: 'error' });
         console.error(err);
@@ -183,37 +163,7 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
     }
   }, [location.state]);
 
-  const filters = [
-    {
-      label: 'Status',
-      options: [
-        { name: 'Pending', _id: 'Pending' },
-        { name: 'Processing', _id: 'Processing' },
-        { name: 'Shipped', _id: 'Shipped' },
-        { name: 'Delivered', _id: 'Delivered' },
-        { name: 'Cancelled', _id: 'Cancelled' },
-      ],
-      placeholder: 'Choose Status',
-      value: statusFilter,
-      setValue: setStatusFilter,
-    },
-    {
-      label: 'Payed',
-      options: [
-        { name: 'Payed', _id: true },
-        { name: 'Not Payed', _id: false },
-      ],
-      placeholder: 'Choose...',
-      value: payedFilter,
-      setValue: setPayedFilter,
-    },
-  ];
 
-  const handleResetFilters = () => {
-    setStatusFilter(null);
-    setPayedFilter(null);
-    setSearch('');
-  };
 
   return inner ? (
     <DataTable
@@ -224,8 +174,11 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
       setSearch={setSearch}
       filters={filters}
       tableName='Orders'
-      handleCancel={handleCancel}
-      handleDelete={handleDelete}
+      handleCancel={async (id) => {
+        await handleCancel(id);
+        refreshOrders();
+      }}
+      hardDelete={handleHardDelete}
       loading={loading}
       // Pagination
       currentPage={currentPage} setCurrentPage={setCurrentPage}
@@ -244,8 +197,11 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
         setSearch={setSearch}
         filters={filters}
         tableName='Orders'
-        handleCancel={handleCancel}
-        handleDelete={handleDelete}
+        handleCancel={async (id) => {
+          await handleCancel(id);
+          refreshOrders();
+        }}
+        hardDelete={handleHardDelete}
         loading={loading}
         // Pagination
         currentPage={currentPage} setCurrentPage={setCurrentPage}

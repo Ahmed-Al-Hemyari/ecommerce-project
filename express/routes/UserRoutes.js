@@ -4,22 +4,25 @@ import {
     getUserById,
     createUser,
     updateUser,
-    deleteUser,
-    deleteMany,
-    updateMany,
-    restoreMany,
-    restoreUser,
+    softDelete,
+    restore,
     hardDelete,
+    updateMany,
  } from "../controllers/UserController.js";
  
 import { requireAdmin } from '../middlewares/admin.js';
 
 const userRoutes = express.Router();
 
-// Delete many
-userRoutes.patch('/bulk-delete', requireAdmin, deleteMany);
-// Restore many
-userRoutes.patch('/bulk-restore', requireAdmin, restoreMany);
+// // Delete
+// Soft Delete
+userRoutes.patch('/delete', requireAdmin, softDelete);
+// Restore
+userRoutes.patch('/restore', requireAdmin, restore);
+// Hard delete
+userRoutes.delete('/delete', requireAdmin , hardDelete);
+
+
 // Update many
 userRoutes.patch('/bulk-update', requireAdmin, updateMany);
 
@@ -32,12 +35,6 @@ userRoutes.get('/:id', requireAdmin , getUserById);
 userRoutes.post('/', requireAdmin , createUser);
 // Update User
 userRoutes.put('/:id', requireAdmin , updateUser);
-// Delete User
-userRoutes.patch('/:id', requireAdmin , deleteUser);
-// Restore User
-userRoutes.patch('/restore/:id', requireAdmin , restoreUser);
 
-// Hard delete User
-userRoutes.delete('/', requireAdmin , hardDelete);
 
 export default userRoutes;

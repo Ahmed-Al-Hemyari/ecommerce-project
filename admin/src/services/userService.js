@@ -14,19 +14,22 @@ export const userService = {
     getUser : (id) => api.get(`/users/${id}`),
     createUser : (data) => api.post("/users", data),
     updateUser : (id, data) => api.put(`/users/${id}`, data),
-    deleteUser : (id) => api.patch(`/users/${id}`),
-    restoreUser : (id) => api.patch(`/users/restore/${id}`),
-    hardDelete : (data) => api.delete(`/users`, {
+    
+    
+    // // Delete
+    softDelete: (data) => api.patch('/users/delete', {
+        ids: data,
+    }),
+    restore: (data) => api.patch(`/users/restore`, {
+        ids: data,
+    }),
+    hardDelete : (data) => api.delete(`/users/delete`, {
         data: {
             ids: data
         }
     }),
-    deleteMany: (data) => api.patch(`/users/bulk-delete`, {
-        ids: data,
-    }),
-    restoreMany: (data) => api.patch(`/users/bulk-restore`, {
-        ids: data,
-    }),
+
+    // Update
     grantAdmin: (data) => api.patch('users/bulk-update', {
         ids: data,
         updates: { role: 'admin' }

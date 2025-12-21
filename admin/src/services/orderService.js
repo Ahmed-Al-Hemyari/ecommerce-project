@@ -16,11 +16,14 @@ export const orderService = {
     getOrder : (id) => api.get(`/orders/${id}`),
     createOrder : (data) => api.post("/orders", data),
     updateOrder : (id, data) => api.put(`/orders/${id}`, data),
-    deleteOrders: (data) => api.delete('/orders', {
+
+    // Hard Delete
+    hardDelete: (data) => api.delete('/orders/delete', {
         data: {
             ids: data
         }
     }),
+
     // Status
     updateToPending: (data) => api.patch('/orders/bulk-update', {
         ids: data,
@@ -42,6 +45,7 @@ export const orderService = {
         ids: data,
         updates: { status: 'Cancelled' }
     }),
+    
     // Payed
     updateToPayed: (data) => api.patch('/orders/bulk-update', {
         ids: data,

@@ -4,21 +4,24 @@ import {
     getBrandById,
     createBrand,
     updateBrand,
-    deleteBrand,
-    deleteMany,
-    restoreMany,
-    restoreBrand,
-    hardDelete
+    softDelete,
+    restore,
+    hardDelete,
 } from "../controllers/BrandController.js";
 import { requireAdmin } from '../middlewares/admin.js'
 import { uploadBrand } from '../config/multer.js'
 
 const brandRoutes = express.Router();
 
+// // Delete
 // Delete many
-brandRoutes.patch('/bulk-delete', requireAdmin, deleteMany);
+brandRoutes.patch('/delete', requireAdmin, softDelete);
 // Restore many
-brandRoutes.patch('/bulk-restore', requireAdmin, restoreMany);
+brandRoutes.patch('/restore', requireAdmin, restore);
+// Hard delete
+brandRoutes.delete('/delete', requireAdmin , hardDelete);
+
+
 
 // Get all brands
 brandRoutes.get('/', getAllBrands);
@@ -31,14 +34,5 @@ brandRoutes.post('/', requireAdmin, uploadBrand.single("file"), createBrand);
 
 // Update an existing brand
 brandRoutes.put('/:id', requireAdmin, uploadBrand.single("file"), updateBrand);
-
-// Delete a brand
-brandRoutes.patch('/:id', requireAdmin , deleteBrand);
-
-// Restore a brand
-brandRoutes.patch('/restore/:id', requireAdmin , restoreBrand);
-
-// Hard delete
-brandRoutes.delete('/', requireAdmin , hardDelete);
 
 export default brandRoutes;

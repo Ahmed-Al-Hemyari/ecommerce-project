@@ -7,10 +7,15 @@ import Swal from 'sweetalert2'
 import DataTable from '@/components/UI/Tables/DataTable'
 import categoryService from '@/services/categoryService'
 import brandService from '@/services/brandService'
+import { handleAddStock, hardDelete, restore, softDelete } from '@/utils/Functions'
 
 const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
+  // Essentials
   const location = useLocation();
   const navigate = useNavigate();
+  // Type
+  const type = 'Product';
+  // Data
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
@@ -31,298 +36,6 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
   const [brandFilter, setBrandFilter] = useState(null);
   const [stockFilter, setStockFilter] = useState(null);
   const [deletedFilter, setDeletedFilter] = useState(null);
-
-  const headers = [
-    { label: 'Name', field: 'name', type: 'string' },
-    { label: 'Category', field: 'category', type: 'link', link: 'categories' },
-    { label: 'Brand', field: 'brand', type: 'link', link: 'brands' },
-    { label: 'Stock', field: 'stock', type: 'string' },
-    { label: 'Price', field: 'price', type: 'price' },
-  ];
-
-  const getProducts = async (search, category, brand, stock, deleted, currentPage, limit) => {
-    setLoading(true);
-    try {
-      const response = await productService.getProducts(search, category, brand, stock, deleted, currentPage, limit);
-      setProducts(response.data.products);
-      setTotalPages(response.data.totalPages);
-      setTotalItems(response.data.totalItems);
-    } catch (error) {
-      enqueueSnackbar("Failed to load products", {
-        variant: 'error'
-      });
-      console.error(error)
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const getCategories = async () => {
-    try {
-      const response = await categoryService.getCategories();
-      setCategories(response.data.categories || []);
-    } catch (error) {
-      enqueueSnackbar("Failed to load categories", {
-        variant: 'error'
-      });
-      console.error(error);
-    }
-  }
-
-  const getBrands = async () => {
-    try {
-      const response = await brandService.getBrands();
-      setBrands(response.data.brands || []);
-    } catch (error) {
-      enqueueSnackbar("Failed to load brands", {
-        variant: 'error'
-      });
-      console.error(error);
-    }
-  }
-  
-  // Bulk Actions functions
-  const deleteSeleted = async () => {
-    setBulkAction('');
-    const result = await Swal.fire({
-      title: 'Delete products',
-      text: `Are you sure you want to delete ${selected.length} products?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete them',
-      confirmButtonColor: '#d50101',
-    });
-
-    if (!result.isConfirmed) return;
-
-    try {
-      await productService.deleteMany(selected);
-      enqueueSnackbar("Products deleted successfully", { variant: 'success' });
-      setSelected([]);
-      getProducts(search, categoryFilter, brandFilter, stockFilter, deletedFilter, currentPage, limit);
-    } catch (error) {
-      enqueueSnackbar("Failed to delete products", { variant: 'error' });
-      console.error(error);
-    }
-  }
-
-  const restoreSeleted = async () => {
-    setBulkAction('');
-    const result = await Swal.fire({
-      title: 'Restore products',
-      text: `Are you sure you want to restore ${selected.length} products?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, restore them',
-      confirmButtonColor: '#1d7451',
-    });
-
-    if (!result.isConfirmed) return;
-
-    try {
-      await productService.restoreMany(selected);
-      enqueueSnackbar("Products restored successfully", { variant: 'success' });
-      setSelected([]);
-      setDeletedFilter(null);
-      getProducts(search, categoryFilter, brandFilter, stockFilter, deletedFilter, currentPage, limit);
-    } catch (error) {
-      enqueueSnackbar("Failed to restore products", { variant: 'error' });
-      console.error(error);
-    }
-  }
-
-  const handleDelete = async (id) => {
-    const result = Swal.fire({
-      title: 'Delete Product',
-      text: 'Sure you want to delete this product??',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete it',
-      confirmButtonColor: '#d50101'
-    })
-
-    if (!(await result).isConfirmed) {
-      return;
-    }
-    try {
-      const response = await productService.deleteProduct(id);
-      enqueueSnackbar("Product deleted successfully", {
-        variant: 'success'
-      });
-      getProducts(search, categoryFilter, brandFilter, stockFilter, deletedFilter, currentPage, limit);
-    } catch (error) {
-      enqueueSnackbar("Failed to delete product", {
-        variant: 'error'
-      });
-      console.error(error);
-    }
-  }
-
-  const handleAddStock = async (id) => {
-    const result = Swal.fire({
-      title: 'Add Stock',
-      text: 'Enter the value to add...',
-      icon: 'question',
-      input: 'number',
-      inputPlaceholder: 'Type...',
-      showCancelButton: true,
-      confirmButtonColor: '#1d7451',
-      confirmButtonText: 'Add',
-    })
-
-    if (!(await result).value) {
-      return;
-    }
-
-    
-    const stock = (await result).value;
-    console.log(stock);
-
-    try {
-      const response = await productService.addStock(id, Number(stock));
-      enqueueSnackbar(response.data, {
-        variant: 'success'
-      });
-      getProducts(search, categoryFilter, brandFilter, stockFilter, deletedFilter, currentPage, limit);
-    } catch (error) {
-      enqueueSnackbar(error, {
-        variant: 'error'
-      });
-      console.error(error);
-    }
-  }
-
-  const hardDeleteMany = async () => {
-    setBulkAction('');
-    const result = Swal.fire({
-      title: 'Delete Product Permenantly',
-      text: 'Sure you want to delete this product permenantly??',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete it',
-      confirmButtonColor: '#d50101'
-    })
-
-    if (!(await result).isConfirmed) {
-      return;
-    }
-    try {
-      await productService.hardDelete(selected);
-      enqueueSnackbar("Product deleted successfully", {
-        variant: 'success'
-      });
-      setSelected([]);
-      getProducts(search, categoryFilter, brandFilter, stockFilter, deletedFilter, currentPage, limit);
-    } catch (error) {
-      enqueueSnackbar(error, {
-        variant: 'error'
-      });
-      console.error(error);
-    }
-  }
-
-  const hardDelete = async (id) => {
-    setBulkAction('');
-    const result = Swal.fire({
-      title: 'Delete Product Permenantly',
-      text: 'Sure you want to delete this product permenantly??',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete it',
-      confirmButtonColor: '#d50101'
-    })
-
-    if (!(await result).isConfirmed) {
-      return;
-    }
-    try {
-      await productService.hardDelete([id]);
-      enqueueSnackbar("Product deleted successfully", {
-        variant: 'success'
-      });
-      setSelected([]);
-      getProducts(search, categoryFilter, brandFilter, stockFilter, deletedFilter, currentPage, limit);
-    } catch (error) {
-      enqueueSnackbar(error, {
-        variant: 'error'
-      });
-      console.error(error);
-    }
-  }
-
-  const handleRestore = async (id) => {
-    const result = Swal.fire({
-      title: 'Restore Product',
-      text: 'Sure you want to restore this product??',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, restore it',
-      confirmButtonColor: '#1d7451'
-    })
-
-    if (!(await result).isConfirmed) {
-      return;
-    }
-    try {
-      const response = await productService.restoreProduct(id);
-      enqueueSnackbar("Product restored successfully", {
-        variant: 'success'
-      });
-      setDeletedFilter(null);
-      getProducts(search, categoryFilter, brandFilter, stockFilter, deletedFilter, currentPage, limit);
-    } catch (error) {
-      enqueueSnackbar("Failed to restore product", {
-        variant: 'error'
-      });
-      console.error(error);
-    }
-  }
-
-  // Initial useEffect
-  useEffect(() => {
-    if (category) setCategoryFilter(category);
-    if (brand) setBrandFilter(brand);
-
-    getCategories();
-    getBrands();
-  }, [category, brand]);
-
-
-  // Filter, pagination useEffect
-  useEffect(() => {
-    getProducts(search, categoryFilter, brandFilter, stockFilter, deletedFilter, currentPage, limit);
-  }, [search, categoryFilter, brandFilter, deletedFilter, stockFilter, currentPage, limit]);
-
-  // Bulk Actions useEffect
-  useEffect(() => {
-    if (!bulkAction) return;
-
-    const runBulkAction = async () => {
-      if (bulkAction === 'delete') {
-        await deleteSeleted();
-      }
-      if (bulkAction === 'restore') {
-        await restoreSeleted();
-      }
-      if (bulkAction === 'hard-delete') {
-        await hardDeleteMany();
-      }
-    };
-
-    runBulkAction();
-  }, [bulkAction]);
-
-  // Snackbar listener
-  useEffect(() => {
-    if (location.state?.message) {
-      enqueueSnackbar(location.state.message, {
-        variant: location.state.status,
-      });
-
-      // Clear state to prevent showing again
-      navigate(location.pathname, { replace: true, state: {} });
-    }
-  }, [location.state]);
 
   const filters = [
     {
@@ -361,6 +74,151 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
     }
   ];
 
+  const headers = [
+    { label: 'Name', field: 'name', type: 'string' },
+    { label: 'Category', field: 'category', type: 'link', link: 'categories' },
+    { label: 'Brand', field: 'brand', type: 'link', link: 'brands' },
+    { label: 'Stock', field: 'stock', type: 'string' },
+    { label: 'Price', field: 'price', type: 'price' },
+  ];
+
+  const getProducts = async (search, category, brand, stock, deleted, currentPage, limit) => {
+    setLoading(true);
+    try {
+      const response = await productService.getProducts(search, category, brand, stock, deleted, currentPage, limit);
+      setProducts(response.data.products);
+      setTotalPages(response.data.totalPages);
+      setTotalItems(response.data.totalItems);
+    } catch (error) {
+      enqueueSnackbar(error || "Failed to load products", {
+        variant: 'error'
+      });
+      console.error(error)
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const refreshProducts = () =>
+    getProducts(search, categoryFilter, brandFilter, stockFilter, deletedFilter, currentPage, limit);
+
+  const getCategories = async () => {
+    try {
+      const response = await categoryService.getCategories();
+      setCategories(response.data.categories || []);
+    } catch (error) {
+      enqueueSnackbar(error || "Failed to load categories", {
+        variant: 'error'
+      });
+      console.error(error);
+    }
+  }
+
+  const getBrands = async () => {
+    try {
+      const response = await brandService.getBrands();
+      setBrands(response.data.brands || []);
+    } catch (error) {
+      enqueueSnackbar(error || "Failed to load brands", {
+        variant: 'error'
+      });
+      console.error(error);
+    }
+  }
+
+  const handleSoftDelete = async (id) => {
+    await softDelete(
+      [id],
+      type,
+      setSelected,
+      refreshProducts
+    );
+  }
+  const handleRestore = async (id) => {
+    await restore(
+      [id],
+      type,
+      setSelected,
+      refreshProducts
+    );
+  }
+  const handleHardDelete = async (id) => {
+    await hardDelete(
+      [id],
+      type,
+      setSelected,
+      refreshProducts
+    );
+  }
+
+  // Initial useEffect
+  useEffect(() => {
+    if (category) setCategoryFilter(category);
+    if (brand) setBrandFilter(brand);
+
+    getCategories();
+    getBrands();
+  }, [category, brand]);
+
+
+  // Filter, pagination useEffect
+  useEffect(() => {
+    setLoading(true);
+    refreshProducts();
+  }, [search, categoryFilter, brandFilter, deletedFilter, stockFilter, currentPage, limit]);
+
+  // Bulk Actions useEffect
+  useEffect(() => {
+    if (!bulkAction) return;
+    
+    const runBulkAction = async () => {
+      switch (bulkAction) {
+        case 'delete':
+          await softDelete(
+            selected,
+            type,
+            setSelected,
+            refreshProducts
+          )
+          break;
+        case 'restore':
+          await restore(
+            selected,
+            type,
+            setSelected,
+            refreshProducts
+          )
+          break;
+        case 'hard-delete':
+          await hardDelete(
+            selected,
+            type,
+            setSelected,
+            refreshProducts
+          )
+          break;
+        default:
+          break;
+      }
+      setBulkAction('');
+    };
+
+    runBulkAction();
+  }, [bulkAction]);
+
+  // Snackbar listener
+  useEffect(() => {
+    if (location.state?.message) {
+      enqueueSnackbar(location.state.message, {
+        variant: location.state.status,
+      });
+
+      // Clear state to prevent showing again
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state]);
+
+
   return inner ? (
      <DataTable
       headers={headers}
@@ -370,10 +228,13 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
       search={search}
       setSearch={setSearch}
       tableName="Products"
-      handleDelete={handleDelete}
-      hardDelete={hardDelete}
-      handleAddStock={handleAddStock}
+      handleAddStock={async (id) => {
+        await handleAddStock(id);
+        refreshProducts();
+      }}
+      handleDelete={handleSoftDelete}
       handleRestore={handleRestore}
+      hardDelete={handleHardDelete}
       loading={loading}
       // Pagination
       currentPage={currentPage}
@@ -394,9 +255,13 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
           search={search}
           setSearch={setSearch}
           tableName="Products"
-          handleDelete={handleDelete}
-          handleAddStock={handleAddStock}
+          handleAddStock={async (id) => {
+            await handleAddStock(id);
+            refreshProducts();
+          }}
+          handleDelete={handleSoftDelete}
           handleRestore={handleRestore}
+          hardDelete={handleHardDelete}
           loading={loading}
           // Pagination
           currentPage={currentPage}

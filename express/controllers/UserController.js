@@ -93,43 +93,43 @@ export const updateUser = async (req, res) => {
         ).select('-password');
         if (!user) {
             return res.status(404).json({ message: "User not found" });
+          }
+          res.status(200).json({ message: "User updated successfully", user });
+        } catch (error) {
+          res.status(500).json({ message: "Error updating user", error });
         }
-        res.status(200).json({ message: "User updated successfully", user });
-    } catch (error) {
-        res.status(500).json({ message: "Error updating user", error });
-    }
-};
+      };
+  
+// Update many
+export const updateMany = async (req, res) => {
+  try {
+      const { ids, updates } = req.body;
 
-// Delete user
-export const deleteUser = async (req, res) => {
-    try {
-        const user = await User.findByIdAndUpdate(req.params.id, { deleted: true });
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-        
-        res.status(200).json({ message: "User deleted successfully" });
-    } catch (error) {
-        res.status(500).json({ message: "Error deleting user", error });
-    }
-};
+      if (!Array.isArray(ids) || ids.length === 0) {
+          return res.status(400).json({ message: "No user IDs provided" });
+      }
 
-// Restore user
-export const restoreUser = async (req, res) => {
-    try {
-        const user = await User.findByIdAndUpdate(req.params.id, { deleted: false });
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-        
-        res.status(200).json({ message: "User restored successfully" });
-    } catch (error) {
-        res.status(500).json({ message: "Error restoring user", error });
-    }
-};
+      if (!updates || typeof updates !== 'object') {
+          return res.status(400).json({ message: "No update data provided" });
+      }
 
-// Delete many
-export const deleteMany = async (req, res) => {
+      const result = await User.updateMany(
+          { _id: { $in: ids }},
+          { $set: updates }
+      );
+
+      res.status(200).json({
+          message: "Users updated successfully",
+      });
+      
+  } catch (error) {
+      res.status(500).json({message: error.message });
+  }
+}
+
+// // Delete
+// Soft Delete
+export const softDelete = async (req, res) => {
   try {
     const { ids } = req.body;
 
@@ -155,8 +155,8 @@ export const deleteMany = async (req, res) => {
   }
 };
 
-// Restore many
-export const restoreMany = async (req, res) => {
+// Restore
+export const restore = async (req, res) => {
   try {
     const { ids } = req.body;
 
@@ -181,35 +181,6 @@ export const restoreMany = async (req, res) => {
     console.log(error);
   }
 };
-
-// Update many
-export const updateMany = async (req, res) => {
-    try {
-        const { ids, updates } = req.body;
-
-        if (!Array.isArray(ids) || ids.length === 0) {
-            return res.status(400).json({ message: "No user IDs provided" });
-        }
-
-        if (!updates || typeof updates !== 'object') {
-            return res.status(400).json({ message: "No update data provided" });
-        }
-
-        const result = await User.updateMany(
-            { _id: { $in: ids }},
-            { $set: updates }
-        );
-
-        res.status(200).json({
-            message: "Users updated successfully",
-            // matched: result.matchedCount,
-            // modified: result.modifiedCount,
-        });
-        
-    } catch (error) {
-        res.status(500).json({message: error.message });
-    }
-}
 
 // Hard delete
 export const hardDelete = async (req, res) => {

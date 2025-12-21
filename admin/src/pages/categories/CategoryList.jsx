@@ -6,10 +6,15 @@ import categoryService from '@/services/categoryService';
 import { Button } from '@/components/UI/button';
 import DataTable from '@/components/UI/Tables/DataTable';
 import Swal from 'sweetalert2';
+import { hardDelete, restore, softDelete } from '@/utils/Functions';
 
 const CategoryList = () => {
+  // Essentials
   const location = useLocation();
   const navigate = useNavigate();
+  // Type
+  const type = 'Category';
+  // Date
   const [categories, setCategories] = useState([]);
   const [search, setSearch] = useState('');
   // Loading
@@ -25,6 +30,18 @@ const CategoryList = () => {
 
   // Filters
   const [deletedFilter, setDeletedFilter] = useState(null);
+  
+  const filters = [
+    {
+      label: 'Deleted',
+      options: [
+        { _id: true, name: 'Deleted' },
+      ],
+      placeholder: 'Choose...',
+      value: deletedFilter,
+      setValue: setDeletedFilter,
+    }
+  ];
 
   const headers = [
     { label: 'Name', field: 'name', type: 'string' },
@@ -45,171 +62,38 @@ const CategoryList = () => {
     }
   }
 
-  // Bulk Actions functions
-  const deleteSeleted = async () => {
-    setBulkAction('');
-    const result = await Swal.fire({
-      title: 'Delete categories',
-      text: `Are you sure you want to delete ${selected.length} categories?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete them',
-      confirmButtonColor: '#d50101',
-    });
+  const refreshCategories = () => 
+    getCategories(search, deletedFilter, currentPage, limit);
 
-    if (!result.isConfirmed) return;
-
-    try {
-      await categoryService.deleteMany(selected);
-      enqueueSnackbar("Categories deleted successfully", { variant: 'success' });
-      setSelected([]);
-      getCategories(search, deletedFilter, currentPage, limit);
-    } catch (error) {
-      enqueueSnackbar("Failed to delete categories", { variant: 'error' });
-      console.error(error);
-    }
+  const handleSoftDelete = async (id) => {
+    await softDelete(
+      [id],
+      type,
+      setSelected,
+      refreshCategories
+    );
   }
-
-  const hardDeleteMany = async () => {
-    setBulkAction('');
-    const result = Swal.fire({
-      title: 'Delete Category Permenantly',
-      text: 'Sure you want to delete this product permenantly??',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete it',
-      confirmButtonColor: '#d50101'
-    })
-
-    if (!(await result).isConfirmed) {
-      return;
-    }
-    try {
-      await categoryService.hardDelete(selected);
-      enqueueSnackbar("Category deleted successfully", {
-        variant: 'success'
-      });
-      setSelected([]);
-      getCategories(search, deletedFilter, currentPage, limit);
-    } catch (error) {
-      enqueueSnackbar(error, {
-        variant: 'error'
-      });
-      console.error(error);
-    }
-  }
-
-  const hardDelete = async (id) => {
-    const result = Swal.fire({
-      title: 'Delete Category Permenantly',
-      text: 'Sure you want to delete this product permenantly??',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete it',
-      confirmButtonColor: '#d50101'
-    })
-
-    if (!(await result).isConfirmed) {
-      return;
-    }
-    try {
-      await categoryService.hardDelete([id]);
-      enqueueSnackbar("Category deleted successfully", {
-        variant: 'success'
-      });
-      setSelected([]);
-      getCategories(search, deletedFilter, currentPage, limit);
-    } catch (error) {
-      enqueueSnackbar(error, {
-        variant: 'error'
-      });
-      console.error(error);
-    }
-  }
-
-  const restoreSeleted = async () => {
-    setBulkAction('');
-    const result = await Swal.fire({
-      title: 'Restore categories',
-      text: `Are you sure you want to restore ${selected.length} categories?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, restore them',
-      confirmButtonColor: '#1d7451',
-    });
-
-    if (!result.isConfirmed) return;
-
-    try {
-      await categoryService.restoreMany(selected);
-      enqueueSnackbar("Categories restored successfully", { variant: 'success' });
-      setSelected([]);
-      setDeletedFilter(null);
-      getCategories(search, deletedFilter, currentPage, limit);
-    } catch (error) {
-      enqueueSnackbar("Failed to restore categories", { variant: 'error' });
-      console.error(error);
-    }
-  }
-
-  const handleDelete = async (id) => {
-    const result = Swal.fire({
-      title: 'Delete Category',
-      text: 'Sure you want to delete this category??',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete it',
-      confirmButtonColor: '#d50101'
-    })
-
-    if (!(await result).isConfirmed) {
-      return;
-    }
-    try {
-      const response = await categoryService.deleteCategory(id);
-      enqueueSnackbar("Category deleted successfully", {
-        variant: 'success'
-      });
-      getCategories(search, deletedFilter, currentPage, limit);
-    } catch (error) {
-      enqueueSnackbar("Failed to delete category", {
-        variant: 'error'
-      });
-      console.error(error);
-    }
-  }
-
   const handleRestore = async (id) => {
-    const result = Swal.fire({
-      title: 'Restore Category',
-      text: 'Sure you want to restore this category??',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, restore it',
-      confirmButtonColor: '#1d7451'
-    })
-
-    if (!(await result).isConfirmed) {
-      return;
-    }
-    try {
-      const response = await categoryService.restoreCategory(id);
-      enqueueSnackbar("Category restored successfully", {
-        variant: 'success'
-      });
-      setDeletedFilter(null);
-      getCategories(search, deletedFilter, currentPage, limit);
-    } catch (error) {
-      enqueueSnackbar("Failed to restore category", {
-        variant: 'error'
-      });
-      console.error(error);
-    }
+    await restore(
+      [id],
+      type,
+      setSelected,
+      refreshCategories
+    );
+  }
+  const handleHardDelete = async (id) => {
+    await hardDelete(
+      [id],
+      type,
+      setSelected,
+      refreshCategories
+    );
   }
 
   // Search
   useEffect(() => {
-    getCategories(search, deletedFilter, currentPage, limit);
+    setLoading(true);
+    refreshCategories();
   }, [search, deletedFilter, currentPage, limit]);
 
   // Bulk Actions useEffect
@@ -217,15 +101,36 @@ const CategoryList = () => {
     if (!bulkAction) return;
 
     const runBulkAction = async () => {
-      if (bulkAction === 'delete') {
-        await deleteSeleted();
+      switch (bulkAction) {
+        case 'delete':
+          await softDelete(
+            selected,
+            type,
+            setSelected,
+            refreshCategories
+          )
+          break;
+        case 'restore':
+          await restore(
+            selected,
+            type,
+            setSelected,
+            refreshCategories
+          )
+          break;
+        case 'hard-delete':
+          await hardDelete(
+            selected,
+            type,
+            setSelected,
+            refreshCategories
+          )
+          break;
+        default:
+          break;
       }
-      if (bulkAction === 'restore') {
-        await restoreSeleted();
-      }
-      if (bulkAction === 'hard-delete') {
-        await hardDeleteMany();
-      }
+
+      setBulkAction('');
     };
 
     runBulkAction();
@@ -242,17 +147,6 @@ const CategoryList = () => {
     navigate(location.pathname, { replace: true });
   }, []);
 
-  const filters = [
-    {
-      label: 'Deleted',
-      options: [
-        { _id: true, name: 'Deleted' },
-      ],
-      placeholder: 'Choose...',
-      value: deletedFilter,
-      setValue: setDeletedFilter,
-    }
-  ];
 
   return (
     <MainLayout>
@@ -264,8 +158,8 @@ const CategoryList = () => {
         filters={filters}
         search={search}
         setSearch={setSearch}
-        handleDelete={handleDelete}
-        hardDelete={hardDelete}
+        handleDelete={handleSoftDelete}
+        hardDelete={handleHardDelete}
         handleRestore={handleRestore}
         // Loading
         loading={loading}
@@ -278,16 +172,16 @@ const CategoryList = () => {
         selected={selected}
         setSelected={setSelected}
         setBulkAction={setBulkAction}
-       bulkActions={
-          deletedFilter
-            ? [
-                { name: 'Restore selected', _id: 'restore' },
-                { name: 'Delete permanently', _id: 'hard-delete', color: 'red' }
-              ]
-            : [
-                { name: 'Delete Selected', _id: 'delete', color: 'red' }
-              ]
-        }
+        bulkActions={
+            deletedFilter
+              ? [
+                  { name: 'Restore selected', _id: 'restore' },
+                  { name: 'Delete permanently', _id: 'hard-delete', color: 'red' }
+                ]
+              : [
+                  { name: 'Delete Selected', _id: 'delete', color: 'red' }
+                ]
+          }
       />
     </MainLayout>
   )

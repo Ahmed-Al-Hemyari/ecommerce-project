@@ -16,21 +16,19 @@ export const brandService = {
     getBrand : (id) => api.get(`/brands/${id}`),
     createBrand : (data) => api.post("/brands", data),
     updateBrand : (id, data) => api.put(`/brands/${id}`, data),
-    deleteBrand : (id) => api.patch(`/brands/${id}`),
-    hardDelete : (data) => api.delete(`/brands`, {
+    
+    // // Delete
+    softDelete: (data) => api.patch('/brands/delete', {
+        ids: data,
+    }),
+    restore: (data) => api.patch(`/brands/restore`, {
+        ids: data,
+    }),
+    hardDelete : (data) => api.delete(`/brands/delete`, {
         data: {
             ids: data
         }
     }),
-    restoreBrand: (id) => api.patch(`/brands/restore/${id}`),
-
-    // Bulk
-    restoreMany: (data) => api.patch(`/brands/bulk-restore`, {
-        ids: data,
-    }),
-    deleteMany: (data) => api.patch('/brands/bulk-delete', {
-        ids: data,
-    })
 }
 
 export default brandService;

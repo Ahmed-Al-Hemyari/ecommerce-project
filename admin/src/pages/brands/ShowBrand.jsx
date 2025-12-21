@@ -37,7 +37,7 @@ const ShowBrand = () => {
       if (!result.isConfirmed) return;
       
       if (deleted) {
-        const response = await brandService.restoreBrand([id]);
+        const response = await brandService.restore([id]);
         navigate('/brands', {
           state: {
             message: "Brand restored successfully",
@@ -45,7 +45,7 @@ const ShowBrand = () => {
           }
         })
       } else {
-        const response = await brandService.deleteBrand([id]);
+        const response = await brandService.softDelete([id]);
         navigate('/brands', {
           state: {
             message: "Brand deleted successfully",

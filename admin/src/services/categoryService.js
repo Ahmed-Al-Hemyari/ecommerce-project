@@ -16,19 +16,20 @@ export const categoryService = {
     getCategory : (id) => api.get(`/categories/${id}`),
     createCategory : (data) => api.post("/categories", data),
     updateCategory : (id, data) => api.put(`/categories/${id}`, data),
-    deleteCategory : (id) => api.patch(`/categories/${id}`),
-    restoreCategory : (id) => api.patch(`/categories/restore/${id}`),
-    hardDelete : (data) => api.delete(`/categories`, {
+
+
+    // // Delete
+    softDelete: (data) => api.patch('/categories/delete', {
+        ids: data,
+    }),
+    restore: (data) => api.patch(`/categories/restore`, {
+        ids: data,
+    }),
+    hardDelete : (data) => api.delete(`/categories/delete`, {
         data: {
             ids: data
         }
     }),
-    deleteMany: (data) => api.patch('/categories/bulk-delete', {
-        ids: data,
-    }),
-    restoreMany: (data) => api.patch('/categories/bulk-restore', {
-        ids: data,
-    })
 }
 
 export default categoryService;
