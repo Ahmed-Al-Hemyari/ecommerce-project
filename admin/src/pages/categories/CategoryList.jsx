@@ -63,6 +63,7 @@ const CategoryList = () => {
     try {
       const response = await categoryService.getCategories(search, deleted, currentPage, limit);
       setCategories(response.data.categories);
+      setCategories(response.data.categories);
       setTotalPages(response.data.totalPages);
       setTotalItems(response.data.totalItems);
     } catch (error) {

@@ -84,6 +84,7 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
     try {
       const response = await orderService.getOrders({search, user, product, status, payed, page: currentPage, limit});
       setOrders(response.data.orders);
+      console.log(response.data.orders);
       setTotalPages(response.data.totalPages);
       setTotalItems(response.data.totalItems);
     } catch (error) {
@@ -96,15 +97,6 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
 
   const refreshOrders = () => 
     getOrders(search, userFilter, productFilter, statusFilter, payedFilter, currentPage, limit);
-
-  const handleHardDelete = async (id) => {
-    await hardDelete(
-      [id],
-      type,
-      setSelected,
-      refreshOrders
-    )
-  };
 
   // Fetch orders when search/filter changes
   useEffect(() => {
