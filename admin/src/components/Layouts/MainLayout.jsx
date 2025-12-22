@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import AppSidebar from './Sidebar';
 import { Boxes, Home, Package, ShoppingCart, Tags, Users } from 'lucide-react';
 import { SidebarProvider, SidebarTrigger } from '../UI/sidebar';
+import authService from '@/services/authService';
 
 const MainLayout = ({ children }) => {
     const navigate = useNavigate();
@@ -55,6 +56,15 @@ const MainLayout = ({ children }) => {
         });
 
         if (!result.isConfirmed) return;
+
+        try {
+            const response = await authService.logout();
+        } catch (error) {
+            enqueueSnackbar("Failed to logout", {
+                variant: 'error'
+            });
+            return;
+        }
 
         localStorage.removeItem('token');
         localStorage.removeItem('user');

@@ -7,6 +7,7 @@ export const authService = {
   updateProfile: (data) => api.put("/profile/update", data),
   changePassword: (data) => api.put("/profile/change-password", data),
   checkAuthAndAdmin : () => api.get("/check-admin"),
+  logout: () => api.post("/logout"),
 };
 
 export default authService;

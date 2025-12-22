@@ -26,6 +26,15 @@ const MainLayout = ({ page, children }) => {
       confirmButtonColor: "#82E2BB"
     });
 
+    try {
+      const response = await authService.logout();
+    } catch (error) {
+      enqueueSnackbar("Failed to logout", {
+        variant: 'error'
+      });
+      return;
+    }
+
     if (!result.isConfirmed) return;
 
     localStorage.removeItem('token');

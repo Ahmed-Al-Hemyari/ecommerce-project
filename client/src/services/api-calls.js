@@ -8,6 +8,7 @@ export const authService = {
   updateProfile: (data) => api.put("/profile/update", data),
   changePassword: (data) => api.put("/profile/change-password", data),
   checkAuth : () => api.get("/check-auth"),
+  logout : () => api.post("/logout"),
 };
 
 export const brandService = {
