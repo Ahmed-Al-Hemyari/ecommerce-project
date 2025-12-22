@@ -75,9 +75,6 @@ const Dashboard = () => {
               Recent Orders
             </h2>
             <DataTable
-              header={false}
-              actions={false}
-              inner
               headers={[
                 { label: 'User', field: 'user', type: 'link', link: 'users' },
                 { label: 'Status', field: 'status', type: 'status' },
@@ -86,6 +83,7 @@ const Dashboard = () => {
               ]}
               data={data.recentOrders}
               loading={loading}
+              customize={{showActions: false, showHeader: false, showPagination: false, showSelect: false}}
             />
             <div className="h-20"/>
             <h2
@@ -94,9 +92,6 @@ const Dashboard = () => {
               Low Stock Products
             </h2>
             <DataTable
-              header={false}
-              actions={false}
-              inner
               headers={[
                 { label: 'Name', field: 'name', type: 'string' },
                 { label: 'Category', field: 'category', type: 'link', link: 'categories' },
@@ -106,6 +101,7 @@ const Dashboard = () => {
               ]}
               data={data.lowStockProducts}
               loading={loading}
+              customize={{showActions: false, showHeader: false, showPagination: false, showSelect: false}}
             />
           </div>
         </>

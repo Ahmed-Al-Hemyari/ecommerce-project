@@ -45,6 +45,15 @@ const BrandsList = () => {
     { label: "Name", field: "name", type: 'string' }
   ];
 
+  const bulkActions = deletedFilter
+    ? [
+        { name: 'Restore selected', _id: 'restore' },
+        { name: 'Delete permanently', _id: 'hard-delete', color: 'red' }
+      ]
+    : [
+        { name: 'Delete Selected', _id: 'delete', color: 'red' }
+      ];
+
 
   const getBrands = async (search, deleted, currentPage, limit) => {
     setLoading(true);
@@ -62,33 +71,7 @@ const BrandsList = () => {
   }
   
   const refreshBrands = () => 
-    getBrands(search, deletedFilter, currentPage, limit);
-
-  const handleSoftDelete = async (id) => {
-    await softDelete(
-      [id],
-      type,
-      setSelected,
-      refreshBrands
-    );
-  }
-  const handleRestore = async (id) => {
-    await restore(
-      [id],
-      type,
-      setSelected,
-      refreshBrands
-    );
-  }
-  const handleHardDelete = async (id) => {
-    await hardDelete(
-      [id],
-      type,
-      setSelected,
-      refreshBrands
-    );
-  }
-  
+    getBrands(search, deletedFilter, currentPage, limit);  
 
   // Bulk Actions useEffect
   useEffect(() => {
@@ -150,37 +133,27 @@ const BrandsList = () => {
   return (
     <MainLayout>
       <DataTable
-        headers={headers}
-        link='/brands'
-        data={brands}
-        filters={filters}
-        search={search}
-        setSearch={setSearch}
         tableName='Brands'
-        handleDelete={handleSoftDelete}
-        handleRestore={handleRestore}
-        hardDelete={handleHardDelete}
-        // Loading
+        type='Brand'
+        headers={headers}
+        link={'/brands'}
+        data={brands}
         loading={loading}
         // Pagination
-        currentPage={currentPage} setCurrentPage={setCurrentPage}
-        totalPages={totalPages}
-        totalItems={totalItems}
-        limit={limit} setLimit={setLimit}
-        // bulk
-        selected={selected}
-        setSelected={setSelected}
-        setBulkAction={setBulkAction}
-        bulkActions={
-          deletedFilter
-            ? [
-                { name: 'Restore selected', _id: 'restore' },
-                { name: 'Delete permanently', _id: 'hard-delete', color: 'red' }
-              ]
-            : [
-                { name: 'Delete Selected', _id: 'delete', color: 'red' }
-              ]
+        pagination={{ currentPage, setCurrentPage, totalPages, totalItems, limit, setLimit }}
+        filters={{ inputs: filters, search, setSearch}}
+        // Refresh
+        refreshData={refreshBrands}
+        // Actions
+        actions={
+          deletedFilter ? [
+            'hard-delete', 'restore', 'edit', 'show'
+          ] : [
+            'soft-delete', 'edit', 'show'
+          ]
         }
+        // bulk
+        bulk={{ selected, setSelected, bulkActions, bulkAction, setBulkAction }}
       />
     </MainLayout>
   )

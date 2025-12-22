@@ -31,36 +31,53 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
   const [bulkAction, setBulkAction] = useState('');
 
   const filters = [
-  {
-    label: 'Status',
-    options: [
-      { name: 'Pending', _id: 'Pending' },
-      { name: 'Processing', _id: 'Processing' },
-      { name: 'Shipped', _id: 'Shipped' },
-      { name: 'Delivered', _id: 'Delivered' },
-      { name: 'Cancelled', _id: 'Cancelled' },
-    ],
-    placeholder: 'Choose Status',
-    value: statusFilter,
-    setValue: setStatusFilter,
-  },
-  {
-    label: 'Payed',
-    options: [
-      { name: 'Payed', _id: true },
-      { name: 'Not Payed', _id: false },
-    ],
-    placeholder: 'Choose...',
-    value: payedFilter,
-    setValue: setPayedFilter,
-  },
-];
+    {
+      label: 'Status',
+      options: [
+        { name: 'Pending', _id: 'Pending' },
+        { name: 'Processing', _id: 'Processing' },
+        { name: 'Shipped', _id: 'Shipped' },
+        { name: 'Delivered', _id: 'Delivered' },
+        { name: 'Cancelled', _id: 'Cancelled' },
+      ],
+      placeholder: 'Choose Status',
+      value: statusFilter,
+      setValue: setStatusFilter,
+    },
+    {
+      label: 'Payed',
+      options: [
+        { name: 'Payed', _id: true },
+        { name: 'Not Payed', _id: false },
+      ],
+      placeholder: 'Choose...',
+      value: payedFilter,
+      setValue: setPayedFilter,
+    },
+  ];
 
   const headers = [
     { label: 'User', field: 'user', type: 'link', link: 'users' },
     { label: 'Status', field: 'status', type: 'status' },
     { label: 'Payed', field: 'payed', type: 'bool' },
     { label: 'Total Price', field: 'totalAmount', type: 'price' },
+  ];
+
+  const bulkActions = [
+    { _id: 'pending', name: 'Mark as Pending' },
+    { _id: 'processing', name: 'Mark as Processing' },
+    { _id: 'shipped', name: 'Mark as Shipped' },
+    { _id: 'delivered', name: 'Mark as Delivered' },
+
+    { _id: 'divider' },
+
+    { _id: 'payed', name: 'Mark as Paid' },
+    { _id: 'not-payed', name: 'Mark as Unpaid' },
+
+    { _id: 'divider' },
+
+    { _id: 'cancelled', name: 'Cancel Orders', color: 'red' },
+    { _id: 'delete', name: 'Delete Orders', color: 'red' },
   ];
 
   const getOrders = async (search, user, product, status, payed, currentPage, limit) => {
@@ -167,68 +184,46 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
 
   return inner ? (
     <DataTable
-      headers={headers}
-      link='/orders'
-      data={orders}
-      search={search}
-      setSearch={setSearch}
-      filters={filters}
       tableName='Orders'
-      handleCancel={async (id) => {
-        await handleCancel(id);
-        refreshOrders();
-      }}
-      hardDelete={handleHardDelete}
+      type='Order'
+      headers={headers}
+      link={'/orders'}
+      data={orders}
       loading={loading}
       // Pagination
-      currentPage={currentPage} setCurrentPage={setCurrentPage}
-      totalPages={totalPages}
-      totalItems={totalItems}
-      limit={limit} setLimit={setLimit}
-      inner
+      pagination={{ currentPage, setCurrentPage, totalPages, totalItems, limit, setLimit }}
+      filters={{ inputs: filters, search, setSearch}}
+      // Refresh
+      refreshData={refreshOrders}
+      // Actions
+      actions={[
+          'hard-delete', 'cancel', 'edit', 'show'
+        ]}
+      // bulk
+      bulk={{ selected, setSelected, bulkActions, bulkAction, setBulkAction }}
+      // Customize
+      customize={{ showTableName: true }}
     />
   ) : (
     <MainLayout>
       <DataTable
-        headers={headers}
-        link='/orders'
-        data={orders}
-        search={search}
-        setSearch={setSearch}
-        filters={filters}
         tableName='Orders'
-        handleCancel={async (id) => {
-          await handleCancel(id);
-          refreshOrders();
-        }}
-        hardDelete={handleHardDelete}
+        type='Order'
+        headers={headers}
+        link={'/orders'}
+        data={orders}
         loading={loading}
         // Pagination
-        currentPage={currentPage} setCurrentPage={setCurrentPage}
-        totalPages={totalPages}
-        totalItems={totalItems}
-        limit={limit} setLimit={setLimit}
+        pagination={{ currentPage, setCurrentPage, totalPages, totalItems, limit, setLimit }}
+        filters={{ inputs: filters, search, setSearch}}
+        // Refresh
+        refreshData={refreshOrders}
+        // Actions
+        actions={[
+            'hard-delete', 'cancel', 'edit', 'show'
+          ]}
         // bulk
-        selected={selected}
-        setSelected={setSelected}
-        setBulkAction={setBulkAction}
-        bulkActions={[
-          { _id: 'pending', name: 'Mark as Pending' },
-          { _id: 'processing', name: 'Mark as Processing' },
-          { _id: 'shipped', name: 'Mark as Shipped' },
-          { _id: 'delivered', name: 'Mark as Delivered' },
-
-          { _id: 'divider' },
-
-          { _id: 'payed', name: 'Mark as Paid' },
-          { _id: 'not-payed', name: 'Mark as Unpaid' },
-
-          { _id: 'divider' },
-
-          { _id: 'cancelled', name: 'Cancel Orders', color: 'red' },
-          { _id: 'delete', name: 'Delete Orders', color: 'red' },
-        ]}
-
+        bulk={{ selected, setSelected, bulkActions, bulkAction, setBulkAction }}
       />
     </MainLayout>
   );

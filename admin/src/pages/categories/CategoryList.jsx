@@ -48,6 +48,16 @@ const CategoryList = () => {
     { label: 'Slug', field: 'slug', type: 'string' },
   ];
 
+  const bulkActions = 
+    deletedFilter
+      ? [
+          { name: 'Restore selected', _id: 'restore' },
+          { name: 'Delete permanently', _id: 'hard-delete', color: 'red' }
+        ]
+      : [
+          { name: 'Delete Selected', _id: 'delete', color: 'red' }
+        ];
+
   const getCategories = async (search, deleted, currentPage, limit) => {
     setLoading(true);
     try {
@@ -64,31 +74,6 @@ const CategoryList = () => {
 
   const refreshCategories = () => 
     getCategories(search, deletedFilter, currentPage, limit);
-
-  const handleSoftDelete = async (id) => {
-    await softDelete(
-      [id],
-      type,
-      setSelected,
-      refreshCategories
-    );
-  }
-  const handleRestore = async (id) => {
-    await restore(
-      [id],
-      type,
-      setSelected,
-      refreshCategories
-    );
-  }
-  const handleHardDelete = async (id) => {
-    await hardDelete(
-      [id],
-      type,
-      setSelected,
-      refreshCategories
-    );
-  }
 
   // Search
   useEffect(() => {
@@ -151,37 +136,27 @@ const CategoryList = () => {
   return (
     <MainLayout>
       <DataTable
+        tableName='Categories'
+        type='Category'
         headers={headers}
         link={'/categories'}
-        tableName='Categories'
         data={categories}
-        filters={filters}
-        search={search}
-        setSearch={setSearch}
-        handleDelete={handleSoftDelete}
-        hardDelete={handleHardDelete}
-        handleRestore={handleRestore}
-        // Loading
         loading={loading}
         // Pagination
-        currentPage={currentPage} setCurrentPage={setCurrentPage}
-        totalPages={totalPages}
-        totalItems={totalItems}
-        limit={limit} setLimit={setLimit}
+        pagination={{ currentPage, setCurrentPage, totalPages, totalItems, limit, setLimit }}
+        filters={{ inputs: filters, search, setSearch}}
+        // Refresh
+        refreshData={refreshCategories}
+        // Actions
+        actions={
+          deletedFilter ? [
+            'hard-delete', 'restore', 'edit', 'show'
+          ] : [
+            'soft-delete', 'edit', 'show'
+          ]
+        }
         // bulk
-        selected={selected}
-        setSelected={setSelected}
-        setBulkAction={setBulkAction}
-        bulkActions={
-            deletedFilter
-              ? [
-                  { name: 'Restore selected', _id: 'restore' },
-                  { name: 'Delete permanently', _id: 'hard-delete', color: 'red' }
-                ]
-              : [
-                  { name: 'Delete Selected', _id: 'delete', color: 'red' }
-                ]
-          }
+        bulk={{ selected, setSelected, bulkActions, bulkAction, setBulkAction }}
       />
     </MainLayout>
   )

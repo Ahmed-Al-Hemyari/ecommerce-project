@@ -13,40 +13,59 @@ import Pagination from './Pagination';
 import Spinner from '../Spinner';
 import Checkbox from '../Checkbox';
 import Dropdown from '../Forms/Dropdown';
+import { handleAddStock, handleCancel, hardDelete, restore, softDelete } from '@/utils/Functions';
 
 const DataTable = ({
   tableName = '',
+  type = '',
   headers = [], 
   link = '', 
   data = [],
-  filters = [],
-  search,
-  setSearch,
-  handleDelete,
-  hardDelete,
-  handleRestore,
-  handleCancel,
-  handleAddStock,
   loading = true,
-  // Customize
-  header = true,
-  pagination = true,
-  actions = true,
   // Pagination
-  currentPage, setCurrentPage,
-  totalPages, 
-  totalItems,
-  limit, setLimit,
+  pagination = {},
+  filters = {},
+  // Refresh
+  refreshData,
+  // Actions
+  actions = [],
   // Customize
-  inner = false,
+  customize = {},
   // bulk
-  selected=[], setSelected,
-  bulkActions = [],
-  bulkAction, setBulkAction,
+  bulk = {},
 }) => {
   // Essentails
   const navigate = useNavigate();
   const location = useLocation();
+  // Props
+  const { currentPage, setCurrentPage, totalPages, totalItems, limit, setLimit } = pagination;
+  const { inputs = [], search = '', setSearch = () => {} } = filters;
+  const { 
+    showHeader = true, 
+    showPagination = true, 
+    showActions = true, 
+    showTableName = false, 
+    showFilters = true, 
+    showSelect = true 
+  } = customize;
+  const {
+    selected = [],
+    setSelected = () => {},
+    bulkActions = [],
+    bulkAction,
+    setBulkAction = () => {}
+  } = bulk;
+  // Action buttons map
+  const actionButtons = (id) => ({
+    'soft-delete': <ActionButton Icon={Trash} size={18} color="#d50101" handleClick={() => softDelete([id], type, setSelected, refreshData)} />,
+    'hard-delete': <ActionButton Icon={Trash2} size={18} color="#d50101" handleClick={() => hardDelete([id], type, setSelected, refreshData)} />,
+    'restore': <ActionButton Icon={RefreshCcw} size={18} color="#2563EB" handleClick={() => restore([id], type, setSelected, refreshData)} />,
+    'cancel': <ActionButton Icon={X} size={18} color="#d50101" handleClick={() => handleCancel([id], setSelected, refreshData) } />,
+    'edit': <ActionButton Icon={Edit} size={18} color="#333333" handleClick={() => navigate(`${link}/update/${id}`)} />,
+    'show': <ActionButton Icon={Eye} size={18} color="#333333" handleClick={() => navigate(`${link}/show/${id}`)} />,
+    'add-to-stock': <ActionButton Icon={Plus} size={18} handleClick={() => handleAddStock([id], setSelected, refreshData)} />
+  })
+
   // Cell Components
   const CellComponents = {
     string: StringCell,
@@ -57,18 +76,6 @@ const DataTable = ({
   }
 
   // Handlers
-  const handleCreate = () => {
-    navigate(`${link}/create`);
-  }
-
-  const handleShow = (id) => {
-    navigate(`${link}/show/${id}`);
-  }
-  
-  const handleEdit = (id) => {
-    navigate(`${link}/update/${id}`);
-  }
-
   const toggleSelect = (id) => {
     setSelected(prev =>
       prev.includes(id)
@@ -77,23 +84,10 @@ const DataTable = ({
     );
   };
 
-
-  // Snackbar listener
-  useEffect(() => {
-    if (location.state?.message) {
-      enqueueSnackbar(location.state.message, {
-        variant: location.state.status,
-      });
-
-      // Clear state to prevent showing again
-      navigate(location.pathname, { replace: true, state: {} });
-    }
-  }, [location.state]);
-
   return (
     <div>
       <div className='flex flex-row justify-between mb-5 px-2 py-3'>
-        <h1 className={`text-3xl w-full ${inner ? 'text-center font-bold' : 'font-medium'}`}>{tableName}</h1>
+        <h1 className={`text-3xl w-full ${showTableName ? 'text-center font-bold' : 'font-medium'}`}>{tableName}</h1>
       </div>
       <div className=" w-full">
 
@@ -118,12 +112,12 @@ const DataTable = ({
                   : ''
               }
               {
-                header ? (
+                showHeader ? (
                   <>
                     <tr>
                       <td colSpan={headers.length + 2}>
-                        <div className={`w-full p-5 border-b flex flex-row items-center ${inner ? 'justify-between' : 'justify-end'}`}>
-                          {inner && <h1 className={`text-xl font-bold`}>{tableName}</h1>}
+                        <div className={`w-full p-5 border-b flex flex-row items-center ${showTableName ? 'justify-between' : 'justify-end'}`}>
+                          {showTableName && <h1 className={`text-xl font-bold`}>{tableName}</h1>}
                           <Link to={`${link}/create`} className='bg-(--color-green) text-(--color-dark-gray) text-lg flex flex-row items-center gap-2 font-medium rounded-md px-3 py-1'>
                             Create
                           </Link>
@@ -143,7 +137,7 @@ const DataTable = ({
                               onChange={(e) => setSearch(e.target.value)}
                             />
                           </div>
-                          {(filters.length && !inner) > 0 && <Filters inputs={filters}/>}
+                          {(inputs.length && showFilters) > 0 && <Filters inputs={inputs}/>}
                         </div>
                       </td>
                     </tr>
@@ -155,7 +149,7 @@ const DataTable = ({
               }
               <tr className='bg-gray-50 border-t'>
                 {
-                  inner ? '' : (
+                  showSelect && (
                     <td className='px-2'>
                       <Checkbox 
                         checked={
@@ -187,7 +181,7 @@ const DataTable = ({
                   </td>
                 ))}
                 {
-                  actions ? (
+                  showActions ? (
                     <td 
                       style={{ width: `${100/ headers.length}%`}}
                       className={`p-3 text-lg text-center font-bold text-black`}
@@ -214,7 +208,7 @@ const DataTable = ({
                 data.map((item, rowIndex) => (
                   <tr key={rowIndex}>
                     {
-                      inner ? '' : (
+                      showSelect && (
                         <td className='px-2'>
                           <Checkbox 
                             checked={selected.includes(item._id)}
@@ -237,32 +231,16 @@ const DataTable = ({
                       );
                     })}
                     {
-                      actions ? (
+                      showActions && (
                         <td className="border-b">
                           <div className="flex flex-row-reverse items-center justify-center">
-                            {(link !== '/orders' && !item.deleted) && (
-                              <ActionButton Icon={Trash} size={18} color="#d50101" handleClick={() => handleDelete(item._id)} />
-                            )}
-                            {item.deleted && (
-                              <>
-                                <ActionButton Icon={Trash2} size={18} color="#d50101" handleClick={() => hardDelete(item._id)} />
-                                <ActionButton Icon={RefreshCcw} size={18} color="#2563EB" handleClick={() => handleRestore(item._id)} />
-                              </>
-                            )}
-                            {link === '/orders' && (
-                              <>
-                                <ActionButton Icon={Trash2} size={18} color="#d50101" handleClick={() => hardDelete(item._id)} />
-                                <ActionButton Icon={X} size={18} color="#d50101" handleClick={() => handleCancel(item._id)} />
-                              </>
-                            )}
-                            <ActionButton Icon={Edit} size={18} color="#333333" handleClick={() => handleEdit(item._id)} />
-                            <ActionButton Icon={Eye} size={18} color="#333333" handleClick={() => handleShow(item._id)} />
-                            {handleAddStock && (
-                              <ActionButton Icon={Plus} size={18} handleClick={() => handleAddStock(item._id)} />
-                            )}
+                            {(() => {
+                              const buttons = actionButtons(item._id);
+                              return actions.map(action => buttons[action] ?? null);
+                            })()}
                           </div>
                         </td>
-                      ) : ''
+                      )
                     }
                   </tr>
                 ))
@@ -278,7 +256,7 @@ const DataTable = ({
               )}
             </tbody>
             {
-              inner ? '' : 
+              showPagination &&
                 (    
                   <tfoot>
                     <tr>

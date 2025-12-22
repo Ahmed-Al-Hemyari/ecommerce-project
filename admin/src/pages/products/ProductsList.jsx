@@ -82,6 +82,15 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
     { label: 'Price', field: 'price', type: 'price' },
   ];
 
+  const bulkActions = deletedFilter
+    ? [
+        { name: 'Restore selected', _id: 'restore' },
+        { name: 'Delete permanently', _id: 'hard-delete', color: 'red' }
+      ]
+    : [
+        { name: 'Delete Selected', _id: 'delete', color: 'red' }
+      ];
+
   const getProducts = async (search, category, brand, stock, deleted, currentPage, limit) => {
     setLoading(true);
     try {
@@ -124,31 +133,6 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
       });
       console.error(error);
     }
-  }
-
-  const handleSoftDelete = async (id) => {
-    await softDelete(
-      [id],
-      type,
-      setSelected,
-      refreshProducts
-    );
-  }
-  const handleRestore = async (id) => {
-    await restore(
-      [id],
-      type,
-      setSelected,
-      refreshProducts
-    );
-  }
-  const handleHardDelete = async (id) => {
-    await hardDelete(
-      [id],
-      type,
-      setSelected,
-      refreshProducts
-    );
   }
 
   // Initial useEffect
@@ -221,69 +205,54 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
 
   return inner ? (
      <DataTable
+      tableName='Products'
+      type='Product'
       headers={headers}
-      link="/products"
+      link={'/products'}
       data={products}
-      filters={filters}
-      search={search}
-      setSearch={setSearch}
-      tableName="Products"
-      handleAddStock={async (id) => {
-        await handleAddStock(id);
-        refreshProducts();
-      }}
-      handleDelete={handleSoftDelete}
-      handleRestore={handleRestore}
-      hardDelete={handleHardDelete}
       loading={loading}
       // Pagination
-      currentPage={currentPage}
-      setCurrentPage={setCurrentPage}
-      totalPages={totalPages}
-      totalItems={totalItems}
-      limit={limit}
-      setLimit={setLimit}
-      inner={inner}
+      pagination={{ currentPage, setCurrentPage, totalPages, totalItems, limit, setLimit }}
+      filters={{ inputs: filters, search, setSearch}}
+      // Refresh
+      refreshData={refreshProducts}
+      // Actions
+      actions={
+        deletedFilter ? [
+          'hard-delete', 'restore', 'edit', 'show'
+        ] : [
+          'soft-delete', 'edit', 'show', 'add-to-stock'
+        ]
+      }
+      // bulk
+      bulk={{ selected, setSelected, bulkActions, bulkAction, setBulkAction }}
+      // Customize
+      customize={{ showTableName: true }}
     />
   ) : (
       <MainLayout>
         <DataTable
+          tableName='Products'
+          type='Product'
           headers={headers}
-          link="/products"
+          link={'/products'}
           data={products}
-          filters={filters}
-          search={search}
-          setSearch={setSearch}
-          tableName="Products"
-          handleAddStock={async (id) => {
-            await handleAddStock(id);
-            refreshProducts();
-          }}
-          handleDelete={handleSoftDelete}
-          handleRestore={handleRestore}
-          hardDelete={handleHardDelete}
           loading={loading}
           // Pagination
-          currentPage={currentPage}
-          setCurrentPage={setCurrentPage}
-          totalPages={totalPages}
-          totalItems={totalItems}
-          limit={limit}
-          setLimit={setLimit}
-          // bulk
-          selected={selected}
-          setSelected={setSelected}
-          setBulkAction={setBulkAction}
-          bulkActions={
-            deletedFilter
-              ? [
-                  { name: 'Restore selected', _id: 'restore' },
-                  { name: 'Delete permanently', _id: 'hard-delete', color: 'red' }
-                ]
-              : [
-                  { name: 'Delete Selected', _id: 'delete', color: 'red' }
-                ]
+          pagination={{ currentPage, setCurrentPage, totalPages, totalItems, limit, setLimit }}
+          filters={{ inputs: filters, search, setSearch}}
+          // Refresh
+          refreshData={refreshProducts}
+          // Actions
+          actions={
+            deletedFilter ? [
+              'hard-delete', 'restore', 'edit', 'show'
+            ] : [
+              'soft-delete', 'edit', 'show', 'add-to-stock'
+            ]
           }
+          // bulk
+          bulk={{ selected, setSelected, bulkActions, bulkAction, setBulkAction }}
         />
       </MainLayout>
   );

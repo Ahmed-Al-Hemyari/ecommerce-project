@@ -185,7 +185,7 @@ export const revokeAdmin = async (ids, setSelected, getData) => {
 }
 
 // // // Products List Functions
-export const handleAddStock = async (id) => {
+export const handleAddStock = async (id, setSelected, getData) => {
   const result = Swal.fire({
     title: 'Add Stock',
     text: 'Enter the value to add...',
@@ -203,13 +203,14 @@ export const handleAddStock = async (id) => {
 
   
   const stock = (await result).value;
-  console.log(stock);
 
   try {
     const response = await productService.addStock(id, Number(stock));
     enqueueSnackbar(response.data, {
       variant: 'success'
     });
+    setSelected([]);
+    getData();
   } catch (error) {
     enqueueSnackbar(error, {
       variant: 'error'
@@ -219,7 +220,7 @@ export const handleAddStock = async (id) => {
 }
 
 // // // Orders List Functions
-export const handleCancel = async (id) => {
+export const handleCancel = async (id, setSelected, getData) => {
   const result = await Swal.fire({
     title: 'Cancel Order',
     text: 'Are you sure you want to cancel this order?',
@@ -234,6 +235,8 @@ export const handleCancel = async (id) => {
   try {
     await orderService.updateToCancelled([id]);
     enqueueSnackbar('Order cancelled successfully', { variant: 'success' });
+    setSelected([]);
+    getData();
   } catch (error) {
     enqueueSnackbar('Failed to delete order', { variant: 'error' });
     console.error(error);

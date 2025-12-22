@@ -60,6 +60,20 @@ const UsersList = () => {
     { label: "Joined", field: "createdAt", type: 'string' },
   ];
 
+  const bulkActions = [
+    { name: 'Grant admin', _id: 'grant-admin' },
+    { name: 'Revoke admin', _id: 'revoke-admin' },
+
+    ...(deletedFilter
+      ? [
+          { name: 'Restore selected', _id: 'restore' },
+          { name: 'Delete permanently', _id: 'hard-delete', color: 'red' },
+        ]
+      : [
+          { name: 'Delete Selected', _id: 'delete', color: 'red' },
+        ]),
+  ];
+
   // Handlers
 
   const getUsers = async (search, role, deleted, currentPage, limit) => {
@@ -88,31 +102,6 @@ const UsersList = () => {
 
   const refreshUsers = () => 
     getUsers(search, role, deletedFilter, currentPage, limit);
-
-  const handleSoftDelete = async (id) => {
-    await softDelete(
-      [id],
-      type,
-      setSelected,
-      refreshUsers
-    );
-  }
-  const handleRestore = async (id) => {
-    await restore(
-      [id],
-      type,
-      setSelected,
-      refreshUsers
-    );
-  }
-  const handleHardDelete = async (id) => {
-    await hardDelete(
-      [id],
-      type,
-      setSelected,
-      refreshUsers
-    );
-  }
 
   // useEffects
   useEffect(() => {
@@ -177,41 +166,27 @@ const UsersList = () => {
   return (
     <MainLayout>
       <DataTable
-        headers={headers}
-        link='/users'
-        data={users}
-        search={search}
-        setSearch={setSearch}
-        filters={filters}
         tableName='Users'
-        handleDelete={handleSoftDelete}
-        handleRestore={handleRestore}
-        hardDelete={handleHardDelete}
-        // Loading
+        type='User'
+        headers={headers}
+        link={'/users'}
+        data={users}
         loading={loading}
-        setLoading={setLoading}
         // Pagination
-        currentPage={currentPage} setCurrentPage={setCurrentPage}
-        totalPages={totalPages}
-        totalItems={totalItems}
-        limit={limit} setLimit={setLimit}
+        pagination={{ currentPage, setCurrentPage, totalPages, totalItems, limit, setLimit }}
+        filters={{ inputs: filters, search, setSearch}}
+        // Refresh
+        refreshData={refreshUsers}
+        // Actions
+        actions={
+          deletedFilter ? [
+            'hard-delete', 'restore', 'edit', 'show'
+          ] : [
+            'soft-delete', 'edit', 'show'
+          ]
+        }
         // bulk
-        selected={selected}
-        setSelected={setSelected}
-        setBulkAction={setBulkAction}
-        bulkActions={[
-          { name: 'Grant admin', _id: 'grant-admin' },
-          { name: 'Revoke admin', _id: 'revoke-admin' },
-
-          ...(deletedFilter
-            ? [
-                { name: 'Restore selected', _id: 'restore' },
-                { name: 'Delete permanently', _id: 'hard-delete', color: 'red' },
-              ]
-            : [
-                { name: 'Delete Selected', _id: 'delete', color: 'red' },
-              ]),
-        ]}
+        bulk={{ selected, setSelected, bulkActions, bulkAction, setBulkAction }}
       />
     </MainLayout>
   );

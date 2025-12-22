@@ -7,8 +7,6 @@ const Pagination = ({
   totalItems = 0,
   limit = 10,
   setLimit,
-//   onPageChange,
-//   onLimitChange
 }) => {
   if (totalPages === 0) return null;
 
@@ -20,7 +18,7 @@ const Pagination = ({
     pages.push(i);
   }
 
-  const limits = [50, 100, 150]; // options for items per page
+  const limits = [5, 50, 100, 150]; // options for items per page
 
   return (
     <div className="w-full flex flex-col md:flex-row items-center justify-between mt-4 px-2 space-y-2 md:space-y-0">
