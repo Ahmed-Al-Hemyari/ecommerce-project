@@ -42,7 +42,7 @@ app.get('/', (req, res) => {
 });
 
 // Auth Routes
-app.use('/api', authRoutes);
+app.use('/api/auth', authRoutes);
 // Dashboard Routes
 app.use('/api', dashboardRoutes);
 // User Routes

@@ -1,14 +1,14 @@
 import api from "./api";
 
 export const authService = {
-  register: (data) => api.post("/register", data),
-  loginByPhone: (data) => api.post("/login-phone", data),
-  loginByEmail: (data) => api.post("/login-email", data),
-  getProfile: () => api.get("/profile"),
-  updateProfile: (data) => api.put("/profile/update", data),
-  changePassword: (data) => api.put("/profile/change-password", data),
-  checkAuth : () => api.get("/check-auth"),
-  logout : () => api.post("/logout"),
+  register: (data) => api.post("/auth/register", data),
+  loginByPhone: (data) => api.post("/auth/login-phone", data),
+  loginByEmail: (data) => api.post("/auth/login-email", data),
+  getProfile: () => api.get("/auth/profile"),
+  updateProfile: (data) => api.put("/auth/profile/update", data),
+  changePassword: (data) => api.put("/auth/profile/change-password", data),
+  checkAuth : () => api.get("/auth/check-auth"),
+  logout : () => api.post("/auth/logout"),
 };
 
 export const brandService = {

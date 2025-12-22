@@ -33,7 +33,7 @@ authRoutes.put('/profile/update', requireAuth, updateProfile);
 // Change Password
 authRoutes.put('/profile/change-password', requireAuth, changePassword);
 // Logout
-authRoutes.post('/profile/change-password', requireAuth, (req, res) => {
+authRoutes.post('/logout', requireAuth, (req, res) => {
     res.json({message: "Logged out successfully"});
 });
 

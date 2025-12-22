@@ -11,4 +11,4 @@ Route::get('/', function () {
     return response()->json(['message' => "Welcome to QuickBuy API"]);
 });
 
-Route::prefix('')->group(base_path('routes/api/auth.php'));
+Route::prefix('auth')->group(base_path('routes/api/auth.php'));
