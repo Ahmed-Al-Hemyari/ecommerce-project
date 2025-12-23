@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Input from './Input';
 import { Link, useNavigate } from 'react-router-dom';
 import { enqueueSnackbar } from 'notistack';
@@ -6,28 +6,30 @@ import TextArea from './TextArea';
 import PhoneInput from './PhoneInput';
 import SearchableDropdown from './SearchableDropDown';
 import Dropdown from './Dropdown';
+import { Loader2 } from 'lucide-react';
 
 const UpdateForm = ({
     inputs = [],
     title = '', // Main title
     link, // redirect link after submit
+    loading,
     formError,
     handleSubmit,
     resetForm,
 }) => {
 
     const navigate = useNavigate();
+    const [clickedButton, setClickedButton] = useState(null);
 
     const handleFormSubmit = async (e) => {
         e.preventDefault();
 
-        const action = e.nativeEvent.submitter?.value; // which button was clicked
+        const action = e.nativeEvent.submitter?.value;
+        setClickedButton(action);
         const result = await handleSubmit();
 
         if (!result) {
-            // enqueueSnackbar('Failed to update', {
-            //     variant: 'error'
-            // });
+            setClickedButton(null);
             return;
         }
 
@@ -148,16 +150,28 @@ const UpdateForm = ({
                             type='submit'
                             name='action'
                             value='update'
-                            className="px-4 py-2 rounded-md bg-(--color-green) border qb-border cursor-pointer"
+                            className={`px-4 py-2 rounded-md border flex flex-row items-center qb-border cursor-pointer ${
+                            (loading && clickedButton === 'update')
+                                ? 'bg-(--color-green)/50 cursor-not-allowed'
+                                : 'bg-(--color-green) hover:bg-(--color-green)/80'
+                            }`}
+                            disabled={clickedButton === 'update'}
                         >
+                            {(loading && clickedButton === 'update') && <Loader2 className='w-4 h-4 animate-spin mr-2'/>}
                             Update
                         </button>
                         <button
                             type='submit'
                             name='action'
                             value='update_continue'
-                            className="px-4 py-2 rounded-md bg-(--color-green) border qb-border cursor-pointer"
+                            className={`px-4 py-2 rounded-md border qb-border flex flex-row items-center cursor-pointer ${
+                            (loading && clickedButton === 'update_continue')
+                                ? 'bg-(--color-green)/50 cursor-not-allowed'
+                                : 'bg-(--color-green) hover:bg-(--color-green)/80'
+                            }`}
+                            disabled={clickedButton === 'update_continue'}
                         >
+                            {(loading && clickedButton === 'update_continue') && <Loader2 className='w-4 h-4 animate-spin mr-2'/>}
                             Update & Continue Editing
                         </button>
                     </div>

@@ -4,11 +4,15 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import CreateForm from '@/components/UI/Forms/CreateForm';
 import brandService from '@/services/brandService';
 import { enqueueSnackbar } from 'notistack';
+import Spinner from '@/components/UI/Spinner';
 
 const CreateBrand = () => {
   const [name, setName] = useState('');
   const [logo, setLogo] = useState('');
   const [formError, setFormError] = useState('');
+  // Loading
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
+  const [loadingFetch, setLoadingFetch] = useState(false);
   // Ruplicate
   const [brand, setBrand] = useState();
 
@@ -28,12 +32,15 @@ const CreateBrand = () => {
 
     if (location.state?.id) {
       const id = location.state?.id;
+      setLoadingFetch(true);
       const fetchBrand = async () => {        
         try {
           const response = await brandService.getBrand(id);
           setBrand(response.data);
         } catch (error) {
           enqueueSnackbar(error || "Failed to add brand");
+        } finally {
+          setLoadingFetch(false);
         }
       }
       
@@ -49,9 +56,11 @@ const CreateBrand = () => {
 
   const handleSubmit = async () => {
     setFormError('');
+    setLoadingSubmit(true);
 
     if (!name || !logo) {
       setFormError('Please fill all fields with * ');
+      setLoadingSubmit(false);
       return false;
     }
 
@@ -64,6 +73,8 @@ const CreateBrand = () => {
       return true;
     } catch (error) {
       return false;
+    } finally {
+      setLoadingSubmit(false);
     }
   }
 
@@ -94,15 +105,18 @@ const CreateBrand = () => {
   ]
   return (
     <MainLayout>
-      <CreateForm
-        formTitle='Create Brand'
-        title='Brand'
-        inputs={inputs}
-        link={'/brands'}
-        formError={formError}
-        handleSubmit={handleSubmit}
-        resetForm={resetForm}
-      />
+      { loadingFetch ? <Spinner/> : (
+          <CreateForm
+            formTitle='Create Brand'
+            title='Brand'
+            inputs={inputs}
+            link={'/brands'}
+            loading={loadingSubmit}
+            formError={formError}
+            handleSubmit={handleSubmit}
+            resetForm={resetForm}
+          />
+      )}
     </MainLayout>
   )
 }

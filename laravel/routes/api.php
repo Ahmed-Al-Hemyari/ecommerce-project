@@ -12,3 +12,5 @@ Route::get('/', function () {
 });
 
 Route::prefix('auth')->group(base_path('routes/api/auth.php'));
+Route::prefix('categories')->group(base_path('routes/api/categories.php'));
+Route::prefix('brands')->group(base_path('routes/api/brands.php'));

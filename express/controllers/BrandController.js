@@ -129,41 +129,6 @@ export const updateBrand = async (req, res) => {
   }
 };
 
-// // Delete a product
-// export const deleteBrand = async (req, res) => {
-//   try {
-//     const brand = await Brand.findByIdAndUpdate(req.params.id, { deleted: true });
-
-//     if (!brand) {
-//       return res.status(404).json({ message: 'Brand not found' });
-//     }
-
-//     res.status(200).json({ message: 'Brand deleted successfully' });
-
-//   } catch (error) {
-//     console.error('Error deleting brand:', error);
-//     res.status(500).json({ message: 'Server error' });
-//   }
-// };
-
-// // Restore a product
-// export const restoreBrand = async (req, res) => {
-//   try {
-//     const brand = await Brand.findByIdAndUpdate(req.params.id, { deleted: false });
-
-//     if (!brand) {
-//       return res.status(404).json({ message: 'Brand not found' });
-//     }
-
-//     res.status(200).json({ message: 'Brand restored successfully' });
-
-//   } catch (error) {
-//     console.error('Error restoring brand:', error);
-//     res.status(500).json({ message: 'Server error' });
-//   }
-// };
-
-
 // // Delete
 // Soft Delete
 export const softDelete = async (req, res) => {

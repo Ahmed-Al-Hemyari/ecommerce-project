@@ -38,31 +38,32 @@ export const hardDelete = async (ids, type, setSelected, getData) => {
   const { service, label } = config;
 
   const result = await Swal.fire({
-    title: `Delete ${label} Permanently`,
-    text: `Are you sure you want to delete this ${label.toLowerCase()} permanently?`,
+    title: `Delete ${label} Permenatly`,
+    text: `Are you sure you want to delete this ${label.toLowerCase()} permenantly?`,
     icon: 'warning',
     showCancelButton: true,
     confirmButtonText: 'Yes, delete it',
     confirmButtonColor: '#d50101',
+    allowOutsideClick: false,
+    preConfirm: async () => {
+      Swal.showLoading();
+      try {
+        await service.hardDelete(ids);
+        return true;
+      } catch (error) {
+        Swal.showValidationMessage(`Request failed: ${error}`);
+        return false;
+      }
+    }
   });
 
-  if (!result.isConfirmed) return;
-
-  try {
-    await service.hardDelete(ids);
-
-    enqueueSnackbar(`${label} deleted successfully`, {
+  if (result.isConfirmed) {
+    enqueueSnackbar(`${label} deleted permenantly successfully`, {
       variant: 'success',
     });
-
+    
     setSelected && setSelected([]);
     getData && getData();
-  } catch (error) {
-    enqueueSnackbar(
-      error || 'Delete failed',
-      { variant: 'error' }
-    );
-    console.error(error);
   }
 };
 
@@ -79,25 +80,26 @@ export const softDelete = async (ids, type, setSelected, getData) => {
     showCancelButton: true,
     confirmButtonText: 'Yes, delete it',
     confirmButtonColor: '#d50101',
+    allowOutsideClick: false,
+    preConfirm: async () => {
+      Swal.showLoading();
+      try {
+        await service.softDelete(ids);
+        return true;
+      } catch (error) {
+        Swal.showValidationMessage(`Request failed: ${error}`);
+        return false;
+      }
+    }
   });
 
-  if (!result.isConfirmed) return;
-
-  try {
-    await service.softDelete(ids);
-
+  if (result.isConfirmed) {
     enqueueSnackbar(`${label} deleted successfully`, {
       variant: 'success',
     });
-
+    
     setSelected && setSelected([]);
     getData && getData();
-  } catch (error) {
-    enqueueSnackbar(
-      error || 'Delete failed',
-      { variant: 'error' }
-    );
-    console.error(error);
   }
 };
 
@@ -112,27 +114,28 @@ export const restore = async (ids, type, setSelected, getData) => {
     text: `Are you sure you want to restore this ${label.toLowerCase()}?`,
     icon: 'warning',
     showCancelButton: true,
-    confirmButtonText: 'Yes, delete it',
+    confirmButtonText: 'Yes, restore it',
     confirmButtonColor: '#1d7451',
+    allowOutsideClick: false,
+    preConfirm: async () => {
+      Swal.showLoading();
+      try {
+        await service.restore(ids);
+        return true;
+      } catch (error) {
+        Swal.showValidationMessage(`Request failed: ${error}`);
+        return false;
+      }
+    }
   });
 
-  if (!result.isConfirmed) return;
-
-  try {
-    await service.restore(ids);
-
+  if (result.isConfirmed) {
     enqueueSnackbar(`${label} restored successfully`, {
       variant: 'success',
     });
-
+    
     setSelected && setSelected([]);
     getData && getData();
-  } catch (error) {
-    enqueueSnackbar(
-      error || 'Restore failed',
-      { variant: 'error' }
-    );
-    console.error(error);
   }
 };
 
@@ -146,18 +149,26 @@ export const grantAdmin = async (ids, setSelected, getData) => {
     showCancelButton: true,
     confirmButtonText: 'Yes, grant them',
     confirmButtonColor: '#1d7451',
+    allowOutsideClick: false,
+    preConfirm: async () => {
+      Swal.showLoading();
+      try {
+        await userService.grantAdmin(ids);
+        return true;
+      } catch (error) {
+        Swal.showValidationMessage(`Request failed: ${error}`);
+        return false;
+      }
+    }
   });
 
-  if (!result.isConfirmed) return;
-
-  try {
-    await userService.grantAdmin(ids);
-    enqueueSnackbar("Administration granted successfully", { variant: 'success' });
-    setSelected([]);
-    getData();
-  } catch (error) {
-    enqueueSnackbar("Failed to grant admin", { variant: 'error' });
-    console.error(error);
+  if (result.isConfirmed) {
+    enqueueSnackbar(`Administration granted successfully`, {
+      variant: 'success',
+    });
+    
+    setSelected && setSelected([]);
+    getData && getData();
   }
 }
 
@@ -167,26 +178,34 @@ export const revokeAdmin = async (ids, setSelected, getData) => {
     text: `Are you sure you want to revoke admin for selected users?`,
     icon: 'warning',
     showCancelButton: true,
-    confirmButtonText: 'Yes, revoke admin',
+    confirmButtonText: 'Yes, revoke them',
     confirmButtonColor: '#1d7451',
+    allowOutsideClick: false,
+    preConfirm: async () => {
+      Swal.showLoading();
+      try {
+        await userService.revokeAdmin(ids);
+        return true;
+      } catch (error) {
+        Swal.showValidationMessage(`Request failed: ${error}`);
+        return false;
+      }
+    }
   });
 
-  if (!result.isConfirmed) return;
-
-  try {
-    await userService.revokeAdmin(ids);
-    enqueueSnackbar("Administration revoked successfully", { variant: 'success' });
-    setSelected([]);
-    getData();
-  } catch (error) {
-    enqueueSnackbar("Failed to revoke admin", { variant: 'error' });
-    console.error(error);
+  if (result.isConfirmed) {
+    enqueueSnackbar(`Administration revoked successfully`, {
+      variant: 'success',
+    });
+    
+    setSelected && setSelected([]);
+    getData && getData();
   }
 }
 
 // // // Products List Functions
 export const handleAddStock = async (id, setSelected, getData) => {
-  const result = Swal.fire({
+  const result = await Swal.fire({
     title: 'Add Stock',
     text: 'Enter the value to add...',
     icon: 'question',
@@ -195,50 +214,60 @@ export const handleAddStock = async (id, setSelected, getData) => {
     showCancelButton: true,
     confirmButtonColor: '#1d7451',
     confirmButtonText: 'Add',
-  })
+    allowOutsideClick: false, // prevent closing while loading
+    preConfirm: async (stock) => {
+      if (!stock) {
+        Swal.showValidationMessage('You must enter a value');
+        return false;
+      }
 
-  if (!(await result).value) {
-    return;
+      Swal.showLoading(); // show spinner inside modal
+
+      try {
+        const response = await productService.addStock(id, Number(stock));
+        return response.data; // return data to result
+      } catch (err) {
+        Swal.showValidationMessage(`Request failed: ${err.message}`);
+        return false;
+      }
+    },
+  });
+
+  if (result.isConfirmed && result.value) {
+    enqueueSnackbar(result.value, { variant: 'success' });
+    setSelected && setSelected([]);
+    getData && getData();
   }
-
-  
-  const stock = (await result).value;
-
-  try {
-    const response = await productService.addStock(id, Number(stock));
-    enqueueSnackbar(response.data, {
-      variant: 'success'
-    });
-    setSelected([]);
-    getData();
-  } catch (error) {
-    enqueueSnackbar(error, {
-      variant: 'error'
-    });
-    console.error(error);
-  }
-}
+};
 
 // // // Orders List Functions
 export const handleCancel = async (id, setSelected, getData) => {
   const result = await Swal.fire({
-    title: 'Cancel Order',
-    text: 'Are you sure you want to cancel this order?',
+    title: `Cancel Order`,
+    text: `Are you sure you want to cancel this order?`,
     icon: 'warning',
     showCancelButton: true,
-    confirmButtonText: 'Yes, cancel it',
+    confirmButtonText: 'Yes, delete it',
     confirmButtonColor: '#d50101',
+    allowOutsideClick: false,
+    preConfirm: async () => {
+      Swal.showLoading();
+      try {
+        await orderService.updateToCancelled([id]);
+        return true;
+      } catch (error) {
+        Swal.showValidationMessage(`Request failed: ${error}`);
+        return false;
+      }
+    }
   });
 
-  if (!result.isConfirmed) return;
-
-  try {
-    await orderService.updateToCancelled([id]);
-    enqueueSnackbar('Order cancelled successfully', { variant: 'success' });
-    setSelected([]);
-    getData();
-  } catch (error) {
-    enqueueSnackbar('Failed to delete order', { variant: 'error' });
-    console.error(error);
+  if (result.isConfirmed) {
+    enqueueSnackbar(`Order cancelled successfully`, {
+      variant: 'success',
+    });
+    
+    setSelected && setSelected([]);
+    getData && getData();
   }
 };

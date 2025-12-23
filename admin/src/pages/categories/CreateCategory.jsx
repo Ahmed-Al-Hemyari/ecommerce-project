@@ -4,11 +4,15 @@ import CreateForm from '@/components/UI/Forms/CreateForm'
 import categoryService from '@/services/categoryService';
 import { enqueueSnackbar } from 'notistack';
 import { useLocation, useNavigate } from 'react-router-dom';
+import Spinner from '@/components/UI/Spinner';
 
 const CreateCategory = () => {
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [formError, setFormError] = useState('');
+  // Loading
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
+  const [loadingFetch, setLoadingFetch] = useState(false);
   // Ruplicate
   const [category, setCategory] = useState();
 
@@ -27,13 +31,18 @@ const CreateCategory = () => {
     }
 
     if (location.state?.id) {
+
+      setLoadingFetch(true);
       const id = location.state?.id;
+
       const fetchCategory = async () => {        
         try {
           const response = await categoryService.getCategory(id);
           setCategory(response.data);
         } catch (error) {
           enqueueSnackbar("Failed to load category");
+        } finally {
+          setLoadingFetch(false);
         }
       }
       
@@ -58,6 +67,7 @@ const CreateCategory = () => {
   }, [name]);
 
   const handleSubmit = async () => {
+    setLoadingSubmit(true);
     setFormError('');
 
     if (!name) {
@@ -74,6 +84,8 @@ const CreateCategory = () => {
     } catch (error) {
       enqueueSnackbar(error || 'Failed to add category');
       return false;
+    } finally {
+      setLoadingSubmit(false);
     }
   }
 
@@ -104,14 +116,17 @@ const CreateCategory = () => {
   ]
   return (
     <MainLayout>
-      <CreateForm
-        title='Create Category'
-        inputs={inputs}
-        link={'/categories'}
-        formError={formError}
-        handleSubmit={handleSubmit}
-        resetForm={resetForm}
-      />
+      { loadingFetch ? <Spinner/> : (
+        <CreateForm
+          title='Create Category'
+          inputs={inputs}
+          link={'/categories'}
+          loading={loadingSubmit}
+          formError={formError}
+          handleSubmit={handleSubmit}
+          resetForm={resetForm}
+        />
+      )}
     </MainLayout>
   )
 }

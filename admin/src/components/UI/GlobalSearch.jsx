@@ -101,7 +101,7 @@ const GlobalSearch = () => {
   };
 
   return (
-    <div ref={ref} className="relative mx-4">
+    <div ref={ref} className="relative mx-4 hidden sm:flex">
       {/* Input */}
       <input
         value={search}

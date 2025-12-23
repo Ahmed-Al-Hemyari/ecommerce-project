@@ -3,11 +3,15 @@ import MainLayout from '@/components/Layouts/MainLayout'
 import { useNavigate, useParams } from 'react-router-dom'
 import UpdateForm from '@/components/UI/Forms/UpdateForm';
 import categoryService from '@/services/categoryService';
+import Spinner from '@/components/UI/Spinner';
 
 const UpdateCategory = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [category, setCategory] = useState([]);
+  // Loading
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
+  const [loadingFetch, setLoadingFetch] = useState(false);
   // Fields
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
@@ -15,6 +19,7 @@ const UpdateCategory = () => {
   const [formError, setFormError] = useState('');
 
   const getCategory = async () => {
+    setLoadingFetch(true);
     try {
       const response = await categoryService.getCategory(id);
       setName(response.data.name);
@@ -22,6 +27,8 @@ const UpdateCategory = () => {
       setCategory(response.data);
     } catch (error) {
       enqueueSnackbar(error || "Failed to update category", { variant: 'error' });
+    } finally {
+      setLoadingFetch(false);
     }
   }
 
@@ -55,6 +62,7 @@ const UpdateCategory = () => {
 
   const handleSubmit = async () => {
     setFormError('');
+    setLoadingSubmit(true);
     
     if (!name || !slug) {
       setFormError('Please fill all fields with * ');
@@ -69,6 +77,8 @@ const UpdateCategory = () => {
       return true;
     } catch (error) {
       return false;
+    } finally {
+      setLoadingSubmit(false);
     }
   }
 
@@ -83,14 +93,17 @@ const UpdateCategory = () => {
 
   return (
     <MainLayout>
-      <UpdateForm
-        inputs={inputs}
-        title={`Update ${category.name}`}
-        link={'/categories'}
-        formError={formError}
-        handleSubmit={handleSubmit}
-        resetForm={resetForm}
-      />
+      { loadingFetch ? <Spinner/> : (
+        <UpdateForm
+          inputs={inputs}
+          title={`Update ${category.name}`}
+          link={'/categories'}
+          formError={formError}
+          loading={loadingSubmit}
+          handleSubmit={handleSubmit}
+          resetForm={resetForm}
+        />
+      )}
     </MainLayout>
   )
 }

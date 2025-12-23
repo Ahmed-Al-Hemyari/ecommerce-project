@@ -26,58 +26,77 @@ const ShowOrder = () => {
     try {
       const result = await Swal.fire({
         title: 'Cancel Order',
-        text: 'Sure you want to delete this order??',
+        text: 'Are you sure you want to cancel this order?',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Yes, cancel it',
-        confirmButtonColor: '#dd2222'
+        confirmButtonColor: '#dd2222',
+
+        // 🔥 Loading handling
+        showLoaderOnConfirm: true,
+        allowOutsideClick: () => !Swal.isLoading(),
+
+        preConfirm: async () => {
+          try {
+            await orderService.updateToCancelled([id]);
+          } catch (error) {
+            Swal.showValidationMessage('Failed to cancel order');
+          }
+        }
       });
 
-      if (!result.isConfirmed) return;
-      
-      const response = await orderService.updateToCancelled([id]);
-      navigate('/orders', {
-        state: {
-          message: "Order deleted successfully",
-          status: 'success'
-        }
-      })
+      if (result.isConfirmed) {
+        navigate('/orders', {
+          state: {
+            message: 'Order cancelled successfully',
+            status: 'success'
+          }
+        });
+      }
     } catch (error) {
-      enqueueSnackbar("Failed to cancel order");
+      enqueueSnackbar('Failed to cancel order', { variant: 'error' });
     }
-  }
+  };
+
 
   const onHardDelete = async () => {
-    const result = Swal.fire({
-      title: 'Delete Order Permenantly',
-      text: 'Sure you want to delete this order permenantly??',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete it',
-      confirmButtonColor: '#d50101'
-    })
-
-    if (!(await result).isConfirmed) {
-      return;
-    }
     try {
-      const response = await orderService.hardDelete([id]);
-      enqueueSnackbar(response.data, {
-        variant: 'success'
-      });
-      navigate('/orders', {
-        state: {
-          message: "Order deleted successfully",
-          status: 'success'
+      const result = await Swal.fire({
+        title: 'Delete Order Permanently',
+        text: 'Are you sure you want to delete this order permanently?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete it',
+        confirmButtonColor: '#d50101',
+
+        // 🔥 Loading handling
+        showLoaderOnConfirm: true,
+        allowOutsideClick: () => !Swal.isLoading(),
+
+        preConfirm: async () => {
+          try {
+            await orderService.hardDelete([id]);
+          } catch (error) {
+            Swal.showValidationMessage('Failed to delete order permanently');
+          }
         }
-      })
-    } catch (error) {
-      enqueueSnackbar(error, {
-        variant: 'error'
       });
+
+      if (result.isConfirmed) {
+        navigate('/orders', {
+          state: {
+            message: 'Order deleted successfully',
+            status: 'success'
+          }
+        });
+      }
+
+    } catch (error) {
+      enqueueSnackbar('Failed to delete order', { variant: 'error' });
       console.error(error);
     }
-  }
+  };
+
 
   useEffect(() => {
     getOrder();

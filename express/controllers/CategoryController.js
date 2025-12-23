@@ -98,36 +98,8 @@ export const updateCategory = async (req, res) => {
   }
 };
 
-// // Delete a category
-// export const deleteCategory = async (req, res) => {
-//   try {
-//     const deletedCategory = await Category.findByIdAndUpdate(req.params.id, { deleted: true });
-//     if (!deletedCategory) {
-//       return res.status(404).json({ message: 'Category not found' });
-//     }
-    
-//     res.status(200).json({ message: 'Category deleted successfully' });
-//   } catch (error) {
-//     console.error('Error deleting category:', error);
-//     res.status(500).json({ message: 'Server error' });
-//   }
-// };
-// // Restore a category
-// export const restoreCategory = async (req, res) => {
-//   try {
-//     const restoredCategory = await Category.findByIdAndUpdate(req.params.id, { deleted: false });
-//     if (!restoredCategory) {
-//       return res.status(404).json({ message: 'Category not found' });
-//     }
-    
-//     res.status(200).json({ message: 'Category restored successfully' });
-//   } catch (error) {
-//     console.error('Error restoring category:', error);
-//     res.status(500).json({ message: 'Server error' });
-//   }
-// };
 
-// Delete many
+// Soft Delete
 export const softDelete = async (req, res) => {
   try {
     const { ids } = req.body;
@@ -154,7 +126,7 @@ export const softDelete = async (req, res) => {
   }
 };
 
-// Delete many
+// Restore
 export const restore = async (req, res) => {
   try {
     const { ids } = req.body;

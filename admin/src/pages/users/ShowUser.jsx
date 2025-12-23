@@ -33,72 +33,91 @@ const ShowUser = () => {
   
   const onAction = async () => {
     const deleted = user.deleted;
+
     try {
       const result = await Swal.fire({
-        title: `${deleted ? 'Restore User' : 'Delete User'}`,
-        text: `Sure you want to ${deleted ? 'restore' : 'delete'} this user??`,
+        title: deleted ? 'Restore User' : 'Delete User',
+        text: `Sure you want to ${deleted ? 'restore' : 'delete'} this user?`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonText: `Yes, ${deleted ? 'restore' : 'delete'} it`,
-        confirmButtonColor: `${deleted ? '#1d7451' : '#d50101'}`
+        confirmButtonColor: deleted ? '#1d7451' : '#d50101',
+
+        // 🔥 Loading handling
+        showLoaderOnConfirm: true,
+        allowOutsideClick: () => !Swal.isLoading(),
+
+        preConfirm: async () => {
+          try {
+            if (deleted) {
+              await userService.restore([id]);
+            } else {
+              await userService.softDelete([id]);
+            }
+          } catch (error) {
+            Swal.showValidationMessage(
+              `Failed to ${deleted ? 'restore' : 'delete'} user`
+            );
+          }
+        }
       });
 
-      if (!result.isConfirmed) return;
-      
-      if (deleted) {
-        const response = await userService.restore([id]);
+      if (result.isConfirmed) {
         navigate('/users', {
           state: {
-            message: "User restored successfully",
+            message: `User ${deleted ? 'restored' : 'deleted'} successfully`,
             status: 'success'
           }
-        })
-      } else {
-        const response = await userService.softDelete([id]);
-        navigate('/users', {
-          state: {
-            message: "User deleted successfully",
-            status: 'success'
-          }
-        })
-        
+        });
       }
+
     } catch (error) {
-      enqueueSnackbar(`Failed to ${deleted ? 'restore' : 'delete'} user`);
+      enqueueSnackbar(
+        `Failed to ${deleted ? 'restore' : 'delete'} user`,
+        { variant: 'error' }
+      );
     }
-  }
+  };
+
 
   const onHardDelete = async () => {
-    const result = Swal.fire({
-      title: 'Delete User Permenantly',
-      text: 'Sure you want to delete this user permenantly??',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete it',
-      confirmButtonColor: '#d50101'
-    })
-
-    if (!(await result).isConfirmed) {
-      return;
-    }
     try {
-      const response = await userService.hardDelete([id]);
-      enqueueSnackbar(response.data, {
-        variant: 'success'
-      });
-      navigate('/users', {
-        state: {
-          message: "User deleted successfully",
-          status: 'success'
+      const result = await Swal.fire({
+        title: 'Delete User Permanently',
+        text: 'Are you sure you want to delete this user permanently?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete it',
+        confirmButtonColor: '#d50101',
+
+        // 🔥 Loading handling
+        showLoaderOnConfirm: true,
+        allowOutsideClick: () => !Swal.isLoading(),
+
+        preConfirm: async () => {
+          try {
+            await userService.hardDelete([id]);
+          } catch (error) {
+            Swal.showValidationMessage('Failed to delete user permanently');
+          }
         }
-      })
-    } catch (error) {
-      enqueueSnackbar(error, {
-        variant: 'error'
       });
+
+      if (result.isConfirmed) {
+        navigate('/users', {
+          state: {
+            message: 'User deleted successfully',
+            status: 'success'
+          }
+        });
+      }
+
+    } catch (error) {
+      enqueueSnackbar('Failed to delete user', { variant: 'error' });
       console.error(error);
     }
-  }
+  };
+
 
   useEffect(() => {
     getUser();

@@ -24,72 +24,91 @@ const ShowProduct = () => {
 
   const onAction = async () => {
     const deleted = product.deleted;
+
     try {
       const result = await Swal.fire({
-        title: `${deleted ? 'Restore Product' : 'Delete Product'}`,
-        text: `Sure you want to ${deleted ? 'restore' : 'delete'} this product??`,
+        title: deleted ? 'Restore Product' : 'Delete Product',
+        text: `Sure you want to ${deleted ? 'restore' : 'delete'} this product?`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonText: `Yes, ${deleted ? 'restore' : 'delete'} it`,
-        confirmButtonColor: `${deleted ? '#1d7451' : '#d50101'}`
+        confirmButtonColor: deleted ? '#1d7451' : '#d50101',
+
+        // 🔥 Loading handling
+        showLoaderOnConfirm: true,
+        allowOutsideClick: () => !Swal.isLoading(),
+
+        preConfirm: async () => {
+          try {
+            if (deleted) {
+              await productService.restore([id]);
+            } else {
+              await productService.softDelete([id]);
+            }
+          } catch (error) {
+            Swal.showValidationMessage(
+              `Failed to ${deleted ? 'restore' : 'delete'} product`
+            );
+          }
+        }
       });
 
-      if (!result.isConfirmed) return;
-      
-      if (deleted) {
-        const response = await productService.restore([id]);
+      if (result.isConfirmed) {
         navigate('/products', {
           state: {
-            message: "Product restored successfully",
+            message: `Product ${deleted ? 'restored' : 'deleted'} successfully`,
             status: 'success'
           }
-        })
-      } else {
-        const response = await productService.softDelete([id]);
-        navigate('/products', {
-          state: {
-            message: "Product deleted successfully",
-            status: 'success'
-          }
-        })
-        
+        });
       }
+
     } catch (error) {
-      enqueueSnackbar(`Failed to ${deleted ? 'restore' : 'delete'} product`);
+      enqueueSnackbar(
+        `Failed to ${deleted ? 'restore' : 'delete'} product`,
+        { variant: 'error' }
+      );
     }
-  }
+  };
+
 
   const onHardDelete = async () => {
-    const result = Swal.fire({
-      title: 'Delete Product Permenantly',
-      text: 'Sure you want to delete this product permenantly??',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete it',
-      confirmButtonColor: '#d50101'
-    })
-
-    if (!(await result).isConfirmed) {
-      return;
-    }
     try {
-      const response = await productService.hardDelete([id]);
-      enqueueSnackbar(response.data, {
-        variant: 'success'
-      });
-      navigate('/products', {
-        state: {
-          message: "Product deleted successfully",
-          status: 'success'
+      const result = await Swal.fire({
+        title: 'Delete Product Permanently',
+        text: 'Sure you want to delete this product permanently?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete it',
+        confirmButtonColor: '#d50101',
+
+        // 🔥 Loading handling
+        showLoaderOnConfirm: true,
+        allowOutsideClick: () => !Swal.isLoading(),
+
+        preConfirm: async () => {
+          try {
+            await productService.hardDelete([id]);
+          } catch (error) {
+            Swal.showValidationMessage('Failed to delete product permanently');
+          }
         }
-      })
-    } catch (error) {
-      enqueueSnackbar(error, {
-        variant: 'error'
       });
+
+      if (result.isConfirmed) {
+        navigate('/products', {
+          state: {
+            message: 'Product deleted successfully',
+            status: 'success'
+          }
+        });
+      }
+
+    } catch (error) {
+      enqueueSnackbar('Failed to delete product', { variant: 'error' });
       console.error(error);
     }
-  }
+  };
+
 
   useEffect(() => {
     getProduct();
