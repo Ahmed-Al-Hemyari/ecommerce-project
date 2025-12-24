@@ -112,6 +112,7 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
     getProducts(search, categoryFilter, brandFilter, stockFilter, deletedFilter, currentPage, limit);
 
   const getCategories = async () => {
+    setLoading(true);
     try {
       const response = await categoryService.getCategories();
       setCategories(response.data.categories || []);
@@ -120,10 +121,13 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
         variant: 'error'
       });
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   }
 
   const getBrands = async () => {
+    setLoading(true);
     try {
       const response = await brandService.getBrands();
       setBrands(response.data.brands || []);
@@ -132,6 +136,8 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
         variant: 'error'
       });
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   }
 

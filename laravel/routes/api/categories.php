@@ -1,12 +1,13 @@
 <?php
 
 use App\Http\Controllers\CategoryController;
+use App\Http\Middleware\IsAdmin;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [CategoryController::class, 'getAllCategories']);
 Route::get('/{id}', [CategoryController::class, 'getCategoryById']);
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', IsAdmin::class])->group(function () {
     Route::post('/', [CategoryController::class, 'createCategory']);
     Route::put('/{id}', [CategoryController::class, 'updateCategory']);
     // Delete

@@ -7,18 +7,23 @@ import { ArrowLeft } from 'lucide-react';
 import Swal from 'sweetalert2';
 import productService from '@/services/productService';
 import OrdersList from '../orders/OrdersList';
+import Spinner from '@/components/UI/Spinner';
 
 const ShowProduct = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const getProduct = async () => {
+    setLoading(true);
     try {
       const response = await productService.getProduct(id);
       setProduct(response.data);
     } catch (error) {
       enqueueSnackbar("Failed to load product", { variant: 'error' });
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -125,7 +130,7 @@ const ShowProduct = () => {
 
   return (
     <MainLayout>
-      {product && (
+      {loading ? <Spinner/> : (
         <>
           <button
             onClick={() => navigate('/products')}

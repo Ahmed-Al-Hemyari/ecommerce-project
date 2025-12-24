@@ -141,7 +141,7 @@ const ShowBrand = () => {
           <ShowCard
             title={`${brand.name} Details`}
             data={data}
-            image={brand.logo ? `${import.meta.env.VITE_BACKEND_IMAGES_URL}/${brand.logo}` : defaultBrandImage}
+            image={brand.logo ? `${import.meta.env.VITE_BACKEND_IMAGES_URL}${brand.logo}` : defaultBrandImage}
             onEdit={true}
             onRuplicate={true}
             onDelete={!brand.deleted ? onAction : null}

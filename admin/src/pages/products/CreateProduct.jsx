@@ -7,6 +7,7 @@ import Dropdown from '@/components/UI/Forms/Dropdown';
 import CreateForm from '@/components/UI/Forms/CreateForm';
 import productService from '@/services/productService';
 import { useLocation, useNavigate } from 'react-router-dom';
+import Spinner from '@/components/UI/Spinner';
 
 const CreateProduct = () => {
   // Essentials
@@ -27,24 +28,33 @@ const CreateProduct = () => {
   const [image, setImage] = useState();
   // Ruplicate
   const [product, setProduct] = useState();
+  // Loading
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
+  const [loadingFetch, setLoadingFetch] = useState(false);
 
   const getCategories = async () => {
+    setLoadingFetch(true);
     try {
       const response = await categoryService.getCategories();
       setCategories(response.data.categories);
     } catch (error) {
       enqueueSnackbar('Failed to load categories');
       console.error(error);
+    } finally {
+      setLoadingFetch(false);
     }
   }
 
   const getBrands = async () => {
+    setLoadingFetch(true);
     try {
       const response = await brandService.getBrands();
       setBrands(response.data.brands);
     } catch (error) {
       enqueueSnackbar('Failed to load brands');
       console.error(error);
+    } finally {
+      setLoadingFetch(false);
     }
   }
 
@@ -66,12 +76,15 @@ const CreateProduct = () => {
 
     if (location.state?.id) {
       const id = location.state?.id;
+      setLoadingFetch(true);
       const fetchProduct = async () => {        
         try {
           const response = await productService.getProduct(id);
           setProduct(response.data);
         } catch (error) {
           enqueueSnackbar("Failed to load product");
+        } finally {
+          setLoadingFetch(false);
         }
       }
 
@@ -92,6 +105,7 @@ const CreateProduct = () => {
 
   const handleSubmit = async () => {
     setFormError('');
+    setLoadingSubmit(true);
 
     if (!name || !brand || !category || !price) {
       setFormError('Please fill all fields with * ');
@@ -119,6 +133,8 @@ const CreateProduct = () => {
       enqueueSnackbar(error || 'Failed to add product', { variant: "error"});
       console.log(error);
       return false;
+    } finally {
+      setLoadingSubmit(false);
     }
   }
   
@@ -177,8 +193,7 @@ const CreateProduct = () => {
       setValue: setPrice 
     },
     { 
-      label: 'Description', 
-      important: true, 
+      label: 'Description',
       type: 'textarea', 
       placeholder: 'Description', 
       value: description, 
@@ -196,15 +211,18 @@ const CreateProduct = () => {
 
   return (
     <MainLayout>
-      <CreateForm
-        formTitle='Create Product'
-        title='Product'
-        inputs={inputs}
-        link={'/products'}
-        formError={formError}
-        handleSubmit={handleSubmit}
-        resetForm={resetForm}
-      />
+      {loadingFetch ? <Spinner/> : (
+        <CreateForm
+          formTitle='Create Product'
+          title='Product'
+          inputs={inputs}
+          link={'/products'}
+          loading={loadingSubmit}
+          formError={formError}
+          handleSubmit={handleSubmit}
+          resetForm={resetForm}
+        />
+      )}
     </MainLayout>
   )
 }

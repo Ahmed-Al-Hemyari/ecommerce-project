@@ -7,18 +7,23 @@ import { enqueueSnackbar } from 'notistack';
 import { ArrowLeft } from 'lucide-react';
 import Swal from 'sweetalert2';
 import OrderItemCard from '@/components/UI/OrderItemCard';
+import Spinner from '@/components/UI/Spinner';
 
 const ShowOrder = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const getOrder = async () => {
+    setLoading(true);
     try {
       const response = await orderService.getOrder(id);
       setOrder(response.data);
     } catch (error) {
       enqueueSnackbar("Failed to load order", { variant: 'error' });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -136,43 +141,41 @@ const ShowOrder = () => {
 
   return (
     <MainLayout>
-      <button
-        onClick={() => navigate('/orders')}
-        className="flex items-center gap-1 mb-3 px-3 py-1.5 rounded-md text-sm font-medium bg-gray-200 hover:bg-gray-300"
-      >
-        <ArrowLeft size={16} /> Back
-      </button>
-      <ShowCard
-        title={`Order #${order.orderId}`}
-        data={data}
-        onEdit
-        onRuplicate
-        onDelete={onHardDelete}
-        onCancel={order.status === 'Cancelled' ? '' : onCancel}
-        link={'/orders'}
-      />
+      {loading ? <Spinner/> : (
+        <div>
+          <button
+            onClick={() => navigate('/orders')}
+            className="flex items-center gap-1 mb-3 px-3 py-1.5 rounded-md text-sm font-medium bg-gray-200 hover:bg-gray-300"
+          >
+            <ArrowLeft size={16} /> Back
+          </button>
+          <ShowCard
+            title={`Order #${order.orderId}`}
+            data={data}
+            onEdit
+            onRuplicate
+            onDelete={onHardDelete}
+            onCancel={order.status === 'Cancelled' ? '' : onCancel}
+            link={'/orders'}
+          />
 
-      <div className="h-6" />
+          <div className="h-6" />
 
-      <ShowCard
-        title="Shipping Information"
-        data={shippingData}
-      />
+          <ShowCard
+            title="Shipping Information"
+            data={shippingData}
+          />
 
-      <div className="h-6" />
-      <h1 className="text-2xl font-semibold mb-2">Products</h1>
-      {order.orderItems.map(item => (
-        <OrderItemCard
-          key={item._id}
-          item={item}
-        />
-      ))}
-      {/* <OrderItemCard/> */}
-
-      {/* <ShowCard
-        title="Order Items"
-        data={itemsData}
-      /> */}
+          <div className="h-6" />
+          <h1 className="text-2xl font-semibold mb-2">Products</h1>
+          {order.orderItems.map(item => (
+            <OrderItemCard
+              key={item._id}
+              item={item}
+            />
+          ))}
+        </div>
+      )}
     </MainLayout>
   );
 };

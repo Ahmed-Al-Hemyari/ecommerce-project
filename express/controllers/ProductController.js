@@ -236,35 +236,6 @@ export const addStock = async (req, res) => {
   }
 };
 
-// // Delete a product
-// export const deleteProduct = async (req, res) => {
-//   try {
-//     const deletedProduct = await Product.findByIdAndUpdate(req.params.id, { deleted: true });
-//     if (!deletedProduct) {
-//       return res.status(404).json({ message: 'Product not found' });
-//     }
-//     res.status(200).json({ message: 'Product deleted successfully' });
-//   } catch (error) {
-//     console.error('Error deleting product:', error);
-//     res.status(500).json({ message: 'Server error' });
-//   }
-// };
-
-// // Restore a product
-// export const restoreProduct = async (req, res) => {
-//   try {
-//     const restoredProduct = await Product.findByIdAndUpdate(req.params.id, { deleted: false });
-//     if (!restoredProduct) {
-//       return res.status(404).json({ message: 'Product not found' });
-//     }
-//     res.status(200).json({ message: 'Product restored successfully' });
-//   } catch (error) {
-//     console.error('Error restoring product:', error);
-//     res.status(500).json({ message: 'Server error' });
-//   }
-// };
-
-
 // // Delete
 // Soft Delete
 export const softDelete = async (req, res) => {

@@ -6,6 +6,7 @@ import { enqueueSnackbar } from 'notistack';
 import UpdateForm from '@/components/UI/Forms/UpdateForm';
 import productService from '@/services/productService';
 import categoryService from '@/services/categoryService';
+import Spinner from '@/components/UI/Spinner';
 
 const UpdateProduct = () => {
   // id
@@ -25,35 +26,47 @@ const UpdateProduct = () => {
   const [price, setPrice] = useState(0);
   const [image, setImage] = useState();
   const [description, setDescription] = useState('');
+  // Loading
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
+  const [loadingFetch, setLoadingFetch] = useState(false);
 
   const location = useLocation();
   const navigate = useNavigate();
   
   const getProduct = async (id) => {
+    setLoadingFetch(true);
     try {
       const response = await productService.getProduct(id);
       setProduct(response.data);
     } catch (error) {
       enqueueSnackbar('Failed to load product', { variant: 'error' });
       console.error(error);
+    } finally {
+      setLoadingFetch(false);
     }
   }
 
   const getBrands = async () => {
+    setLoadingFetch(true);
     try {
       const response = await brandService.getBrands();
       setBrands(response.data.brands);
     } catch (error) {
       enqueueSnackbar("Failed to load brands", { variant: 'error' });    
+    } finally {
+      setLoadingFetch(false);
     }
   }
 
   const getCategories = async () => {
+    setLoadingFetch(true);
     try {
       const response = await categoryService.getCategories();
       setCategories(response.data.categories);
     } catch (error) {
       enqueueSnackbar("Failed to load categories", { variant: 'error' });    
+    } finally {
+      setLoadingFetch(false);
     }
   }
   
@@ -76,6 +89,8 @@ const UpdateProduct = () => {
   const handleSubmit = async () => {
     setFormError('');
 
+    setLoadingSubmit(true);
+
     if (!name || !brand || !category || !price) {
       setFormError('Please fill all fields with * ');
       return false;
@@ -89,6 +104,7 @@ const UpdateProduct = () => {
       formData.append('stock', stock);
       formData.append('price', price);
       formData.append('description', description);
+      console.log(category);
       if (image) formData.append('file', image); // MUST MATCH multer field name
 
       const response = await productService.updateProduct(id, formData);
@@ -96,6 +112,8 @@ const UpdateProduct = () => {
     } catch (error) {
       enqueueSnackbar(error || 'Failed to update product');
       return false;
+    } finally {
+      setLoadingSubmit(false);
     }
   }
 
@@ -174,14 +192,17 @@ const UpdateProduct = () => {
 
   return (
     <MainLayout>
-      <UpdateForm
-        inputs={inputs}
-        title={`Update ${product?.name || ''}`}
-        link={'/products'}
-        formError={formError}
-        handleSubmit={handleSubmit}
-        resetForm={resetForm}
-      />
+      {loadingFetch ? <Spinner/> : 
+        <UpdateForm
+          inputs={inputs}
+          title={`Update ${product?.name || ''}`}
+          link={'/products'}
+          loading={loadingSubmit}
+          formError={formError}
+          handleSubmit={handleSubmit}
+          resetForm={resetForm}
+        />
+      }
     </MainLayout>
   )
 }

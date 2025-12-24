@@ -7,13 +7,16 @@ import { useNavigate, useParams } from 'react-router-dom'
 import OrdersList from '../orders/OrdersList';
 import { ArrowLeft } from 'lucide-react';
 import Swal from 'sweetalert2';
+import Spinner from '@/components/UI/Spinner';
 
 const ShowUser = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [user, setUser] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const getUser = async () => {
+    setLoading(true);
     try {
       const response = await userService.getUser(id);
       const formatted = {
@@ -28,6 +31,8 @@ const ShowUser = () => {
       setUser(formatted);
     } catch (error) {
       enqueueSnackbar("Failed to load user", { variant: 'error' });
+    } finally {
+      setLoading(false);
     }
   }
   
@@ -148,7 +153,7 @@ const ShowUser = () => {
 
   return (
     <MainLayout>
-      { user && (
+      { loading ? <Spinner/> : (
         <>
           <button
             onClick={() => navigate('/users')}

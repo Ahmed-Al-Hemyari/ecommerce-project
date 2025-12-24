@@ -6,6 +6,7 @@ use App\Http\Resources\BrandResource;
 use App\Models\Brand;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class BrandController extends Controller
 {
@@ -47,8 +48,8 @@ class BrandController extends Controller
 
         if ($request->hasFile('file')) {
             $file = $request->file('file');
-            $filename = time() . '_' . $request->input('name') . '.' . $file->getClientOriginalExtension();
-            $path = $file->storeAs('brands', $filename, 'public');
+            $filename = time() . '_' . Str::slug($credentials['name']) . '.' . $file->getClientOriginalExtension();
+            $file->storeAs('brands', $filename, 'public');
             $credentials['logo'] = $filename;
         }
 
