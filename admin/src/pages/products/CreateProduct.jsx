@@ -213,8 +213,7 @@ const CreateProduct = () => {
     <MainLayout>
       {loadingFetch ? <Spinner/> : (
         <CreateForm
-          formTitle='Create Product'
-          title='Product'
+          title='Create Product'
           inputs={inputs}
           link={'/products'}
           loading={loadingSubmit}

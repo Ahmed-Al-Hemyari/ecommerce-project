@@ -102,13 +102,11 @@ const CreateOrder = () => {
       orderItems: orderItems.map(item => ({
         product: item.product._id || item.product,
         quantity: item.quantity,
-        price: item.price,
       })),
       shipping,
     };
 
     console.log(payload);
-
 
     try {
       const response = await orderService.createOrder(payload);

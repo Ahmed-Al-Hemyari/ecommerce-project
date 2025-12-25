@@ -98,13 +98,13 @@ const UpdateProduct = () => {
 
     try {
       const formData = new FormData();
+      formData.append('_method', 'PUT');
       formData.append('name', name);
       formData.append('brand', brand);
       formData.append('category', category);
       formData.append('stock', stock);
       formData.append('price', price);
       formData.append('description', description);
-      console.log(category);
       if (image) formData.append('file', image); // MUST MATCH multer field name
 
       const response = await productService.updateProduct(id, formData);

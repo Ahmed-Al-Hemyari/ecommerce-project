@@ -8,6 +8,8 @@ Route::get('/', function () {
 });
 
 Route::prefix('auth')->group(base_path('routes/api/auth.php'));
+Route::prefix('users')->group(base_path('routes/api/users.php'));
 Route::prefix('categories')->group(base_path('routes/api/categories.php'));
 Route::prefix('brands')->group(base_path('routes/api/brands.php'));
 Route::prefix('products')->group(base_path('routes/api/products.php'));
+Route::prefix('orders')->group(base_path('routes/api/orders.php'));

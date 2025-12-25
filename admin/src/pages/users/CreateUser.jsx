@@ -7,6 +7,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import userService from '@/services/userService';
 import extractPhoneParts from '@/utils/ExtractPhoneParts';
 import { allCountries } from 'country-telephone-data';
+import Spinner from '@/components/UI/Spinner';
 
 const CreateUser = () => {
   // Fields
@@ -17,9 +18,11 @@ const CreateUser = () => {
   const [role, setRole] = useState('');
   // Ruplicate
   const [user, setUser] = useState();
-
   // Errors
   const [formError, setFormError] = useState('');
+  // Loading
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
+  const [loadingFetch, setLoadingFetch] = useState(false);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -28,6 +31,7 @@ const CreateUser = () => {
   const phoneValidation = () => {
     if (!phone.trim() || !password) {
       setFormError("Please fill all fields with *");
+      setLoadingSubmit(false);
       return false;
     }
 
@@ -36,6 +40,7 @@ const CreateUser = () => {
 
     if (!/^\+?[0-9]{9,15}$/.test(fullPhone)) {
       setPhoneError("Invalid phone number");
+      setLoadingSubmit(false);
       return false;
     }
 
@@ -55,12 +60,15 @@ const CreateUser = () => {
 
     if (location.state?.id) {
       const id = location.state?.id;
+      setLoadingFetch(true);
       const fetchUser = async () => {        
         try {
           const response = await userService.getUser(id);
           setUser(response.data);
         } catch (error) {
           enqueueSnackbar("Failed to load user");
+        } finally {
+          setLoadingFetch(false);
         }
       }
 
@@ -82,10 +90,11 @@ const CreateUser = () => {
 
   const handleSubmit = async () => {
     setFormError('');
-    console.log(name, email, phone, role);
+    setLoadingSubmit(true);
 
     if (!name || !email || !phone || !role) {
       setFormError('Please fill all fields with * ');
+      setLoadingSubmit(false);
       return false;
     }
 
@@ -95,6 +104,7 @@ const CreateUser = () => {
 
     if (!/^\+?[0-9]{9,15}$/.test(fullPhone)) {
       setPhoneError("Invalid phone number");
+      setLoadingSubmit(false);
       return false;
     }
 
@@ -108,7 +118,10 @@ const CreateUser = () => {
       return true;
     } catch (error) {
       enqueueSnackbar(error || 'Failed to add user');
+      console.log(error);
       return false;
+    } finally {
+      setLoadingSubmit(false);
     }
   }
 
@@ -163,14 +176,17 @@ const CreateUser = () => {
   ]
   return (
     <MainLayout>
-      <CreateForm
-        title='Create User'
-        inputs={inputs}
-        link={'/users'}
-        formError={formError}
-        handleSubmit={handleSubmit}
-        resetForm={resetForm}
-      />
+      {loadingFetch ? <Spinner/> : (
+        <CreateForm
+          title='Create User'
+          inputs={inputs}
+          link={'/users'}
+          loading={loadingSubmit}
+          formError={formError}
+          handleSubmit={handleSubmit}
+          resetForm={resetForm}
+        />
+      )}
     </MainLayout>
   )
 }

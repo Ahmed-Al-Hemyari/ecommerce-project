@@ -6,6 +6,7 @@ import userService from '@/services/userService';
 import { enqueueSnackbar } from 'notistack';
 import extractPhoneParts from '@/utils/ExtractPhoneParts';
 import { allCountries } from 'country-telephone-data';
+import Spinner from '@/components/UI/Spinner';
 
 const UpdateUser = () => {
   const { id } = useParams();
@@ -23,13 +24,20 @@ const UpdateUser = () => {
   const [formError, setFormError] = useState("");
   const [phoneError, setPhoneError] = useState("");
 
+  // Loading
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
+  const [loadingFetch, setLoadingFetch] = useState(false);
+
   // Get User
   const getUser = async () => {
+    setLoadingFetch(true);
     try {
       const response = await userService.getUser(id);
       setUser(response.data);
     } catch (error) {
       enqueueSnackbar("Failed to load user", { variant: 'error' });
+    } finally {
+      setLoadingFetch(false);
     }
   }
 
@@ -96,11 +104,13 @@ const UpdateUser = () => {
   ];
 
   const handleSubmit = async () => {
+    setLoadingSubmit(true);
     setFormError('');
     setPhoneError('');
 
     if (!name || !email || !phone || !role) {
       setFormError('Please fill all fields with * ');
+      setLoadingSubmit(false);
       return false;
     }
 
@@ -110,6 +120,7 @@ const UpdateUser = () => {
 
     if (!/^\+?[0-9]{9,15}$/.test(fullPhone)) {
       setPhoneError("Invalid phone number");
+      setLoadingSubmit(false);
       return false;
     }
 
@@ -124,6 +135,8 @@ const UpdateUser = () => {
     } catch (error) {
       enqueueSnackbar(error || 'Failed to update user');
       return false;
+    } finally {
+      setLoadingSubmit(false);
     }
   }
 
@@ -142,14 +155,17 @@ const UpdateUser = () => {
 
   return (
     <MainLayout>
-      <UpdateForm
-        inputs={inputs}
-        title={`Update ${user.name}`}
-        link={'/users'}
-        formError={formError}
-        handleSubmit={handleSubmit}
-        resetForm={resetForm}
-      />
+      {loadingFetch ? <Spinner/> : (
+        <UpdateForm
+          inputs={inputs}
+          title={`Update ${user.name}`}
+          link={'/users'}
+          loading={loadingSubmit}
+          formError={formError}
+          handleSubmit={handleSubmit}
+          resetForm={resetForm}
+        />
+      )}
     </MainLayout>
   )
 }

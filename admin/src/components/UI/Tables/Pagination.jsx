@@ -65,7 +65,7 @@ const Pagination = ({
       <div className="flex items-center space-x-2">
         <span className="text-sm text-gray-700">Items per page:</span>
         <select
-          className="border rounded-xl outline-0 px-2 py-1"
+          className="border rounded-md outline-0 px-2 py-1"
           value={limit}
           onChange={(e) => { setLimit(Number(e.target.value)); setCurrentPage(1);}}
         >

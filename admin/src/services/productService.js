@@ -15,7 +15,7 @@ export const productService = {
     },
     getProduct : (id) => api.get(`/products/${id}`),
     createProduct : (data) => api.post("/products", data),
-    updateProduct : (id, data) => api.put(`/products/${id}`, data),
+    updateProduct : (id, data) => api.post(`/products/${id}`, data),
     addStock : (id, stock) => api.patch(`/products/add-stock/${id}`, { stock }),
    
     

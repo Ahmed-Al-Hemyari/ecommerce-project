@@ -88,7 +88,7 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
       setTotalPages(response.data.totalPages);
       setTotalItems(response.data.totalItems);
     } catch (error) {
-      enqueueSnackbar('Failed to load orders', { variant: 'error' });
+      enqueueSnackbar(error || 'Failed to load orders', { variant: 'error' });
       console.error(error);
     } finally {
       setLoading(false);

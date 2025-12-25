@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 
 
 const OrderItemCard = ({ item, onViewProduct }) => {
-  const { product, quantity, price } = item;
+  const { product, quantity } = item;
+  const price = Number(item.price);
   const subtotal = quantity * price;
 
   const [fetchedProduct, setFetchedProduct] = useState([]);

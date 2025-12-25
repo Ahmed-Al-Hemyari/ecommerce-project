@@ -24,7 +24,7 @@ class User extends Authenticatable
         'email',
         'phone',
         'role',
-        'password',
+        // 'password',
     ];
 
     /**
@@ -52,5 +52,26 @@ class User extends Authenticatable
 
     public function orders() {
         return $this->hasMany(Order::class);
+    }
+
+    public function scopeFilter($query, array $filters) {
+        $query->when($filters['search'] ?? null, function ($q, $search) {
+            $q->where(function ($sub) use ($search) {
+                $sub->where('name', 'LIKE', "%$search%")
+                    ->orWhere('email', 'LIKE', "%$search%")
+                    ->orWhere('phone', 'LIKE', "%$search%")
+                    ->orWhere('role', 'LIKE', "%$search%");
+            });
+        });
+
+        $query->when($filters['role'] ?? null, function ($q, $role) {
+            $q->where('role', 'LIKE', "%$role%");
+        });
+
+        $query->when($filters['deleted'] ?? null, function ($q, $deleted) {
+            if ($deleted) {
+                $q->onlyTrashed();
+            }
+        });
     }
 }

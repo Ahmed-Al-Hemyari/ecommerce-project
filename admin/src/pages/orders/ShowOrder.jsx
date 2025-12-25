@@ -20,6 +20,7 @@ const ShowOrder = () => {
     try {
       const response = await orderService.getOrder(id);
       setOrder(response.data);
+      console.log(response.data);
     } catch (error) {
       enqueueSnackbar("Failed to load order", { variant: 'error' });
     } finally {
@@ -150,7 +151,7 @@ const ShowOrder = () => {
             <ArrowLeft size={16} /> Back
           </button>
           <ShowCard
-            title={`Order #${order.orderId}`}
+            title={`Order #${order._id}`}
             data={data}
             onEdit
             onRuplicate

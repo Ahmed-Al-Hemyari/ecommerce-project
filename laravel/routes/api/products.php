@@ -10,6 +10,7 @@ Route::get('/{id}', [ProductController::class, 'getProductById']);
 Route::middleware(['auth:sanctum', IsAdmin::class])->group(function () {
     Route::post('/', [ProductController::class, 'createProduct']);
     Route::put('/{id}', [ProductController::class, 'updateProduct']);
+    Route::patch('/add-stock/{id}', [ProductController::class, 'addStock']);
     // Delete
     Route::patch('/delete', [ProductController::class, 'softDelete']);
     Route::patch('/restore', [ProductController::class, 'restore']);

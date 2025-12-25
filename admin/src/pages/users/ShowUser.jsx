@@ -19,6 +19,7 @@ const ShowUser = () => {
     setLoading(true);
     try {
       const response = await userService.getUser(id);
+      console.log(response.data);
       const formatted = {
         ...response.data,
         role: response.data.role.charAt(0).toUpperCase() + response.data.role.slice(1),
@@ -30,7 +31,7 @@ const ShowUser = () => {
       };
       setUser(formatted);
     } catch (error) {
-      enqueueSnackbar("Failed to load user", { variant: 'error' });
+      enqueueSnackbar(error || "Failed to load user", { variant: 'error' });
     } finally {
       setLoading(false);
     }

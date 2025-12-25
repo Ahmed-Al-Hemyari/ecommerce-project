@@ -2,7 +2,6 @@
 
 namespace App\Http\Resources;
 
-use Illuminate\Database\Eloquent\Attributes\UseResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -17,7 +16,7 @@ class OrderResource extends JsonResource
     {
         return [
             '_id' => (string) $this->id,
-            'user' => new UseResource($this->whenLoaded('user')),
+            'user' => new UserResource($this->whenLoaded('user')),
             'orderItems' => OrderItemResource::collection($this->whenLoaded('orderItems')),
             'shipping' => [
                 'address1' => $this->address1,

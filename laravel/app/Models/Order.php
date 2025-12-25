@@ -29,4 +29,22 @@ class Order extends Model
     public function orderItems() {
         return $this->hasMany(OrderItem::class);
     }
+
+    public function scopeFilter($query, array $filters) {
+        $query->when($filters['search'] ?? null, function ($q, $search) {
+            $q->where(function ($sub) use ($search) {
+                $sub->where('status', 'LIKE', "%$search%")
+                    ->orWhereHas('user', fn($q2) => $q2->where('name', 'LIKE', "%$search%"))
+                    ->orWhere('totalAmount', '=', $search);
+            });
+        });
+
+        $query->when($filters['status'] ?? null, function ($q, $status) {
+            $q->whereHas('status', 'LIKE', "%$status%");
+        });
+        
+        $query->when($filters['payed'] ?? null, function ($q, $payed) {
+            $q->whereHas('payed', '=', "%$payed%");
+        });
+    }
 }
