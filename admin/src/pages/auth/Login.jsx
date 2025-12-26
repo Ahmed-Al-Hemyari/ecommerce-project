@@ -7,6 +7,7 @@ import { allCountries } from 'country-telephone-data';
 import authService from '@/services/authService';
 import PhoneInput from '@/components/UI/Forms/PhoneInput';
 import Input from '@/components/UI/Forms/Input';
+import { Loader2 } from 'lucide-react';
 
 
 const Login = () => {
@@ -24,6 +25,7 @@ const Login = () => {
   // Errors
   const [formError, setFormError] = useState("");
   const [phoneError, setPhoneError] = useState("");
+  const [loading, setLoading] = useState(false);
   
   const location = useLocation();
   const { enqueueSnackbar } = useSnackbar();
@@ -65,6 +67,8 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    setLoading(true);
+
     setFormError("");
     setPhoneError("");
 
@@ -75,8 +79,11 @@ const Login = () => {
     } else {
       isValid = emailValidation(email, password);
     }
-
-    if (!isValid) return;
+    
+    if (!isValid) {
+      setLoading(false);
+      return; 
+    }
 
     try {
       let data;
@@ -100,6 +107,8 @@ const Login = () => {
     } catch (error) {
       console.error(error);
       setFormError(error || "Login failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
 };
 
@@ -196,8 +205,18 @@ const Login = () => {
 
           <button
             type="submit"
-            className="w-full cursor-pointer py-3 mt-2 rounded-lg bg-(--color-green) text-(--color-dark-gray) font-semibold hover:opacity-90"
+            className={
+              `w-full cursor-pointer flex flex-row items-center justify-center
+              py-3 mt-2 rounded-lg bg-(--color-green) 
+              text-(--color-dark-gray) font-semibold hover:opacity-90 ${
+                loading ? 
+                  'bg-(--color-green)/50 cursor-not-allowed' : 
+                  'bg-(--color-green) hover:opacity-90'
+              }`
+            }
+            disabled={loading}
           >
+            {(loading) && <Loader2 className='w-4 h-4 animate-spin mr-2'/>}
             Login
           </button>
         </form>

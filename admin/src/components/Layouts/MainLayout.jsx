@@ -47,35 +47,36 @@ const MainLayout = ({ children }) => {
 
     const handleLogout = async () => {
         const result = await Swal.fire({
-            title: "Sure you want to log out?",
-            icon: "question",
-            showCloseButton: true,
-            confirmButtonText: "Yes, log out!",
-            showCancelButton: true,
-            confirmButtonColor: "#82E2BB"
+        title: "Sure you want to log out?",
+        icon: "question",
+        showCloseButton: true,
+        confirmButtonText: "Yes, log out!",
+        showCancelButton: true,
+        confirmButtonColor: "#82E2BB",
+        allowOutsideClick: false,
+        preConfirm: async () => {
+            Swal.showLoading();
+            try {
+            await authService.logout();
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            } catch (error) {
+            Swal.showValidationMessage(`Failed to logout: ${error}`);
+            return false;
+            }
+        }
         });
 
-        if (!result.isConfirmed) return;
-
-        try {
-            const response = await authService.logout();
-        } catch (error) {
-            enqueueSnackbar("Failed to logout", {
-                variant: 'error'
-            });
-            return;
-        }
-
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-
+        if (result.isConfirmed) {
         navigate('/login', {
             state: {
-                message: "Logged out successfully",
-                status: "success"
+            message: "Logged out successfully",
+            status: "success"
             }
         });
+        }
     };
+
   return (
     <div>
         <SidebarProvider>

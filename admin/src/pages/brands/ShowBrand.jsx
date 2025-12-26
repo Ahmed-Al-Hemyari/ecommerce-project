@@ -29,94 +29,6 @@ const ShowBrand = () => {
     }
   }
 
-  const onAction = async () => {
-    const deleted = brand.deleted;
-
-    try {
-      const result = await Swal.fire({
-        title: deleted ? 'Restore Brand' : 'Delete Brand',
-        text: `Sure you want to ${deleted ? 'restore' : 'delete'} this brand?`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: `Yes, ${deleted ? 'restore' : 'delete'} it`,
-        confirmButtonColor: deleted ? '#2222dd' : '#aa2222',
-
-        // 🔥 loading handling
-        showLoaderOnConfirm: true,
-        allowOutsideClick: () => !Swal.isLoading(),
-
-        preConfirm: async () => {
-          try {
-            if (deleted) {
-              await brandService.restore([id]);
-            } else {
-              await brandService.softDelete([id]);
-            }
-          } catch (error) {
-            Swal.showValidationMessage(
-              `Failed to ${deleted ? 'restore' : 'delete'} brand`
-            );
-          }
-        }
-      });
-
-      if (result.isConfirmed) {
-        navigate('/brands', {
-          state: {
-            message: `Brand ${deleted ? 'restored' : 'deleted'} successfully`,
-            status: 'success'
-          }
-        });
-      }
-
-    } catch (error) {
-      enqueueSnackbar(
-        `Failed to ${deleted ? 'restore' : 'delete'} brand`,
-        { variant: 'error' }
-      );
-    }
-  };
-
-
-  const onHardDelete = async () => {
-    try {
-      const result = await Swal.fire({
-        title: 'Delete Brand Permanently',
-        text: 'Sure you want to delete this brand permanently?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, delete it',
-        confirmButtonColor: '#d50101',
-
-        // 🔥 loading handling
-        showLoaderOnConfirm: true,
-        allowOutsideClick: () => !Swal.isLoading(),
-
-        preConfirm: async () => {
-          try {
-            await brandService.hardDelete([id]);
-          } catch (error) {
-            Swal.showValidationMessage('Failed to delete brand permanently');
-          }
-        }
-      });
-
-      if (result.isConfirmed) {
-        navigate('/brands', {
-          state: {
-            message: 'Brand deleted successfully',
-            status: 'success'
-          }
-        });
-      }
-
-    } catch (error) {
-      enqueueSnackbar('Failed to delete brand', { variant: 'error' });
-      console.error(error);
-    }
-  };
-
-
   useEffect(() => {
     getBrand();
   }, []);
@@ -140,13 +52,16 @@ const ShowBrand = () => {
           </button>
           <ShowCard
             title={`${brand.name} Details`}
-            data={data}
             image={brand.logo ? `${import.meta.env.VITE_BACKEND_IMAGES_URL}${brand.logo}` : defaultBrandImage}
-            onEdit={true}
-            onRuplicate={true}
-            onDelete={!brand.deleted ? onAction : null}
-            onRestore={brand.deleted ? onAction : null}
-            onHardDelete={onHardDelete}
+            data={data}
+            type={'Brand'}
+            actions={
+              brand.deleted ? [
+                'edit', 'restore', 'hard-delete' 
+              ] : [
+                'ruplicate', 'edit', 'soft-delete'
+              ]
+            }
             deleted={brand.deleted}
             link={'/brands'}
           />

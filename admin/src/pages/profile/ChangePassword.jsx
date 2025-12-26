@@ -12,10 +12,13 @@ const ChangePassword = () => {
   const [formError, setFormError] = useState("");
   const [passwordConfirmationError, setPasswordConfirmationError] = useState("");
 
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     setFormError('');
     setPasswordConfirmation('');
@@ -26,12 +29,14 @@ const ChangePassword = () => {
 
     if (!trimmedOldPassword || !trimmedNewPassword || !trimmedPasswordConfirmation) {
       setFormError("Fill all fields with *");
+      setLoading(false);
       return;
     }
 
     // Password confirmation check
     if (trimmedNewPassword !== trimmedPasswordConfirmation) {
       setPasswordConfirmationError("Password confirmation is different than the password!!");
+      setLoading(false);
       return;
     }
 
@@ -53,6 +58,8 @@ const ChangePassword = () => {
     } catch (error) {
         console.error("Updating error:", error.message);
         setFormError(error.message || "Something went wrong");
+    } finally {
+        setLoading(false);
     }
   }
   return (
@@ -99,10 +106,18 @@ const ChangePassword = () => {
                     </div>
 
                     <button
-                    type="submit"
-                    className="w-full cursor-pointer py-3 mt-2 rounded-lg bg-(--color-green) text-(--color-dark-gray) font-semibold hover:opacity-90"
+                        type="submit"
+                        className={`w-full flex flex-row items-center justify-center
+                            cursor-pointer py-3 mt-2 rounded-lg 
+                            text-(--color-dark-gray) font-semibold 
+                             ${
+                                loading ? 
+                                    'bg-(--color-green)/90 cursor-not-allowed' : 
+                                    'bg-(--color-green) hover:opacity-90'
+                        }`}
                     >
-                    Change Password
+                        {(loading) && <Loader2 className='w-4 h-4 animate-spin mr-2'/>}
+                        Change Password
                     </button>
                 </form>
             </AuthLayout>

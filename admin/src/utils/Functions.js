@@ -31,7 +31,7 @@ const ENTITY_CONFIG = {
 
 // // // Delete & Restore functions
 
-export const hardDelete = async (ids, type, setSelected, getData) => {
+export const hardDelete = async (ids, type, setSelected, action) => {
   const config = ENTITY_CONFIG[type];
   if (!config) return;
 
@@ -63,11 +63,11 @@ export const hardDelete = async (ids, type, setSelected, getData) => {
     });
     
     setSelected && setSelected([]);
-    getData && getData();
+    action && action();
   }
 };
 
-export const softDelete = async (ids, type, setSelected, getData) => {
+export const softDelete = async (ids, type, setSelected, action) => {
   const config = ENTITY_CONFIG[type];
   if (!config) return;
 
@@ -99,11 +99,11 @@ export const softDelete = async (ids, type, setSelected, getData) => {
     });
     
     setSelected && setSelected([]);
-    getData && getData();
+    action && action();
   }
 };
 
-export const restore = async (ids, type, setSelected, getData) => {
+export const restore = async (ids, type, setSelected, action) => {
   const config = ENTITY_CONFIG[type];
   if (!config) return;
 
@@ -135,13 +135,13 @@ export const restore = async (ids, type, setSelected, getData) => {
     });
     
     setSelected && setSelected([]);
-    getData && getData();
+    action && action();
   }
 };
 
 
 // // // Users List Functions
-export const grantAdmin = async (ids, setSelected, getData) => {
+export const grantAdmin = async (ids, setSelected, action) => {
   const result = await Swal.fire({
     title: 'Grant Admin',
     text: `Are you sure you want to grant admin for selected users?`,
@@ -168,11 +168,11 @@ export const grantAdmin = async (ids, setSelected, getData) => {
     });
     
     setSelected && setSelected([]);
-    getData && getData();
+    action && action();
   }
 }
 
-export const revokeAdmin = async (ids, setSelected, getData) => {
+export const revokeAdmin = async (ids, setSelected, action) => {
   const result = await Swal.fire({
     title: 'Revoke Admin',
     text: `Are you sure you want to revoke admin for selected users?`,
@@ -199,12 +199,12 @@ export const revokeAdmin = async (ids, setSelected, getData) => {
     });
     
     setSelected && setSelected([]);
-    getData && getData();
+    action && action();
   }
 }
 
 // // // Products List Functions
-export const handleAddStock = async (id, setSelected, getData) => {
+export const handleAddStock = async (id, setSelected, action) => {
   const result = await Swal.fire({
     title: 'Add Stock',
     text: 'Enter the value to add...',
@@ -236,12 +236,12 @@ export const handleAddStock = async (id, setSelected, getData) => {
   if (result.isConfirmed && result.value) {
     enqueueSnackbar(result.value, { variant: 'success' });
     setSelected && setSelected([]);
-    getData && getData();
+    action && action();
   }
 };
 
 // // // Orders List Functions
-export const handleCancel = async (id, setSelected, getData) => {
+export const handleCancel = async (id, setSelected, action) => {
   const result = await Swal.fire({
     title: `Cancel Order`,
     text: `Are you sure you want to cancel this order?`,
@@ -268,6 +268,6 @@ export const handleCancel = async (id, setSelected, getData) => {
     });
     
     setSelected && setSelected([]);
-    getData && getData();
+    action && action();
   }
 };

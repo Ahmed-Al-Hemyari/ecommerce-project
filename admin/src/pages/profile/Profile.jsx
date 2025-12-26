@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import defaultAvatar from "@/assets/default-avatar.png";
 import Swal from "sweetalert2";
 import { useSnackbar } from 'notistack'
+import authService from "@/services/authService";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -13,7 +14,10 @@ const Profile = () => {
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem('user'));
-    if (!storedUser) navigate("/login");
+    if (!storedUser) navigate("/login", { state: {
+      message: "Please login first!!",
+      status: 'warn'
+    }});
     setUser(storedUser);
   }, []);
 
@@ -38,20 +42,29 @@ const Profile = () => {
         showCloseButton: true,
         confirmButtonText: "Yes, log out!",
         showCancelButton: true,
-        confirmButtonColor: "#82E2BB"
-      });
-  
-      if (!result.isConfirmed) return;
-  
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-
-      navigate('/', {
-        state: {
-          message: "Logged out successfully",
-          status: "success"
+        confirmButtonColor: "#82E2BB",
+        allowOutsideClick: false,
+        preConfirm: async () => {
+          Swal.showLoading();
+          try {
+            await authService.logout();
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+          } catch (error) {
+            Swal.showValidationMessage(`Failed to logout: ${error}`);
+            return false;
+          }
         }
       });
+  
+      if (result.isConfirmed) {
+        navigate('/login', {
+          state: {
+            message: "Logged out successfully",
+            status: "success"
+          }
+        });
+      }
     };
 
   return (

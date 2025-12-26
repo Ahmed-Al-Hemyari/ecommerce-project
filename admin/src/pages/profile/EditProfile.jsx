@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import {allCountries} from 'country-telephone-data'
 import extractPhoneParts from '@/utils/ExtractPhoneParts';
 import authService from '@/services/authService';
+import { Loader2 } from 'lucide-react';
 
 const EditProfile = () => {
     const user = JSON.parse(localStorage.getItem('user'));
@@ -20,9 +21,12 @@ const EditProfile = () => {
     // Errors
     const [formError, setFormError] = useState("");
     const [phoneError, setPhoneError] = useState("");
+    // Loading
+    const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
         
         // Clear previous errors
         setFormError("");
@@ -36,6 +40,7 @@ const EditProfile = () => {
         // Required fields check
         if (!trimmedName || !trimmedEmail || !trimmedPhone) {
             setFormError("Please fill all fields with *");
+            setLoading(false);
             return;
         }
     
@@ -45,6 +50,7 @@ const EditProfile = () => {
         // Phone validation (9–15 digits, optional +)
         if (!/^\+?[0-9]{9,15}$/.test(normalizedPhone)) {
             setPhoneError("Invalid phone number");
+            setLoading(false);
             return;
         }
     
@@ -65,6 +71,8 @@ const EditProfile = () => {
         } catch (error) {
             console.error("Updating error:", error.message);
             setFormError(error.message || "Something went wrong");
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -123,25 +131,33 @@ const EditProfile = () => {
 
                         {/* Phone Input */}
                         <input
-                        type="tel"
-                        placeholder="123 456 7890"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        className={`flex-1 px-4 py-2 rounded-r-lg border ${
-                            phoneError || formError
-                            ? "border-red-500"
-                            : "border-(--color-light-gray)"
-                        } focus:outline-none focus:ring-2 focus:ring-(--color-green)`}
+                            type="tel"
+                            placeholder="123 456 7890"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            className={`flex-1 px-4 py-2 rounded-r-lg border ${
+                                phoneError || formError
+                                ? "border-red-500"
+                                : "border-(--color-light-gray)"
+                            } focus:outline-none focus:ring-2 focus:ring-(--color-green)`}
                         />
                     </div>
                     <p className="text-sm text-red-500 my-2">{phoneError}</p>
                     </div>
 
                     <button
-                    type="submit"
-                    className="w-full cursor-pointer py-3 mt-2 rounded-lg bg-(--color-green) text-(--color-dark-gray) font-semibold hover:opacity-90"
+                        type="submit"
+                        className={`w-full flex flex-row items-center justify-center
+                            cursor-pointer py-3 mt-2 rounded-lg 
+                            text-(--color-dark-gray) font-semibold 
+                             ${
+                                loading ? 
+                                    'bg-(--color-green)/90 cursor-not-allowed' : 
+                                    'bg-(--color-green) hover:opacity-90'
+                        }`}
                     >
-                    Update Profile
+                        {(loading) && <Loader2 className='w-4 h-4 animate-spin mr-2'/>}
+                        Update Profile
                     </button>
                 </form>
             </AuthLayout>

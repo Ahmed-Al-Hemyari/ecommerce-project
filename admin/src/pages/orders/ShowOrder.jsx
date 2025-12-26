@@ -27,83 +27,7 @@ const ShowOrder = () => {
       setLoading(false);
     }
   };
-
-  const onCancel = async () => {
-    try {
-      const result = await Swal.fire({
-        title: 'Cancel Order',
-        text: 'Are you sure you want to cancel this order?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, cancel it',
-        confirmButtonColor: '#dd2222',
-
-        // 🔥 Loading handling
-        showLoaderOnConfirm: true,
-        allowOutsideClick: () => !Swal.isLoading(),
-
-        preConfirm: async () => {
-          try {
-            await orderService.updateToCancelled([id]);
-          } catch (error) {
-            Swal.showValidationMessage('Failed to cancel order');
-          }
-        }
-      });
-
-      if (result.isConfirmed) {
-        navigate('/orders', {
-          state: {
-            message: 'Order cancelled successfully',
-            status: 'success'
-          }
-        });
-      }
-    } catch (error) {
-      enqueueSnackbar('Failed to cancel order', { variant: 'error' });
-    }
-  };
-
-
-  const onHardDelete = async () => {
-    try {
-      const result = await Swal.fire({
-        title: 'Delete Order Permanently',
-        text: 'Are you sure you want to delete this order permanently?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, delete it',
-        confirmButtonColor: '#d50101',
-
-        // 🔥 Loading handling
-        showLoaderOnConfirm: true,
-        allowOutsideClick: () => !Swal.isLoading(),
-
-        preConfirm: async () => {
-          try {
-            await orderService.hardDelete([id]);
-          } catch (error) {
-            Swal.showValidationMessage('Failed to delete order permanently');
-          }
-        }
-      });
-
-      if (result.isConfirmed) {
-        navigate('/orders', {
-          state: {
-            message: 'Order deleted successfully',
-            status: 'success'
-          }
-        });
-      }
-
-    } catch (error) {
-      enqueueSnackbar('Failed to delete order', { variant: 'error' });
-      console.error(error);
-    }
-  };
-
-
+  
   useEffect(() => {
     getOrder();
   }, [id]);
@@ -151,12 +75,12 @@ const ShowOrder = () => {
             <ArrowLeft size={16} /> Back
           </button>
           <ShowCard
-            title={`Order #${order._id}`}
+            title={`Order #${order.orderId || order._id}`}
             data={data}
-            onEdit
-            onRuplicate
-            onDelete={onHardDelete}
-            onCancel={order.status === 'Cancelled' ? '' : onCancel}
+            type={'Brand'}
+            actions={[
+                'ruplicate', 'edit', 'cancel', 'hard-delete' 
+            ]}
             link={'/orders'}
           />
 

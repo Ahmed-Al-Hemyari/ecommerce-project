@@ -28,89 +28,6 @@ const ShowCategory = () => {
     }
   }
 
-  const onAction = async () => {
-    const deleted = category.deleted;
-
-    try {
-      const result = await Swal.fire({
-        title: deleted ? 'Restore Category' : 'Delete Category',
-        text: `Sure you want to ${deleted ? 'restore' : 'delete'} this category?`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: `Yes, ${deleted ? 'restore' : 'delete'} it`,
-        confirmButtonColor: deleted ? '#1d7451' : '#d50101',
-
-        // 🔥 IMPORTANT PART
-        showLoaderOnConfirm: true,
-        allowOutsideClick: () => !Swal.isLoading(),
-
-        preConfirm: async () => {
-          try {
-            if (deleted) {
-              await categoryService.restore([id]);
-            } else {
-              await categoryService.softDelete([id]);
-            }
-          } catch (error) {
-            Swal.showValidationMessage(
-              `Failed to ${deleted ? 'restore' : 'delete'} category`
-            );
-          }
-        }
-      });
-
-      // If confirmed & API succeeded
-      if (result.isConfirmed) {
-        navigate('/categories', {
-          state: {
-            message: `Category ${deleted ? 'restored' : 'deleted'} successfully`,
-            status: 'success'
-          }
-        });
-      }
-
-    } catch (error) {
-      enqueueSnackbar(
-        `Failed to ${deleted ? 'restore' : 'delete'} category`,
-        { variant: 'error' }
-      );
-    }
-  };
-
-
-  const onHardDelete = async () => {
-    const result = await Swal.fire({
-      title: 'Delete Category Permenantly',
-      text: 'Sure you want to delete this category permenantly??',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete it',
-      confirmButtonColor: '#d50101',
-      confirmButtonColor: '#d50101',
-      allowOutsideClick: false,
-      preConfirm: async () => {
-        Swal.showLoading();
-        try {
-          await categoryService.hardDelete([id]);
-          return true;
-        } catch (error) {
-          Swal.showValidationMessage(`Request failed: ${error}`);
-          return false;
-        }
-      }
-    })
-
-    if (result.isConfirmed) {
-      navigate('/categories', {
-        state: {
-          message: "Category deleted successfully",
-          status: 'success'
-        }
-      })
-      return;
-    }
-  }
-
   useEffect(() => {
     getCategory();
   }, []);
@@ -141,11 +58,14 @@ const ShowCategory = () => {
             <ShowCard
               title={`${category.name} Details`}
               data={data}
-              onEdit={true}
-              onRuplicate={true}
-              onDelete={!category.deleted ? onAction : null}
-              onRestore={category.deleted ? onAction : null}
-              onHardDelete={onHardDelete}
+              type={'Category'}
+              actions={
+                category.deleted ? [
+                  'edit', 'restore', 'hard-delete' 
+                ] : [
+                  'ruplicate', 'edit', 'soft-delete'
+                ]
+              }
               deleted={category.deleted}
               link={'/categories'}
             />
