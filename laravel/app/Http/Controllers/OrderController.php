@@ -30,7 +30,7 @@ class OrderController extends Controller
 
     public function getOrderById($id) {
 
-        $order = Order::with('user', 'orderItems')->find($id);
+        $order = Order::with('user', 'orderItems.product')->find($id);
 
         if (!$order) {
             return response()->json([
@@ -111,6 +111,91 @@ class OrderController extends Controller
         });
     }
 
+    public function updateOrder(Request $request, $id)
+    {
+        $data = $request->validate([
+            'userId' => ['sometimes', 'exists:users,id'],
+            'shipping.address1' => ['sometimes', 'string'],
+            'shipping.address2' => ['nullable', 'string'],
+            'shipping.city' => ['sometimes', 'string'],
+            'shipping.country' => ['sometimes', 'string'],
+            'shipping.zip' => ['sometimes', 'string'],
+            'shipping.paymentMethod' => ['sometimes', 'string'],
+            'payed' => ['sometimes', 'boolean'],
+            'orderItems' => ['sometimes', 'array', 'min:1'],
+            'orderItems.*.product' => ['required_with:orderItems'],
+            'orderItems.*.quantity' => ['required_with:orderItems', 'integer', 'min:1'],
+        ]);
+
+        return DB::transaction(function () use ($data, $id) {
+
+            $order = Order::with('orderItems')->lockForUpdate()->findOrFail($id);
+
+            /* ---------------- Update Order Fields ---------------- */
+            $order->update(array_filter([
+                'user_id' => $data['userId'] ?? null,
+                'payed' => $data['payed'] ?? null,
+                'address1' => $data['shipping']['address1'] ?? null,
+                'address2' => $data['shipping']['address2'] ?? "",
+                'city' => $data['shipping']['city'] ?? null,
+                'country' => $data['shipping']['country'] ?? null,
+                'zip' => $data['shipping']['zip'] ?? null,
+                'paymentMethod' => $data['shipping']['paymentMethod'] ?? null,
+            ], fn ($v) => !is_null($v)));
+
+
+            /* ---------------- Update Order Items ---------------- */
+            if (isset($data['orderItems'])) {
+
+                // Restore old stock
+                foreach ($order->orderItems as $item) {
+                    Product::where('id', $item->product_id)
+                        ->increment('stock', $item->quantity);
+                }
+
+                // Remove old items
+                $order->orderItems()->delete();
+
+                $totalAmount = 0;
+
+                foreach ($data['orderItems'] as $item) {
+
+                    $productId = is_array($item['product'])
+                        ? $item['product']['_id']
+                        : $item['product'];
+
+                    $product = Product::lockForUpdate()->findOrFail($productId);
+
+                    if ($product->stock < $item['quantity']) {
+                        abort(422, "Insufficient stock for {$product->name}");
+                    }
+
+                    $lineTotal = $product->price * $item['quantity'];
+                    $totalAmount += $lineTotal;
+
+                    OrderItem::create([
+                        'order_id'  => $order->id,
+                        'product_id'=> $product->id,
+                        'price'     => $product->price,
+                        'quantity'  => $item['quantity'],
+                    ]);
+
+                    $product->decrement('stock', $item['quantity']);
+                }
+
+                $order->update(['totalAmount' => $totalAmount]);
+            }
+
+            $order->load('orderItems.product');
+
+            return response()->json([
+                'message' => 'Order updated successfully',
+                'order'   => new OrderResource($order),
+            ], 200);
+        });
+    }
+
+
 
     public function updateMany(Request $request) {
         $ids = $this->validateIds($request);
@@ -136,34 +221,10 @@ class OrderController extends Controller
     }
 
     // Delete functions
-    public function softDelete(Request $request) {
-        $ids = $this->validateIds($request);
-
-        $deleted = Order::whereIn('id', $ids)->delete();
-
-        return response()->json([
-            'message' => 'Orders deleted successfully'
-        ]);
-    }
-
-    public function restore(Request $request) {
-        $ids = $this->validateIds($request);
-
-        $deleted = Order::onlyTrashed()
-            ->whereIn('id', $ids)
-            ->restore();
-
-        return response()->json([
-            'message' => 'Orders restored successfully'
-        ]);
-    }
-
     public function hardDelete(Request $request) {
         $ids = $this->validateIds($request);
 
-        $deleted = Order::withTrashed()
-            ->whereIn('id', $ids)
-            ->forceDelete();
+        $deleted = Order::whereIn('id', $ids)->delete();
 
         return response()->json([
             'message' => 'Orders deleted permenantly successfully'

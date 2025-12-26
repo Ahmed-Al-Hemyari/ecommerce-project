@@ -109,6 +109,32 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
     if (!bulkAction || selected.length === 0) return;
 
     const runBulkAction = async () => {
+      const result = await Swal.fire({
+        title: 'Confirm action',
+        text: `Are you sure you want to apply "${bulkAction}" to ${selected.length} orders?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, proceed',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#1d7451',
+      });
+
+      if (!result.isConfirmed) {
+        setBulkAction('');
+        return;
+      }
+
+      // 🔄 Show loading modal
+      Swal.fire({
+        title: 'Processing...',
+        text: 'Please wait while orders are being updated',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
       try {
         switch (bulkAction) {
           case 'pending':
@@ -133,29 +159,37 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
             await orderService.updateToNotPayed(selected);
             break;
           case 'delete':
-            await hardDelete(
-              selected,
-              type,
-              setSelected,
-              refreshOrders
-            );
+            await hardDelete(selected, type, setSelected, refreshOrders);
             break;
           default:
             return;
         }
 
-        enqueueSnackbar('Orders updated successfully', { variant: 'success' });
+        Swal.fire({
+          title: 'Success',
+          text: 'Orders updated successfully',
+          icon: 'success',
+          confirmButtonColor: '#1d7451',
+        });
+
         setSelected([]);
         setBulkAction('');
         refreshOrders();
       } catch (err) {
-        enqueueSnackbar('Bulk update failed', { variant: 'error' });
         console.error(err);
+
+        Swal.fire({
+          title: 'Error',
+          text: 'Bulk update failed',
+          icon: 'error',
+          confirmButtonColor: '#d50101',
+        });
       }
     };
 
     runBulkAction();
   }, [bulkAction]);
+
 
   // Initial useEffect
   useEffect(() => {

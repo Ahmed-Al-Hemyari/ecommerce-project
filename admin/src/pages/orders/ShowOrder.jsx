@@ -5,7 +5,6 @@ import orderService from '@/services/orderService';
 import { useNavigate, useParams } from 'react-router-dom';
 import { enqueueSnackbar } from 'notistack';
 import { ArrowLeft } from 'lucide-react';
-import Swal from 'sweetalert2';
 import OrderItemCard from '@/components/UI/OrderItemCard';
 import Spinner from '@/components/UI/Spinner';
 
@@ -32,7 +31,7 @@ const ShowOrder = () => {
     getOrder();
   }, [id]);
 
-  if (!order) return <MainLayout><p>Loading...</p></MainLayout>;
+  if (!order) return <MainLayout><Spinner/></MainLayout>;
 
   // Prepare main details
   const data = [

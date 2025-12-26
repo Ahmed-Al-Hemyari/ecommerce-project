@@ -247,7 +247,7 @@ export const handleCancel = async (id, setSelected, action) => {
     text: `Are you sure you want to cancel this order?`,
     icon: 'warning',
     showCancelButton: true,
-    confirmButtonText: 'Yes, delete it',
+    confirmButtonText: 'Yes, cancel it',
     confirmButtonColor: '#d50101',
     allowOutsideClick: false,
     preConfirm: async () => {

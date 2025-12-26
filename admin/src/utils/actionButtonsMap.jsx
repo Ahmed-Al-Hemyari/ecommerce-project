@@ -60,7 +60,7 @@ export const actionButtons = (id, type, link, navigate, refreshAction) => ({
         color="#d50101"
         handleClick={() =>
           handleCancel(
-            [id],
+            id,
             null,
             () => refreshAction(`Order cancelled successfully`)
           )

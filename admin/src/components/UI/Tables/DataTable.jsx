@@ -56,16 +56,6 @@ const DataTable = ({
     bulkAction,
     setBulkAction = () => {}
   } = bulk;
-  // Action buttons map
-  // const actionButtons = (id) => ({
-  //   'soft-delete': <ActionButton Icon={Trash} size={18} color="#d50101" handleClick={() => softDelete([id], type, setSelected, refreshData)} />,
-  //   'hard-delete': <ActionButton Icon={Trash2} size={18} color="#d50101" handleClick={() => hardDelete([id], type, setSelected, refreshData)} />,
-  //   'restore': <ActionButton Icon={RefreshCcw} size={18} color="#2563EB" handleClick={() => restore([id], type, setSelected, refreshData)} />,
-  //   'cancel': <ActionButton Icon={X} size={18} color="#d50101" handleClick={() => handleCancel([id], setSelected, refreshData) } />,
-  //   'edit': <ActionButton Icon={Edit} size={18} color="#333333" handleClick={() => navigate(`${link}/update/${id}`)} />,
-  //   'show': <ActionButton Icon={Eye} size={18} color="#333333" handleClick={() => navigate(`${link}/show/${id}`)} />,
-  //   'add-to-stock': <ActionButton Icon={Plus} size={18} handleClick={() => handleAddStock([id], setSelected, refreshData)} />
-  // })
 
   // Cell Components
   const CellComponents = {

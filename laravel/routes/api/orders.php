@@ -10,6 +10,7 @@ Route::get('/{id}', [OrderController::class, 'getOrderById']);
 Route::middleware(['auth:sanctum', IsAdmin::class])->group(function () {
     Route::post('/', [OrderController::class, 'createOrder']);
     Route::put('/{id}', [OrderController::class, 'updateOrder']);
+    Route::patch('/bulk-update', [OrderController::class, 'updateMany']);
     // Delete
     Route::patch('/delete', [OrderController::class, 'softDelete']);
     Route::patch('/restore', [OrderController::class, 'restore']);

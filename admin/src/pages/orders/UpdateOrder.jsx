@@ -6,6 +6,8 @@ import userService from '@/services/userService';
 import productService from '@/services/productService';
 import orderService from '@/services/orderService';
 import SearchableDropdown from '@/components/UI/Forms/SearchableDropDown';
+import Spinner from '@/components/UI/Spinner';
+import { Loader2 } from 'lucide-react';
 
 const UpdateOrder = () => {
   const { id } = useParams();
@@ -32,6 +34,12 @@ const UpdateOrder = () => {
 
   // Errors
   const [formError, setFormError] = useState('');
+
+  // Loading
+  const [loadingFetch, setLoadingFetch] = useState(false);
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
+  // Clicked
+  const [clickedButton, setClickedButton] = useState('');
 
   // Load users, products, and order
   const getUsers = async () => {
@@ -60,6 +68,7 @@ const UpdateOrder = () => {
   };
 
   const getOrder = async () => {
+    setLoadingFetch(true);
     try {
       const response = await orderService.getOrder(id);
       const data = response.data; // assume this is a single order object
@@ -78,6 +87,8 @@ const UpdateOrder = () => {
     } catch (error) {
       enqueueSnackbar('Failed to load order', { variant: 'error' });
       console.error(error);
+    } finally {
+      setLoadingFetch(false);
     }
   };
 
@@ -104,23 +115,36 @@ const UpdateOrder = () => {
     setOrderItems((prev) => (prev.length === 1 ? prev : prev.filter((_, i) => i !== index)));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
+    setLoadingSubmit(true);
     setFormError('');
 
-    const action = e.nativeEvent.submitter?.value; // Get which button triggered submit
-
-    if (!user) return setFormError('User is required');
-    if (!orderItems.length) return setFormError('At least one product is required');
+    if (!user) {
+      setLoadingSubmit(false);
+      setFormError('User is required')
+      return false;
+    };
+    if (!orderItems.length) {
+      setLoadingSubmit(false);
+      setFormError('At least one product is required')
+      return false;
+    };
 
     for (let item of orderItems) {
       if (!item.product) return setFormError('All products must be selected');
       if (!item.quantity || item.quantity <= 0)
-        return setFormError('Quantity must be greater than 0');
+      {
+        setFormError('Quantity must be greater than 0')
+        setLoadingSubmit(false);
+        return false;
+      }
     }
 
-    if (!shipping.address1 || !shipping.city || !shipping.zip || !shipping.country)
-      return setFormError('Shipping information is incomplete');
+    if (!shipping.address1 || !shipping.city || !shipping.zip || !shipping.country) {
+      setLoadingSubmit(false);
+      setFormError('Shipping information is incomplete');
+      return false;
+    }
 
     const payload = {
       userId: user._id || user,
@@ -133,19 +157,18 @@ const UpdateOrder = () => {
       payed,
     };
 
+    console.log(payload);
+
     try {
       await orderService.updateOrder(id, payload);
-      enqueueSnackbar('Order updated successfully', { variant: 'success' });
-
-      if (action === 'update') {
-        navigate('/orders'); // Go back to orders list
-      } else {
-        // Stay on page, maybe refresh data
-        getOrder();
-      }
+      return true;
     } catch (error) {
-      enqueueSnackbar('Failed to update order', { variant: 'error' });
+      enqueueSnackbar(error || 'Failed to update order', { variant: 'error' });
       console.error(error);
+      return false;
+    } finally {
+      setLoadingSubmit(false);
+      setClickedButton('');
     }
   };
 
@@ -159,204 +182,245 @@ const UpdateOrder = () => {
     setFormError('');
   };
 
-  if (!order) return <MainLayout>Loading...</MainLayout>;
+  useEffect(() => {
+    const submit = async () => {
+      switch (clickedButton) {
+        case 'update':
+          if(!await handleSubmit()) return;
+          navigate('/orders', {
+            state: {
+              message: 'Order updated successfully',
+              status: 'success'
+            }
+          })
+          break;
+        case 'update_continue':
+          if(!await handleSubmit()) return;
+          enqueueSnackbar('Order updated successfully', { variant: 'success' });
+          getOrder();
+          resetForm();
+          break;
+        default:
+          break;
+      }
+    }
+
+    submit();
+  }, [clickedButton])
 
   return (
     <MainLayout>
-      <div>
-        <div className="flex flex-row justify-between mb-5 px-2 py-3">
-          <h1 className="text-3xl font-medium">Update Order</h1>
-        </div>
+      {loadingFetch ? <Spinner/> : (
 
-        <div className="flex flex-row justify-end my-5">
-          <button
-            onClick={resetForm}
-            type="button"
-            className="px-4 py-2 rounded-md border bg-gray-200 cursor-pointer"
-          >
-            Reset
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit}>
-          {formError && <p className="text-sm text-red-500 my-2">{formError}</p>}
-
-          {/* User */}
-          <SearchableDropdown
-            label="User"
-            important
-            options={users}
-            placeholder="Select user..."
-            value={user}
-            setValue={setUser}
-            formError={formError}
-          />
-
-          {/* Order Items */}
-          {orderItems.map((item, i) => (
-            <div key={i} className="mb-4 border rounded-lg p-4">
-              <SearchableDropdown
-                label={`Product No. ${i + 1}`}
-                important
-                options={products}
-                placeholder="Select product..."
-                value={item.product}
-                setValue={(value) => updateItem(i, 'product', value)}
-                formError={formError}
-              />
-
-              <div className="mt-2">
-                <label className="block text-sm font-medium mb-1">
-                  Quantity <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  min={1}
-                  value={item.quantity}
-                  onChange={(e) => updateItem(i, 'quantity', Math.max(1, Number(e.target.value)))}
-                  className="w-32 border rounded-md px-3 py-2"
-                />
-              </div>
-
-              <div className="flex justify-between mt-3">
-                {orderItems.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeItem(i)}
-                    className="text-red-500 text-sm hover:underline"
-                  >
-                    Remove
-                  </button>
-                )}
-                {i === orderItems.length - 1 && (
-                  <button
-                    type="button"
-                    onClick={addItem}
-                    className="text-green-600 text-sm hover:underline"
-                  >
-                    + Add Product
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
-
-          {/* Shipping */}
-          <div className="border rounded-lg p-4 mt-6">
-            <h3 className="text-lg font-semibold mb-4">Shipping Information</h3>
-            <div className="mb-3">
-              <label className="block text-sm font-medium mb-1">
-                Address 1 <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={shipping.address1}
-                onChange={(e) => setShipping((prev) => ({ ...prev, address1: e.target.value }))}
-                className="w-full border rounded-md px-3 py-2"
-              />
-            </div>
-
-            <div className="mb-3">
-              <label className="block text-sm font-medium mb-1">Address 2</label>
-              <input
-                type="text"
-                value={shipping.address2}
-                onChange={(e) => setShipping((prev) => ({ ...prev, address2: e.target.value }))}
-                className="w-full border rounded-md px-3 py-2"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  City <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={shipping.city}
-                  onChange={(e) => setShipping((prev) => ({ ...prev, city: e.target.value }))}
-                  className="w-full border rounded-md px-3 py-2"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  ZIP Code <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={shipping.zip}
-                  onChange={(e) => setShipping((prev) => ({ ...prev, zip: e.target.value }))}
-                  className="w-full border rounded-md px-3 py-2"
-                />
-              </div>
-            </div>
-
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">
-                Country <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={shipping.country}
-                onChange={(e) => setShipping((prev) => ({ ...prev, country: e.target.value }))}
-                className="w-full border rounded-md px-3 py-2"
-              />
-            </div>
-
-            {/* Payment Method */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">Payment Method</label>
-              <select
-                value={shipping.paymentMethod}
-                onChange={(e) => setShipping((prev) => ({ ...prev, paymentMethod: e.target.value }))}
-                className="w-full border rounded-md px-3 py-2"
-              >
-                <option value="cod">Cash on Delivery</option>
-                <option value="credit" disabled>Credit Card</option>
-                <option value="paypal" disabled>PayPal</option>
-              </select>
-            </div>
-
-            {/* Payed Status */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">Paid?</label>
-              <input
-                type="checkbox"
-                checked={payed}
-                onChange={() => setPayed((prev) => !prev)}
-              />
-            </div>
+        <div>
+          <div className="flex flex-row justify-between mb-5 px-2 py-3">
+            <h1 className="text-3xl font-medium">Update Order</h1>
           </div>
 
-          <div className="flex flex-row justify-between mt-5">
-            <div className="flex gap-2">
-              <button
-                type="submit"
-                name="action"
-                value="update"
-                className="px-4 py-2 rounded-md bg-(--color-green) text-(--color-dark-gray) cursor-pointer"
-              >
-                Update
-              </button>
-
-              <button
-                type="submit"
-                name="action"
-                value="update_continue"
-                className="px-4 py-2 rounded-md bg-(--color-green) text-(--color-dark-gray) cursor-pointer"
-              >
-                Update & Continue Editing
-              </button>
-            </div>
-            <Link
-              to="/orders"
-              className="px-4 py-2 rounded-md bg-gray-300 cursor-pointer"
+          <div className="flex flex-row justify-end my-5">
+            <button
+              onClick={resetForm}
+              type="button"
+              className="px-4 py-2 rounded-md border bg-gray-200 cursor-pointer"
             >
-              Cancel
-            </Link>
+              Reset
+            </button>
           </div>
-        </form>
-      </div>
+
+          <form onSubmit={handleSubmit}>
+            {formError && <p className="text-sm text-red-500 my-2">{formError}</p>}
+
+            {/* User */}
+            <SearchableDropdown
+              label="User"
+              important
+              options={users}
+              placeholder="Select user..."
+              value={user}
+              setValue={setUser}
+              formError={formError}
+            />
+
+            {/* Order Items */}
+            {orderItems.map((item, i) => (
+              <div key={i} className="mb-4 border rounded-lg p-4">
+                <SearchableDropdown
+                  label={`Product No. ${i + 1}`}
+                  important
+                  options={products}
+                  placeholder="Select product..."
+                  value={item.product}
+                  setValue={(value) => updateItem(i, 'product', value)}
+                  formError={formError}
+                />
+
+                <div className="mt-2">
+                  <label className="block text-sm font-medium mb-1">
+                    Quantity <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={item.quantity}
+                    onChange={(e) => updateItem(i, 'quantity', Math.max(1, Number(e.target.value)))}
+                    className="w-32 border rounded-md px-3 py-2"
+                  />
+                </div>
+
+                <div className="flex justify-between mt-3">
+                  {orderItems.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeItem(i)}
+                      className="text-red-500 text-sm hover:underline"
+                    >
+                      Remove
+                    </button>
+                  )}
+                  {i === orderItems.length - 1 && (
+                    <button
+                      type="button"
+                      onClick={addItem}
+                      className="text-green-600 text-sm hover:underline"
+                    >
+                      + Add Product
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {/* Shipping */}
+            <div className="border rounded-lg p-4 mt-6">
+              <h3 className="text-lg font-semibold mb-4">Shipping Information</h3>
+              <div className="mb-3">
+                <label className="block text-sm font-medium mb-1">
+                  Address 1 <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={shipping.address1}
+                  onChange={(e) => setShipping((prev) => ({ ...prev, address1: e.target.value }))}
+                  className="w-full border rounded-md px-3 py-2"
+                />
+              </div>
+
+              <div className="mb-3">
+                <label className="block text-sm font-medium mb-1">Address 2</label>
+                <input
+                  type="text"
+                  value={shipping.address2}
+                  onChange={(e) => setShipping((prev) => ({ ...prev, address2: e.target.value }))}
+                  className="w-full border rounded-md px-3 py-2"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    City <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={shipping.city}
+                    onChange={(e) => setShipping((prev) => ({ ...prev, city: e.target.value }))}
+                    className="w-full border rounded-md px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    ZIP Code <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={shipping.zip}
+                    onChange={(e) => setShipping((prev) => ({ ...prev, zip: e.target.value }))}
+                    className="w-full border rounded-md px-3 py-2"
+                  />
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-1">
+                  Country <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={shipping.country}
+                  onChange={(e) => setShipping((prev) => ({ ...prev, country: e.target.value }))}
+                  className="w-full border rounded-md px-3 py-2"
+                />
+              </div>
+
+              {/* Payment Method */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-1">Payment Method</label>
+                <select
+                  value={shipping.paymentMethod}
+                  onChange={(e) => setShipping((prev) => ({ ...prev, paymentMethod: e.target.value }))}
+                  className="w-full border rounded-md px-3 py-2"
+                >
+                  <option value="cod">Cash on Delivery</option>
+                  <option value="credit" disabled>Credit Card</option>
+                  <option value="paypal" disabled>PayPal</option>
+                </select>
+              </div>
+
+              {/* Payed Status */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-1">Paid?</label>
+                <input
+                  type="checkbox"
+                  checked={payed}
+                  onChange={() => setPayed((prev) => !prev)}
+                />
+              </div>
+            </div>
+
+            <div className='flex flex-row justify-between mt-5'>
+                <div className='flex gap-2'>
+                  <button
+                      type='button'
+                      name='action'
+                      value='update'
+                      onClick={() => setClickedButton('update')}
+                      className={`px-4 py-2 rounded-md border qb-border flex flex-row items-center cursor-pointer ${
+                        (loadingSubmit && clickedButton === 'update')
+                            ? 'bg-(--color-green)/50 cursor-not-allowed'
+                            : 'bg-(--color-green) hover:bg-(--color-green)/80'
+                        }`}
+                      disabled={clickedButton === 'update_continue'}
+                  >
+                      {(loadingSubmit && clickedButton === 'update') && <Loader2 className='w-4 h-4 animate-spin mr-2'/>}
+                      Update
+                  </button>
+                  <button
+                      type='button'
+                      name='action'
+                      value='update_continue'
+                      onClick={() => setClickedButton('update_continue')}
+                      className={`px-4 py-2 rounded-md border qb-border flex flex-row items-center cursor-pointer ${
+                        (loadingSubmit && clickedButton === 'update_continue')
+                            ? 'bg-(--color-green)/50 cursor-not-allowed'
+                            : 'bg-(--color-green) hover:bg-(--color-green)/80'
+                        }`}
+                      disabled={clickedButton === 'update_continue'}
+                  >
+                    {(loadingSubmit && clickedButton === 'update_continue') && <Loader2 className='w-4 h-4 animate-spin mr-2'/>}
+                    Update & Continue Editing
+                  </button>
+                </div>
+
+                <Link
+                    to={'/orders'}
+                    className="px-4 py-2 rounded-md bg-(--color-light-gray) border qb-border"
+                >
+                    Cancel
+                </Link>
+            </div>
+          </form>
+        </div>
+      )}
     </MainLayout>
   );
 };

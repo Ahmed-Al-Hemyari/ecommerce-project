@@ -8,6 +8,8 @@ import userService from '@/services/userService';
 import { Input } from '@/components/UI/input';
 import SearchableDropdown from '@/components/UI/Forms/SearchableDropDown';
 import orderService from '@/services/orderService';
+import { Loader2 } from 'lucide-react';
+import Spinner from '@/components/UI/Spinner';
 
 const CreateOrder = () => {
   // Essentials
@@ -35,6 +37,11 @@ const CreateOrder = () => {
   const [formError, setFromError] = useState('');
   // Ruplicate
   const [order, setOrder] = useState();
+  // Loading
+  const [loadingFetch, setLoadingFetch] = useState(false);
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
+  // Clicked
+  const [clickedButton, setClickedButton] = useState('');
   
   // Handlers
   const updateItem = (index, field, value) => {
@@ -62,28 +69,32 @@ const CreateOrder = () => {
     });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setFromError('');
+    setLoadingSubmit(true);
 
     if (!user) {
       setFromError('User is required');
-      return;
+      setLoadingSubmit(false);
+      return false;
     }
 
     if (orderItems.length === 0) {
       setFromError('At least one product is required');
-      return;
+      setLoadingSubmit(false);
+      return false;
     }
 
     for (let item of orderItems) {
       if (!item.product) {
         setFromError('All products must be selected');
-        return;
+        setLoadingSubmit(false);
+        return false;
       }
       if (!item.quantity || item.quantity <= 0) {
         setFromError('Quantity must be greater than 0');
-        return;
+        setLoadingSubmit(false);
+        return false;
       }
     }
 
@@ -94,7 +105,8 @@ const CreateOrder = () => {
       !shipping.country
     ) {
       setFromError('Shipping information is incomplete');
-      return;
+      setLoadingSubmit(false);
+      return false;
     }
 
     const payload = {
@@ -106,22 +118,18 @@ const CreateOrder = () => {
       shipping,
     };
 
-    console.log(payload);
-
     try {
       const response = await orderService.createOrder(payload);
-      enqueueSnackbar('Order created successfully', {
-        variant: 'success',
-      });
-
-      resetForm();
-      navigate('/orders');
-
+      return true;
     } catch (error) {
-      enqueueSnackbar('Failed to create order', {
+      enqueueSnackbar(error || 'Failed to create order', {
         variant: 'error',
       });
       console.error(error);
+      return false;
+    } finally {
+      setLoadingSubmit(false);
+      setClickedButton('');
     }
   };
 
@@ -194,12 +202,15 @@ const CreateOrder = () => {
 
     if (location.state?.id) {
       const id = location.state?.id;
+      setLoadingFetch(true);
       const fetchOrder = async () => {        
         try {
           const response = await orderService.getOrder(id);
           setOrder(response.data);
         } catch (error) {
-          enqueueSnackbar(error || "Failed to add order");
+          enqueueSnackbar(error || "Failed to get order");
+        } finally {
+          setLoadingFetch(false);
         }
       }
 
@@ -209,8 +220,9 @@ const CreateOrder = () => {
 
   useEffect(() => {
     if(!order) return;
+    console.log(order)
 
-    setUser(order.user._id || order.user);
+    setUser(order.user._id);
 
     // Format orderItems to have just product IDs
     const formattedOrderItems = order.orderItems.map(item => ({
@@ -222,248 +234,289 @@ const CreateOrder = () => {
     setShipping(order.shipping);
   }, [order]);
 
+  useEffect(() => {
+    const submit = async () => {
+      switch (clickedButton) {
+        case 'create':
+          if(!await handleSubmit()) return;
+          navigate('/orders', {
+            state: {
+              message: 'Order created successfully',
+              status: 'success'
+            }
+          })
+          break;
+        case 'create_add':
+          if(!await handleSubmit()) return;
+          enqueueSnackbar('Added successfully', { variant: 'success' });
+          resetForm();
+          break;
+        default:
+          break;
+      }
+    }
+
+    submit();
+  }, [clickedButton])
+
   return (
     <MainLayout>
-      <div>
-          <div className='flex flex-row justify-between mb-5 px-2 py-3'>
-              <h1 className='text-3xl font-medium'>Create Order</h1>
-          </div>
+      {loadingFetch ? <Spinner/> : (
+        <div>
+            <div className='flex flex-row justify-between mb-5 px-2 py-3'>
+                <h1 className='text-3xl font-medium'>Create Order</h1>
+            </div>
 
-          <div className='flex flex-row justify-end my-5'>
-              <button
-                  onClick={resetForm}
-                  type="button"
-                  className="px-4 py-2 rounded-md border qb-border bg-gray-200 text-(--color-dark-gray) cursor-pointer"
-              >
-                  Reset
-              </button>
-          </div>
+            <div className='flex flex-row justify-end my-5'>
+                <button
+                    onClick={resetForm}
+                    type="button"
+                    className="px-4 py-2 rounded-md border qb-border bg-gray-200 text-(--color-dark-gray) cursor-pointer"
+                >
+                    Reset
+                </button>
+            </div>
 
-          <form onSubmit={handleSubmit}>
-              <p className='text-sm text-red-500 my-2'>{formError}</p>
+            <form>
+                <p className='text-sm text-red-500 my-2'>{formError}</p>
 
-              <SearchableDropdown
-                label='User'
-                important
-                options={users}
-                placeholder='Select user...'
-                value={user}
-                setValue={setUser}
-                formError={formError}
-              />
+                <SearchableDropdown
+                  label='User'
+                  important
+                  options={users}
+                  placeholder='Select user...'
+                  value={user}
+                  setValue={setUser}
+                  formError={formError}
+                />
 
-              {orderItems.map((item, i) => (
-                <div key={i} className="mb-4 border rounded-lg p-4">
+                {orderItems.map((item, i) => (
+                  <div key={i} className="mb-4 border rounded-lg p-4">
 
-                  {/* Product */}
-                  <SearchableDropdown
-                    label={`Product No. ${i + 1}`}
-                    important
-                    options={products}
-                    placeholder="Select product..."
-                    value={item.product}
-                    setValue={(value) => updateItem(i, 'product', value)}
-                    formError={formError}
-                  />
-
-                  {/* Quantity */}
-                  <div className="mt-2">
-                    <label className="block text-sm font-medium mb-1">
-                      Quantity <span className="text-red-500">*</span>
-                    </label>
-
-                    <input
-                      type="number"
-                      min={1}
-                      value={item.quantity}
-                      onChange={(e) =>
-                        updateItem(i, 'quantity', Math.max(1, Number(e.target.value)))
-                      }
-                      className="w-32 border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-dark-green)"
+                    {/* Product */}
+                    <SearchableDropdown
+                      label={`Product No. ${i + 1}`}
+                      important
+                      options={products}
+                      placeholder="Select product..."
+                      value={item.product}
+                      setValue={(value) => updateItem(i, 'product', value)}
+                      formError={formError}
                     />
-                  </div>
 
-                  {/* Actions */}
-                  <div className="flex justify-between mt-3">
-                    {orderItems.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeItem(i)}
-                        className="text-red-500 text-sm hover:underline"
-                      >
-                        Remove
-                      </button>
-                    )}
+                    {/* Quantity */}
+                    <div className="mt-2">
+                      <label className="block text-sm font-medium mb-1">
+                        Quantity <span className="text-red-500">*</span>
+                      </label>
 
-                    {i === orderItems.length - 1 && (
-                      <button
-                        type="button"
-                        onClick={addItem}
-                        className="text-(--color-dark-green) text-sm hover:underline"
-                      >
-                        + Add Product
-                      </button>
-                    )}
-                  </div>
-
-                </div>
-              ))}
-
-              <div className="border rounded-lg p-4 mt-6">
-                <h3 className="text-lg font-semibold mb-4">Shipping Information</h3>
-
-                {/* Address 1 */}
-                <div className="mb-3">
-                  <label className="block text-sm font-medium mb-1">
-                    Address 1 <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={shipping.address1}
-                    onChange={(e) =>
-                      setShipping(prev => ({ ...prev, address1: e.target.value }))
-                    }
-                    className="w-full border rounded-md px-3 py-2"
-                  />
-                </div>
-
-                {/* Address 2 */}
-                <div className="mb-3">
-                  <label className="block text-sm font-medium mb-1">
-                    Address 2
-                  </label>
-                  <input
-                    type="text"
-                    value={shipping.address2}
-                    onChange={(e) =>
-                      setShipping(prev => ({ ...prev, address2: e.target.value }))
-                    }
-                    className="w-full border rounded-md px-3 py-2"
-                  />
-                </div>
-
-                {/* City + ZIP */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      City <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={shipping.city}
-                      onChange={(e) =>
-                        setShipping(prev => ({ ...prev, city: e.target.value }))
-                      }
-                      className="w-full border rounded-md px-3 py-2"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      ZIP Code <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={shipping.zip}
-                      onChange={(e) =>
-                        setShipping(prev => ({ ...prev, zip: e.target.value }))
-                      }
-                      className="w-full border rounded-md px-3 py-2"
-                    />
-                  </div>
-                </div>
-
-                {/* Country */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium mb-1">
-                    Country <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={shipping.country}
-                    onChange={(e) =>
-                      setShipping(prev => ({ ...prev, country: e.target.value }))
-                    }
-                    className="w-full border rounded-md px-3 py-2"
-                  />
-                </div>
-
-                {/* Payment Method */}
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Payment Method <span className="text-red-500">*</span>
-                  </label>
-
-                  <div className="flex flex-col gap-2">
-                    {/* Credit Card */}
-                    <label className="flex items-center gap-2 text-gray-400 cursor-not-allowed">
                       <input
-                        type="radio"
-                        name="paymentMethod"
-                        value="credit"
-                        disabled
-                      />
-                      Credit Card
-                    </label>
-
-                    {/* PayPal */}
-                    <label className="flex items-center gap-2 text-gray-400 cursor-not-allowed">
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        value="paypal"
-                        disabled
-                      />
-                      PayPal
-                    </label>
-
-                    {/* Cash on Delivery */}
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        value="cod"
-                        checked={shipping.paymentMethod === 'cod'}
-                        onChange={() =>
-                          setShipping(prev => ({ ...prev, paymentMethod: 'cod' }))
+                        type="number"
+                        min={1}
+                        value={item.quantity}
+                        onChange={(e) =>
+                          updateItem(i, 'quantity', Math.max(1, Number(e.target.value)))
                         }
+                        className="w-32 border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-dark-green)"
                       />
-                      Cash on Delivery
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex justify-between mt-3">
+                      {orderItems.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeItem(i)}
+                          className="text-red-500 text-sm hover:underline"
+                        >
+                          Remove
+                        </button>
+                      )}
+
+                      {i === orderItems.length - 1 && (
+                        <button
+                          type="button"
+                          onClick={addItem}
+                          className="text-(--color-dark-green) text-sm hover:underline"
+                        >
+                          + Add Product
+                        </button>
+                      )}
+                    </div>
+
+                  </div>
+                ))}
+
+                <div className="border rounded-lg p-4 mt-6">
+                  <h3 className="text-lg font-semibold mb-4">Shipping Information</h3>
+
+                  {/* Address 1 */}
+                  <div className="mb-3">
+                    <label className="block text-sm font-medium mb-1">
+                      Address 1 <span className="text-red-500">*</span>
                     </label>
+                    <input
+                      type="text"
+                      value={shipping.address1}
+                      onChange={(e) =>
+                        setShipping(prev => ({ ...prev, address1: e.target.value }))
+                      }
+                      className="w-full border rounded-md px-3 py-2"
+                    />
+                  </div>
+
+                  {/* Address 2 */}
+                  <div className="mb-3">
+                    <label className="block text-sm font-medium mb-1">
+                      Address 2
+                    </label>
+                    <input
+                      type="text"
+                      value={shipping.address2}
+                      onChange={(e) =>
+                        setShipping(prev => ({ ...prev, address2: e.target.value }))
+                      }
+                      className="w-full border rounded-md px-3 py-2"
+                    />
+                  </div>
+
+                  {/* City + ZIP */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">
+                        City <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={shipping.city}
+                        onChange={(e) =>
+                          setShipping(prev => ({ ...prev, city: e.target.value }))
+                        }
+                        className="w-full border rounded-md px-3 py-2"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-1">
+                        ZIP Code <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={shipping.zip}
+                        onChange={(e) =>
+                          setShipping(prev => ({ ...prev, zip: e.target.value }))
+                        }
+                        className="w-full border rounded-md px-3 py-2"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Country */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-1">
+                      Country <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={shipping.country}
+                      onChange={(e) =>
+                        setShipping(prev => ({ ...prev, country: e.target.value }))
+                      }
+                      className="w-full border rounded-md px-3 py-2"
+                    />
+                  </div>
+
+                  {/* Payment Method */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Payment Method <span className="text-red-500">*</span>
+                    </label>
+
+                    <div className="flex flex-col gap-2">
+                      {/* Credit Card */}
+                      <label className="flex items-center gap-2 text-gray-400 cursor-not-allowed">
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="credit"
+                          disabled
+                        />
+                        Credit Card
+                      </label>
+
+                      {/* PayPal */}
+                      <label className="flex items-center gap-2 text-gray-400 cursor-not-allowed">
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="paypal"
+                          disabled
+                        />
+                        PayPal
+                      </label>
+
+                      {/* Cash on Delivery */}
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="cod"
+                          checked={shipping.paymentMethod === 'cod'}
+                          onChange={() =>
+                            setShipping(prev => ({ ...prev, paymentMethod: 'cod' }))
+                          }
+                        />
+                        Cash on Delivery
+                      </label>
+                    </div>
                   </div>
                 </div>
-              </div>
 
 
-              <div className='flex flex-row justify-between mt-5'>
-                  <div className='flex gap-2'>
-                    <button
-                        type='submit'
-                        name='action'
-                        value='create'
-                        className="px-4 py-2 rounded-md bg-(--color-green) border qb-border cursor-pointer"
-                    >
-                        Create
-                    </button>
-                    <button
-                        type='submit'
-                        name='action'
-                        value='create_add'
-                        className="px-4 py-2 rounded-md bg-(--color-green) border qb-border cursor-pointer"
-                    >
+                <div className='flex flex-row justify-between mt-5'>
+                    <div className='flex gap-2'>
+                      <button
+                          type='button'
+                          name='action'
+                          value='create'
+                          onClick={() => setClickedButton('create')}
+                          className={`px-4 py-2 rounded-md border qb-border flex flex-row items-center cursor-pointer ${
+                            (loadingSubmit && clickedButton === 'create')
+                                ? 'bg-(--color-green)/50 cursor-not-allowed'
+                                : 'bg-(--color-green) hover:bg-(--color-green)/80'
+                            }`}
+                          disabled={clickedButton === 'create'}
+                      >
+                          {(loadingSubmit && clickedButton === 'create') && <Loader2 className='w-4 h-4 animate-spin mr-2'/>}
+                          Create
+                      </button>
+                      <button
+                          type='button'
+                          name='action'
+                          value='create_add'
+                          onClick={() => setClickedButton('create_add')}
+                          className={`px-4 py-2 rounded-md border qb-border flex flex-row items-center cursor-pointer ${
+                            (loadingSubmit && clickedButton === 'create_add')
+                                ? 'bg-(--color-green)/50 cursor-not-allowed'
+                                : 'bg-(--color-green) hover:bg-(--color-green)/80'
+                            }`}
+                          disabled={clickedButton === 'create_add'}
+                      >
+                        {(loadingSubmit && clickedButton === 'create_add') && <Loader2 className='w-4 h-4 animate-spin mr-2'/>}
                         Create & Add Another
-                    </button>
-                  </div>
+                      </button>
+                    </div>
 
-                  <Link
-                      to={'/orders'}
-                      className="px-4 py-2 rounded-md bg-(--color-light-gray) border qb-border"
-                  >
-                      Cancel
-                  </Link>
-              </div>
-          </form>
-        </div>
+                    <Link
+                        to={'/orders'}
+                        className="px-4 py-2 rounded-md bg-(--color-light-gray) border qb-border"
+                    >
+                        Cancel
+                    </Link>
+                </div>
+            </form>
+          </div>
+      )}
     </MainLayout>
   )
 }

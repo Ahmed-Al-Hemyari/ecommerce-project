@@ -1,5 +1,6 @@
 import defaultImage from '@/assets/default-product-image.png';
 import productService from '@/services/productService';
+import { enqueueSnackbar } from 'notistack';
 import { useEffect, useState } from 'react';
 
 
