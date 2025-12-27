@@ -26,7 +26,8 @@ class AuthController extends Controller
         $user = User::create($credentials);
 
         return response()->json([
-            'message' => "User registered successfully"
+            'message' => "User registered successfully",
+            'user' => new UserResource($user)
         ], 201);
     }
 
@@ -49,7 +50,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => "Logged in successfully",
-            'user' => UserResource::make($user),
+            'user' => new UserResource($user),
             'token' => $token,
         ], 200);
     }
@@ -73,7 +74,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => "Logged in successfully",
-            'user' => UserResource::make($user),
+            'user' => new UserResource($user),
             'token' => $token,
         ], 200);
     }

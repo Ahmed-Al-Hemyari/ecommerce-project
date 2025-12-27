@@ -11,19 +11,22 @@ class Order extends Model
 
     protected $fillable = [
       'user_id',
-      'address1',  
-      'address2',
-      'city',
-      'zip',
-      'country',
-      'paymentMethod',
-      'totalAmount',
+      'shipping_id',  
+      'payment_method',
+      'subtotal',
+      'shipping_cost',
+      'total',
       'status',
-      'payed'  
+      'is_paid',  
+      'paid_at',  
     ];
 
     public function user() {
         return $this->belongsTo(User::class);
+    }
+    
+    public function shipping() {
+        return $this->belongsTo(Shipping::class);
     }
 
     public function orderItems() {

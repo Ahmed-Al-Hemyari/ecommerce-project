@@ -14,16 +14,14 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->restrictOnDelete();
-            // Shipping
-            $table->string('address1');
-            $table->string('address2')->nullable();
-            $table->string('city');
-            $table->string('zip');
-            $table->string('country');
-            $table->string('paymentMethod');
-            $table->decimal('totalAmount', 10, 2);
-            $table->enum('status', ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"])->default("Pending");
-            $table->boolean('payed')->default(false);
+            $table->foreignId('shipping_id')->constrained()->restrictOnDelete();
+            $table->string('payment_method');
+            $table->decimal('subtotal', 10, 2);
+            $table->decimal('shipping_cost', 10, 2);
+            $table->decimal('total', 10, 2);
+            $table->enum('status', ["draft", "pending", "paid", "shipped", "delivered", "cancelled"])->default("pending");
+            $table->boolean('is_paid')->default(false);
+            $table->date('paid_at')->nullable();
             $table->timestamps();
         });
     }

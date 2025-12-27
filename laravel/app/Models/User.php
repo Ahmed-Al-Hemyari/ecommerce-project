@@ -24,7 +24,7 @@ class User extends Authenticatable
         'email',
         'phone',
         'role',
-        // 'password',
+        'password',
     ];
 
     /**
@@ -52,6 +52,10 @@ class User extends Authenticatable
 
     public function orders() {
         return $this->hasMany(Order::class);
+    }
+    
+    public function shippings() {
+        return $this->hasMany(Shipping::class);
     }
 
     public function scopeFilter($query, array $filters) {

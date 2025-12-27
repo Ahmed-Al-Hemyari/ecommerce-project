@@ -26,7 +26,7 @@ class UserController extends Controller
 
     public function getUserById($id) {
 
-        $user = User::withTrashed()->find($id);
+        $user = User::withTrashed()->with('shippings')->find($id);
 
         if (!$user) {
             return response()->json([
@@ -34,9 +34,9 @@ class UserController extends Controller
             ], 404);
         }
 
-        return response()->json(
-            new UserResource($user)
-        , 200);
+        return response()->json([
+            'user' => new UserResource($user)
+        ], 200);
     }
 
     public function createUser(Request $request) {
@@ -98,6 +98,7 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'Users updated successfully',
+            'user' => new UserResource($updated)
         ], 200);
     }
 

@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('brand_id')->constrained()->cascadeOnUpdate()->restrictOnDelete();
             $table->decimal('price', 10, 2);
             $table->decimal('stock', 4, 0);
-            $table->longText('description');
+            $table->longText('description')->nullable();
             $table->string('image')->nullable();
             $table->softDeletes();
             $table->timestamps();
