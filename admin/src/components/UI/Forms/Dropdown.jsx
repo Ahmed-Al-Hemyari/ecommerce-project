@@ -62,7 +62,7 @@ const Dropdown = ({
 
       {/* Menu */}
       {open && (
-        <div className="absolute z-50 mt-2 w-full bg-white border rounded-xl shadow-lg overflow-hidden">
+        <div className="absolute z-50 mt-2 w-full bg-white border rounded-xl shadow-lg overflow-y-auto max-h-60">
           {options.map((option) => (
             <button
               key={option._id}

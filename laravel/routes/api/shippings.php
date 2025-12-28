@@ -8,6 +8,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/{id}', [ShippingController::class, 'getShippingById']);
     Route::post('/', [ShippingController::class, 'createShipping']);
     Route::put('/{id}', [ShippingController::class, 'updateShipping']);
+    Route::patch('/{id}', [ShippingController::class, 'makeDefault']);
     // Delete
-    Route::delete('/delete', [ShippingController::class, 'hardDelete']);
+    Route::delete('/{id}', [ShippingController::class, 'deleteShipping']);
 });

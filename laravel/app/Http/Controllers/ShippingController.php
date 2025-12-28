@@ -31,7 +31,7 @@ class ShippingController extends Controller
 
     public function createShipping(Request $request) {
         $data = $request->validate([
-            'user_id' => ['nullable', 'exists:users,id'],
+            'user_id' => ['sometimes', 'exists:users,id'],
             'address1' => ['required', 'string'],
             'address2' => ['nullable', 'string'],
             'city' => ['required', 'string'],
@@ -39,13 +39,25 @@ class ShippingController extends Controller
             'country' => ['required', 'string'],
         ]);
 
-        if (empty($data['user_id'])) {
-            $data['user_id'] = $request->user()->id;
+        $user = User::findOrFail($data['user_id'] ?? $request->user()->id);
+
+        if ($user->shippings()->count() >= 5) {
+            return response()->json([
+                'message' => 'Maximum number of shipping addresses reached'
+            ], 422);
         }
 
-        $data['is_default'] = false;
+        $isFirst = $user->shippings()->count() === 0;
 
-        $shipping = Shipping::create($data);
+        $shipping = Shipping::create([
+            'user_id' => $user->id,
+            'address1' => $data['address1'],
+            'address2' => $data['address2'] ?? null,
+            'city' => $data['city'],
+            'zip' => $data['zip'],
+            'country' => $data['country'],
+            'is_default' => $isFirst,
+        ]);
 
         return response()->json([
             'message' => 'Shipping created successfully',
@@ -59,7 +71,7 @@ class ShippingController extends Controller
         $data = $request->validate([
             'user_id' => ['sometimes', 'string'],
             'address1' => ['sometimes', 'string'],
-            'address2' => ['sometimes', 'string'],
+            'address2' => ['nullable', 'string'],
             'city' => ['sometimes', 'string'],
             'zip' => ['sometimes', 'string'],
             'country' => ['sometimes', 'string'],
@@ -75,13 +87,45 @@ class ShippingController extends Controller
     }
 
     // Delete functions
-    public function hardDelete(Request $request) {
-        $ids = $this->validateIds($request);
+    public function deleteShipping(Request $request, $id)
+    {
+        $shipping = Shipping::withCount('orders')->findOrFail($id);
 
-        $deleted = Shipping::whereIn('id', $ids)->delete();
+        if ($shipping->orders_count > 0) {
+            return response()->json([
+                'message' => 'Cannot delete shipping address with existing orders'
+            ], 422);
+        }
+
+        // if ($shipping->is_default) {
+        //     return response()->json([
+        //         'message' => 'Cannot delete default shipping address'
+        //     ], 422);
+        // }
+
+        $shipping->delete();
 
         return response()->json([
-            'message' => 'Shippings deleted permenantly successfully'
+            'message' => 'Shipping deleted permanently successfully'
+        ]);
+    }
+
+    public function makeDefault($id) {
+        $shipping = Shipping::findOrFail($id);
+        $user = $shipping->user;
+
+        // Unset previous default shipping
+        Shipping::where('user_id', $user->id)
+            ->where('is_default', true)
+            ->update(['is_default' => false]);
+
+        // Set new default shipping
+        $shipping->is_default = true;
+        $shipping->save();
+
+        return response()->json([
+            'message' => 'Shipping address set as default successfully',
+            'shipping' => new ShippingResource($shipping)
         ]);
     }
 

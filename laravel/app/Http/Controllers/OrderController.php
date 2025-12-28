@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\OrderItemResource;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\Shipping;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +20,7 @@ class OrderController extends Controller
         // Pagination
         $limit = min($request->input('limit', 50), 150);
 
-        $orders = Order::with('user', 'orderItems')->filter($filters)->paginate($limit);
+        $orders = Order::with('user', 'shipping', 'orderItems')->filter($filters)->paginate($limit);
 
         return response()->json([
             'orders' => OrderResource::collection($orders),
@@ -38,187 +40,161 @@ class OrderController extends Controller
             ], 404);
         }
 
-        return response()->json(
-            new OrderResource($order)
-        , 200);
+        return response()->json([
+            'order' => new OrderResource($order)
+        ], 200);
     }
 
     public function createOrder(Request $request)
     {
         $data = $request->validate([
-            'userId' => ['required', 'exists:users,id'],
-            'shipping.address1' => ['required', 'string'],
-            'shipping.address2' => ['nullable', 'string'],
-            'shipping.city' => ['required', 'string'],
-            'shipping.country' => ['required', 'string'],
-            'shipping.zip' => ['required', 'string'],
-            'shipping.paymentMethod' => ['required', 'string'],
-            'orderItems' => ['required', 'array', 'min:1'],
-            'orderItems.*.product' => ['required'],
-            'orderItems.*.quantity' => ['required', 'integer', 'min:1'],
+            'user_id' => ['required', 'exists:users,id'],
+            'shipping_id' => ['required', 'exists:shippings,id'],
+            'payment_method' => ['required', Rule::in(['credit', 'paypal', 'cod'])],
+            'shipping_cost' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        // Ensure shipping belongs to user
+        $shipping = Shipping::where('id', $data['shipping_id'])
+            ->where('user_id', $data['user_id'])
+            ->firstOrFail();
+
+        $order = Order::create([
+            'user_id' => $data['user_id'],
+            'shipping_id' => $shipping->id,
+            'payment_method' => $data['payment_method'],
+            'shipping_cost' => $data['shipping_cost'],
+            'subtotal' => 0,
+            'status' => 'draft',
+        ]);
+
+        return response()->json([
+            'message' => 'Order created successfully',
+            'order' => new OrderResource($order->load('shipping')),
+        ], 201);
+    }
+
+    public function createOrderFromCart(Request $request)
+    {
+        $data = $request->validate([
+            'user_id' => ['required', 'exists:users,id'],
+            'shipping_id' => ['required', 'exists:shippings,id'],
+            'payment_method' => ['required', Rule::in(['credit', 'paypal', 'cod'])],
+            'cart' => ['required', 'array'],
+            'cart.*.product_id' => ['required', 'exists:products,id'],
+            'cart.*.quantity' => ['required', 'integer', 'min:1'],
         ]);
 
         return DB::transaction(function () use ($data) {
 
-            $totalAmount = 0;
-
+            // Create draft order
             $order = Order::create([
-                'user_id' => $data['userId'],
-                'address1' => $data['shipping']['address1'],
-                'address2' => $data['shipping']['address2'] ?? null,
-                'city' => $data['shipping']['city'],
-                'country' => $data['shipping']['country'],
-                'zip' => $data['shipping']['zip'],
-                'paymentMethod' => $data['shipping']['paymentMethod'],
-                'totalAmount' => 0, // temp
+                'user_id' => $data['user_id'],
+                'shipping_id' => $data['shipping_id'],
+                'payment_method' => $data['payment_method'],
+                'subtotal' => 0,
+                'shipping_cost' => 0,
+                'status' => 'draft',
             ]);
 
-            foreach ($data['orderItems'] as $item) {
+            foreach ($data['cart'] as $item) {
+                $product = Product::find($item['product_id']);
 
-                $productId = is_array($item['product'])
-                    ? $item['product']['_id']
-                    : $item['product'];
-
-                $product = Product::lockForUpdate()->findOrFail($productId);
-
-                if ($product->stock < $item['quantity']) {
-                    abort(422, "Insufficient stock for {$product->name}");
+                if (!$product || $item['quantity'] > $product->stock) {
+                    // Skip item if product missing or stock insufficient
+                    continue;
                 }
 
-                $lineTotal = $product->price * $item['quantity'];
-                $totalAmount += $lineTotal;
+                // Replace existing item if present
+                $existingItem = $order->orderItems()->where('product_id', $product->id)->first();
+                if ($existingItem) {
+                    $existingItem->product->increment('stock', $existingItem->quantity);
+                    $existingItem->delete();
+                }
 
-                OrderItem::create([
+                // Create new order item
+                $orderItem = OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $product->id,
-                    'price' => $product->price,
                     'quantity' => $item['quantity'],
+                    'price' => $product->price,
                 ]);
 
+                // Decrement stock
                 $product->decrement('stock', $item['quantity']);
             }
 
-            $order->update([
-                'totalAmount' => $totalAmount,
-            ]);
-
-            $order->load('orderItems');
-
             return response()->json([
                 'message' => 'Order created successfully',
-                'order' => new OrderResource($order),
+                'order' => new OrderResource($order->load('orderItems.product')),
             ], 201);
         });
     }
 
     public function updateOrder(Request $request, $id)
     {
+        $order = Order::findOrFail($id);
+
+        if ($order->status !== 'draft') {
+            return response()->json([
+                'message' => 'Cannot update a finalized order'
+            ], 422);
+        }
+
         $data = $request->validate([
-            'userId' => ['sometimes', 'exists:users,id'],
-            'shipping.address1' => ['sometimes', 'string'],
-            'shipping.address2' => ['nullable', 'string'],
-            'shipping.city' => ['sometimes', 'string'],
-            'shipping.country' => ['sometimes', 'string'],
-            'shipping.zip' => ['sometimes', 'string'],
-            'shipping.paymentMethod' => ['sometimes', 'string'],
-            'payed' => ['sometimes', 'boolean'],
-            'orderItems' => ['sometimes', 'array', 'min:1'],
-            'orderItems.*.product' => ['required_with:orderItems'],
-            'orderItems.*.quantity' => ['required_with:orderItems', 'integer', 'min:1'],
+            'shipping_id' => ['sometimes', 'exists:shippings,id'],
+            'payment_method' => ['sometimes', Rule::in(['credit', 'paypal', 'cod'])],
+            'shipping_cost' => ['sometimes', 'numeric', 'min:0'],
         ]);
 
-        return DB::transaction(function () use ($data, $id) {
+        // If shipping is being changed, verify ownership
+        if (isset($data['shipping_id'])) {
+            Shipping::where('id', $data['shipping_id'])
+                ->where('user_id', $order->user_id)
+                ->firstOrFail();
+        }
 
-            $order = Order::with('orderItems')->lockForUpdate()->findOrFail($id);
+        $order->update($data);
 
-            /* ---------------- Update Order Fields ---------------- */
-            $order->update(array_filter([
-                'user_id' => $data['userId'] ?? null,
-                'payed' => $data['payed'] ?? null,
-                'address1' => $data['shipping']['address1'] ?? null,
-                'address2' => $data['shipping']['address2'] ?? "",
-                'city' => $data['shipping']['city'] ?? null,
-                'country' => $data['shipping']['country'] ?? null,
-                'zip' => $data['shipping']['zip'] ?? null,
-                'paymentMethod' => $data['shipping']['paymentMethod'] ?? null,
-            ], fn ($v) => !is_null($v)));
-
-
-            /* ---------------- Update Order Items ---------------- */
-            if (isset($data['orderItems'])) {
-
-                // Restore old stock
-                foreach ($order->orderItems as $item) {
-                    Product::where('id', $item->product_id)
-                        ->increment('stock', $item->quantity);
-                }
-
-                // Remove old items
-                $order->orderItems()->delete();
-
-                $totalAmount = 0;
-
-                foreach ($data['orderItems'] as $item) {
-
-                    $productId = is_array($item['product'])
-                        ? $item['product']['_id']
-                        : $item['product'];
-
-                    $product = Product::lockForUpdate()->findOrFail($productId);
-
-                    if ($product->stock < $item['quantity']) {
-                        abort(422, "Insufficient stock for {$product->name}");
-                    }
-
-                    $lineTotal = $product->price * $item['quantity'];
-                    $totalAmount += $lineTotal;
-
-                    OrderItem::create([
-                        'order_id'  => $order->id,
-                        'product_id'=> $product->id,
-                        'price'     => $product->price,
-                        'quantity'  => $item['quantity'],
-                    ]);
-
-                    $product->decrement('stock', $item['quantity']);
-                }
-
-                $order->update(['totalAmount' => $totalAmount]);
-            }
-
-            $order->load('orderItems.product');
-
-            return response()->json([
-                'message' => 'Order updated successfully',
-                'order'   => new OrderResource($order),
-            ], 200);
-        });
+        return response()->json([
+            'message' => 'Order updated successfully',
+            'order' => new OrderResource($order->load('shipping')),
+        ]);
     }
 
-
-
-    public function updateMany(Request $request) {
+    public function updateMany(Request $request)
+    {
         $ids = $this->validateIds($request);
 
         $credentials = $request->validate([
-            'updates.status' => ['sometimes', Rule::in(["Pending", "Processing", "Shipped", "Delivered", "Cancelled"])],
-            'updates.payed' => ['sometimes', 'bool']
+            'updates.status' => ['sometimes', Rule::in([
+                'pending', 'paid', 'shipped', 'delivered', 'cancelled'
+            ])],
+            'updates.paid' => ['sometimes', 'boolean'],
         ]);
 
         $updates = $credentials['updates'] ?? [];
-        
+
         if (empty($updates)) {
             return response()->json([
                 'message' => 'No data provided for update'
             ], 422);
         }
 
-        $updated = Order::whereIn('id', $ids)->update($updates);
+        // Handle paid_at explicitly
+        if (array_key_exists('paid', $updates)) {
+            $updates['paid_at'] = $updates['paid']
+                ? now()
+                : null;
+        }
+
+        Order::whereIn('id', $ids)->update($updates);
 
         return response()->json([
             'message' => 'Orders updated successfully',
-        ], 200);
+        ]);
     }
+
 
     // Delete functions
     public function hardDelete(Request $request) {

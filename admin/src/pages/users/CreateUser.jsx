@@ -64,7 +64,7 @@ const CreateUser = () => {
       const fetchUser = async () => {        
         try {
           const response = await userService.getUser(id);
-          setUser(response.data);
+          setUser(response.data.user);
         } catch (error) {
           enqueueSnackbar("Failed to load user");
         } finally {

@@ -7,6 +7,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import OrdersList from '../orders/OrdersList';
 import { ArrowLeft } from 'lucide-react';
 import Spinner from '@/components/UI/Spinner';
+import ShippingsList from '../shippings/ShippingsList';
 
 const ShowUser = () => {
   const { id } = useParams();
@@ -20,9 +21,9 @@ const ShowUser = () => {
       const response = await userService.getUser(id);
       console.log(response.data);
       const formatted = {
-        ...response.data,
-        role: response.data.role.charAt(0).toUpperCase() + response.data.role.slice(1),
-        createdAt: new Date(response.data.createdAt).toLocaleDateString("en-US", {
+        ...response.data.user,
+        role: response.data.user.role.charAt(0).toUpperCase() + response.data.user.role.slice(1),
+        createdAt: new Date(response.data.user.createdAt).toLocaleDateString("en-US", {
           year: "numeric",
           month: "short",
           day: "numeric",
@@ -35,6 +36,9 @@ const ShowUser = () => {
       setLoading(false);
     }
   }
+
+  const refreshUser = () => 
+    getUser();
 
   useEffect(() => {
     getUser();
@@ -87,7 +91,9 @@ const ShowUser = () => {
               deleted={user.deleted}
               link={'/users'}
             />
-          <OrdersList propLimit={10} inner user={user}/>
+            <div className="h-4"></div>
+            <ShippingsList shippings={user.shippings} loading={loading} refreshData={refreshUser}/>
+          {/* <OrdersList propLimit={10} inner user={user}/> */}
         </>
       )}
     </MainLayout>

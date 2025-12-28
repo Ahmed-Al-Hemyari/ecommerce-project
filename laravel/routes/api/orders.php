@@ -9,6 +9,7 @@ Route::get('/{id}', [OrderController::class, 'getOrderById']);
 
 Route::middleware(['auth:sanctum', IsAdmin::class])->group(function () {
     Route::post('/', [OrderController::class, 'createOrder']);
+    Route::post('/from-cart', [OrderController::class, 'createOrderFromCart']);
     Route::put('/{id}', [OrderController::class, 'updateOrder']);
     Route::patch('/bulk-update', [OrderController::class, 'updateMany']);
     // Delete

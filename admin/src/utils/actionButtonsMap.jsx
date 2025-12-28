@@ -1,10 +1,27 @@
-import { Copy, Edit, Eye, Plus, RefreshCcw, Trash, Trash2, X } from "lucide-react";
-import { handleAddStock, handleCancel, hardDelete, restore, softDelete } from "./Functions";
+import { Badge, BadgeCheck, Copy, Edit, Eye, Plus, RefreshCcw, Trash, Trash2, X } from "lucide-react";
+import { deleteItem, handleAddStock, handleCancel, hardDelete, makeDefault, restore, softDelete } from "./Functions";
 import ActionButton from "@/components/UI/Tables/ActionButton";
 
 import { useNavigate } from "react-router-dom";
+import { shippingService } from "@/services/shippingService";
 
 export const actionButtons = (id, type, link, navigate, refreshAction) => ({
+    
+    'delete': (
+      <ActionButton
+        Icon={Trash}
+        size={18}
+        color="#d50101"
+        handleClick={() =>
+          deleteItem(
+            id,
+            type,
+            () => refreshAction(`${type} deleted successfully`)
+          )
+        }
+      />
+    ),
+
     'soft-delete': (
       <ActionButton
         Icon={Trash}
@@ -108,6 +125,19 @@ export const actionButtons = (id, type, link, navigate, refreshAction) => ({
             [id],
             null,
             () => refreshAction(`Added stock successfully`)
+          )
+        }
+      />
+    ),
+
+    'make-default': (
+      <ActionButton
+        Icon={BadgeCheck}
+        size={18}
+        handleClick={() =>
+          makeDefault(
+            id,
+            () => refreshAction(`Shipping address made default successfully`)
           )
         }
       />

@@ -46,6 +46,7 @@ const DataTable = ({
     showPagination = true, 
     showActions = true, 
     showTableName = false, 
+    showSearch = true, 
     showFilters = true, 
     showSelect = true 
   } = customize;
@@ -115,23 +116,27 @@ const DataTable = ({
                         </div>
                       </td>
                     </tr>
-                    <tr>
-                      <td className='w-full' colSpan={headers.length + 2}>
-                        <div className='w-full h-full p-2 flex flex-row items-center space-x-5 justify-end'>
-                          <div className='flex flex-row items-center space-x-2 bg-gray-100 py-2 px-3 rounded-full'>
-                            <Search size={18} color='#bfbfbf'/>  
-                            <input
-                              placeholder="Search..."
-                              type="text"
-                              name="text"
-                              className="focus:outline-none"
-                              onChange={(e) => setSearch(e.target.value)}
-                            />
+                    { ((showSearch || (inputs.length && showFilters) > 0)) && (
+                      <tr>
+                        <td className='w-full' colSpan={headers.length + 2}>
+                          <div className='w-full h-full p-2 flex flex-row items-center space-x-5 justify-end'>
+                            {showSearch && (
+                              <div className='flex flex-row items-center space-x-2 bg-gray-100 py-2 px-3 rounded-full'>
+                                <Search size={18} color='#bfbfbf'/>  
+                                <input
+                                  placeholder="Search..."
+                                  type="text"
+                                  name="text"
+                                  className="focus:outline-none"
+                                  onChange={(e) => setSearch(e.target.value)}
+                                />
+                              </div>
+                            )}
+                            {(inputs.length && showFilters) > 0 && <Filters inputs={inputs}/>}
                           </div>
-                          {(inputs.length && showFilters) > 0 && <Filters inputs={inputs}/>}
-                        </div>
-                      </td>
-                    </tr>
+                        </td>
+                      </tr>
+                    )}
                   </>
                 ) : 
                 (

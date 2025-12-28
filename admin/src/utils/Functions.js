@@ -5,11 +5,16 @@ import categoryService from "@/services/categoryService";
 import brandService from "@/services/brandService";
 import productService from "@/services/productService";
 import orderService from "@/services/orderService";
+import { shippingService } from "@/services/shippingService";
 
 const ENTITY_CONFIG = {
   User: {
     service: userService,
     label: "User",
+  },
+  Shipping: {
+    service: shippingService,
+    label: "Shipping",
   },
   Category: {
     service: categoryService,
@@ -63,6 +68,41 @@ export const hardDelete = async (ids, type, setSelected, action) => {
     });
     
     setSelected && setSelected([]);
+    action && action();
+  }
+};
+
+export const deleteItem = async (id, type, action) => {
+  const config = ENTITY_CONFIG[type];
+  if (!config) return;
+
+  const { service, label } = config;
+
+  const result = await Swal.fire({
+    title: `Delete ${label}`,
+    text: `Are you sure you want to delete this ${label.toLowerCase()}?`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Yes, delete it',
+    confirmButtonColor: '#d50101',
+    allowOutsideClick: false,
+    preConfirm: async () => {
+      Swal.showLoading();
+      try {
+        await service.delete(id);
+        return true;
+      } catch (error) {
+        Swal.showValidationMessage(`Request failed: ${error}`);
+        return false;
+      }
+    }
+  });
+
+  if (result.isConfirmed) {
+    enqueueSnackbar(`${label} deleted successfully`, {
+      variant: 'success',
+    });
+    
     action && action();
   }
 };
@@ -268,6 +308,36 @@ export const handleCancel = async (id, setSelected, action) => {
     });
     
     setSelected && setSelected([]);
+    action && action();
+  }
+};
+
+export const makeDefault = async (id, action) => {
+  const result = await Swal.fire({
+    title: `Make Default`,
+    text: `Are you sure you want to make this shipping address default?`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Yes, make it default',
+    confirmButtonColor: '#1d7451',
+    allowOutsideClick: false,
+    preConfirm: async () => {
+      Swal.showLoading();
+      try {
+        await shippingService.makeDefault(id);
+        return true;
+      } catch (error) {
+        Swal.showValidationMessage(`Request failed: ${error}`);
+        return false;
+      }
+    }
+  });
+
+  if (result.isConfirmed) {
+    enqueueSnackbar(`Shipping address made default successfully`, {
+      variant: 'success',
+    });
+    
     action && action();
   }
 };

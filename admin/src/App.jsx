@@ -28,6 +28,9 @@ import ShowProduct from './pages/products/ShowProduct'
 import ShowCategory from './pages/categories/ShowCategory'
 import ShowOrder from './pages/orders/ShowOrder'
 import ShowUser from './pages/users/ShowUser'
+import ShippingList from './pages/shippings/ShippingsList'
+import CreateShipping from './pages/shippings/CreateShipping'
+import UpdateShipping from './pages/shippings/UpdateShipping'
 
 const App = () => {
   const navigate = useNavigate();
@@ -265,6 +268,25 @@ const App = () => {
       element={
         <ProtectRoute>
           <ShowUser />
+        </ProtectRoute>
+      }
+    />
+
+    {/* Shipping */}
+    <Route
+      path="/shippings/create"
+      element={
+        <ProtectRoute>
+          <CreateShipping />
+        </ProtectRoute>
+      }
+    />
+
+    <Route
+      path="/shippings/update/:id"
+      element={
+        <ProtectRoute>
+          <UpdateShipping />
         </ProtectRoute>
       }
     />
