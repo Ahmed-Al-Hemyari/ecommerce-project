@@ -16,7 +16,7 @@ use Illuminate\Validation\Rule;
 class OrderController extends Controller
 {
     public function getAllOrders(Request $request) {
-        $filters = $request->only(['search', 'status', 'payed', 'deleted']);
+        $filters = $request->only(['search', 'status', 'paid']);
         // Pagination
         $limit = min($request->input('limit', 50), 150);
 
@@ -170,7 +170,7 @@ class OrderController extends Controller
             'updates.status' => ['sometimes', Rule::in([
                 'pending', 'paid', 'shipped', 'delivered', 'cancelled'
             ])],
-            'updates.paid' => ['sometimes', 'boolean'],
+            'updates.is_paid' => ['sometimes', 'boolean'],
         ]);
 
         $updates = $credentials['updates'] ?? [];
@@ -182,8 +182,8 @@ class OrderController extends Controller
         }
 
         // Handle paid_at explicitly
-        if (array_key_exists('paid', $updates)) {
-            $updates['paid_at'] = $updates['paid']
+        if (array_key_exists('is_paid', $updates)) {
+            $updates['paid_at'] = $updates['is_paid']
                 ? now()
                 : null;
         }

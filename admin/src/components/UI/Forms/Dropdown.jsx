@@ -10,7 +10,9 @@ const colorMap = {
 };
 
 const Dropdown = ({
+  fullWidth = false,
   label,
+  important = false,
   placeholder = 'Select option',
   options = [],
   value,
@@ -34,10 +36,10 @@ const Dropdown = ({
   }, []);
 
   return (
-    <div className="relative w-52 min-w-fit" ref={ref}>
-      {label && (
-        <label className="block mb-1 font-medium text-sm">{label}</label>
-      )}
+    <div className={`relative my-5 ${fullWidth ? 'w-full' : 'w-52 min-w-fit'}`} ref={ref}>
+      <label className="block mb-1 font-medium">
+        {label} {important && <span className="text-red-500">*</span>}
+      </label>
 
       {/* Trigger */}
       <button
@@ -51,7 +53,7 @@ const Dropdown = ({
           ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
         `}
       >
-        <span className={selected ? colorMap[selected.color] : 'text-gray-400'}>
+        <span className={selected ? colorMap[selected.color] : 'text-gray-400 text-base'}>
           {selected?.name || placeholder}
         </span>
         <ChevronDown

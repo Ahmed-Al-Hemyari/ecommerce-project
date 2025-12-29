@@ -25,7 +25,7 @@ class OrderResource extends JsonResource
             'total' => $this->total,
             'status' => $this->status,
             'paid' => $this->is_paid,
-            'paidAt' => $this->paid_at?->toISOString(),
+            'paidAt' => $this->paid_at?->toISOString() ?? null,
             'createdAt' => $this->created_at?->toISOString(),
             'updatedAt' => $this->updated_at?->toISOString(),
             'deleted' => !is_null($this->deleted_at),

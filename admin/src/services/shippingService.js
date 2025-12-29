@@ -1,7 +1,7 @@
 import api from "./api";
 
 export const shippingService = {
-    // getShippings : (params) => api.get("/shippings", { params }),
+    getShippingsForUser : (userId) => api.get(`/shippings/user/${userId}`),
     getShipping : (id) => api.get(`/shippings/${id}`),
     createShipping : (data) => api.post("/shippings", data),
     updateShipping : (id, data) => api.put(`/shippings/${id}`, data),

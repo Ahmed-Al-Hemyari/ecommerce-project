@@ -1,521 +1,159 @@
-import React, { useEffect, useState } from 'react'
 import MainLayout from '@/components/Layouts/MainLayout'
-import { enqueueSnackbar } from 'notistack';
-import CreateForm from '@/components/UI/Forms/CreateForm';
-import productService from '@/services/productService';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import userService from '@/services/userService';
-import { Input } from '@/components/UI/input';
-import SearchableDropdown from '@/components/UI/Forms/SearchableDropDown';
-import orderService from '@/services/orderService';
-import { Loader2 } from 'lucide-react';
+import CreateForm from '@/components/UI/Forms/CreateForm'
 import Spinner from '@/components/UI/Spinner';
+import orderService from '@/services/orderService';
+import { shippingService } from '@/services/shippingService';
+import userService from '@/services/userService';
+import { enqueueSnackbar } from 'notistack';
+import React, { useEffect, useState } from 'react'
 
 const CreateOrder = () => {
-  // Essentials
-  const navigate = useNavigate();
-  const location = useLocation();
-  // Data
-  const [users, setUsers] = useState([]);
-  const [products, setProducts] = useState([]);
-  // Fields
-  const [user, setUser] = useState();
-  const [orderItems, setOrderItems] = useState([{
-    product: '', 
-    quantity: 1, 
-    price: 0,
-  }]);
-  const [shipping, setShipping] = useState({
-    address1: '',
-    address2: '',
-    city: '',
-    zip: '',
-    country: '',
-    paymentMethod: 'cod',
-  })
-  // Errors
-  const [formError, setFromError] = useState('');
-  // Ruplicate
-  const [order, setOrder] = useState();
-  // Loading
   const [loadingFetch, setLoadingFetch] = useState(false);
   const [loadingSubmit, setLoadingSubmit] = useState(false);
-  // Clicked
-  const [clickedButton, setClickedButton] = useState('');
-  
-  // Handlers
-  const updateItem = (index, field, value) => {
-    setOrderItems(prev => {
-      const updated = [...prev];
-      updated[index] = {
-        ...updated[index],
-        [field]: value
-      };
-      return updated;
-    });
-  };
+  const [formError, setFormError] = useState('');
+  // Data
+  const [users, setUsers] = useState([]);
+  const [shippings, setShippings] = useState([]);
+  // Fields
+  const [user, setUser] = useState('');
+  const [shipping, setShipping] = useState();
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [shippingCost, setShippingCost] = useState(0);
 
-  const addItem = () => {
-    setOrderItems(prev => [
-      ...prev,
-      { product: '', quantity: 1, price: 0 }
-    ]);
-  };
-
-  const removeItem = (index) => {
-    setOrderItems(prev => {
-      if (prev.length === 1) return prev; // prevent removing last
-      return prev.filter((_, i) => i !== index);
-    });
-  };
-
-  const handleSubmit = async () => {
-    setFromError('');
-    setLoadingSubmit(true);
-
-    if (!user) {
-      setFromError('User is required');
-      setLoadingSubmit(false);
-      return false;
+  // Inputs
+  const inputs = [
+    { 
+      label: 'User', 
+      important: true, 
+      type: 'select', 
+      placeholder: 'Select User...', 
+      options: users,
+      value: user, 
+      setValue: setUser 
+    },
+    { 
+      label: 'Shipping', 
+      important: true, 
+      type: 'dropdown', 
+      placeholder: 'Select Shipping...',
+      fullWidth: true,
+      disabled: !user,
+      options: shippings,
+      value: shipping, 
+      setValue: setShipping
+    },
+    { 
+      label: 'Payment Method', 
+      important: true, 
+      type: 'dropdown',
+      fullWidth: true,
+      placeholder: 'Select Payment Method...', 
+      options: [
+        {name: 'Cash on Delivery', _id: 'cod'}, 
+        {name: 'Credit/Debit Card', _id: 'card'}, 
+        {name: 'PayPal', _id: 'paypal'}
+      ],
+      value: paymentMethod,
+      setValue: setPaymentMethod
+    },
+    {
+      label: 'Shipping Cost',
+      important: true,
+      type: 'number',
+      value: shippingCost,
+      setValue: setShippingCost
     }
-
-    if (orderItems.length === 0) {
-      setFromError('At least one product is required');
-      setLoadingSubmit(false);
-      return false;
-    }
-
-    for (let item of orderItems) {
-      if (!item.product) {
-        setFromError('All products must be selected');
-        setLoadingSubmit(false);
-        return false;
-      }
-      if (!item.quantity || item.quantity <= 0) {
-        setFromError('Quantity must be greater than 0');
-        setLoadingSubmit(false);
-        return false;
-      }
-    }
-
-    if (
-      !shipping.address1 ||
-      !shipping.city ||
-      !shipping.zip ||
-      !shipping.country
-    ) {
-      setFromError('Shipping information is incomplete');
-      setLoadingSubmit(false);
-      return false;
-    }
-
-    const payload = {
-      userId: user._id || user,
-      orderItems: orderItems.map(item => ({
-        product: item.product._id || item.product,
-        quantity: item.quantity,
-      })),
-      shipping,
-    };
-
-    try {
-      const response = await orderService.createOrder(payload);
-      return true;
-    } catch (error) {
-      enqueueSnackbar(error || 'Failed to create order', {
-        variant: 'error',
-      });
-      console.error(error);
-      return false;
-    } finally {
-      setLoadingSubmit(false);
-      setClickedButton('');
-    }
-  };
-
-  const resetForm = () => {
-    setUser(null);
-
-    setOrderItems([
-      {
-        product: '',
-        quantity: 1,
-        price: 0,
-      },
-    ]);
-
-    setShipping({
-      address1: '',
-      address2: '',
-      city: '',
-      zip: '',
-      country: '',
-      paymentMethod: 'cod',
-    });
-
-    setFromError('');
-  };
-
+  ];
 
   const getUsers = async () => {
     try {
       const response = await userService.getUsers();
       setUsers(response.data.users);
     } catch (error) {
-      enqueueSnackbar("Failed to load users", { variant: 'error' });
+      enqueueSnackbar('Failed to fetch users', { variant: 'error' });
       console.error(error);
+    } finally {
+      setLoadingFetch(false);
     }
   }
 
-  const getProducts = async () => {
+  const getShippings = async () => {
     try {
-      const response = await productService.getProducts();
-      const formatted = response.data.products.map(product => ({
-        ...product,
-        category: product.category?.name || 'N/A',
-        brand: product.brand?.name || 'N/A',
-      }));
-      setProducts(formatted);
+      const response = await shippingService.getShippingsForUser(user);
+      setShippings(response.data.shippings);
     } catch (error) {
-      enqueueSnackbar("Failed to load products", {
-        variant: 'error'
-      });
+      enqueueSnackbar('Failed to fetch shippings', { variant: 'error' });
       console.error(error);
+    } finally {
+      setLoadingFetch(false);
     }
   }
 
+  const handleSubmit = async () => {
+    setFormError('');
+    setLoadingSubmit(true);
+
+    if (!user || !shipping || !paymentMethod || !shippingCost) {
+      setFormError('Please fill all required fields');
+      setLoadingSubmit(false);
+      return false;
+    }
+
+    try {
+      const payload = {
+        'user_id': user,
+        'shipping_id': shipping,
+        'payment_method': paymentMethod,
+        'shipping_cost': shippingCost
+      }
+      const response = await orderService.createOrder(payload);
+      return true;
+    } catch (error) {
+      enqueueSnackbar(error || 'Failed to create order', { variant: 'error' });
+      console.error(error);
+      return false;
+    } finally {
+      setLoadingSubmit(false);
+    }
+  }
+
+  const resetForm = () => {
+    setUser('');
+    setShipping('');
+    setPaymentMethod('');
+    setShippingCost(0);
+    setFormError('');
+  }
+
   useEffect(() => {
+    setLoadingFetch(true);
     getUsers();
-    getProducts();
   }, []);
-
-  // Snackbar listener
+  
   useEffect(() => {
-    if (location.state?.message) {
-      enqueueSnackbar(location.state.message, {
-        variant: location.state.status,
-      });
-
-      // Clear state to prevent showing again
-      navigate(location.pathname, { replace: true, state: {} });
+    if (!user) {
+      setShippings([]);
+      setShipping(undefined);
+      return;
     }
 
-    if (location.state?.id) {
-      const id = location.state?.id;
-      setLoadingFetch(true);
-      const fetchOrder = async () => {        
-        try {
-          const response = await orderService.getOrder(id);
-          setOrder(response.data);
-        } catch (error) {
-          enqueueSnackbar(error || "Failed to get order");
-        } finally {
-          setLoadingFetch(false);
-        }
-      }
+    setLoadingFetch(true);
+    getShippings();
+  }, [user]);
 
-      fetchOrder();
-    }
-  }, [location.state]);
-
-  useEffect(() => {
-    if(!order) return;
-    console.log(order)
-
-    setUser(order.user._id);
-
-    // Format orderItems to have just product IDs
-    const formattedOrderItems = order.orderItems.map(item => ({
-      ...item,
-      product: item.product._id,
-    }));
-
-    setOrderItems(formattedOrderItems);
-    setShipping(order.shipping);
-  }, [order]);
-
-  useEffect(() => {
-    const submit = async () => {
-      switch (clickedButton) {
-        case 'create':
-          if(!await handleSubmit()) return;
-          navigate('/orders', {
-            state: {
-              message: 'Order created successfully',
-              status: 'success'
-            }
-          })
-          break;
-        case 'create_add':
-          if(!await handleSubmit()) return;
-          enqueueSnackbar('Added successfully', { variant: 'success' });
-          resetForm();
-          break;
-        default:
-          break;
-      }
-    }
-
-    submit();
-  }, [clickedButton])
 
   return (
     <MainLayout>
       {loadingFetch ? <Spinner/> : (
-        <div>
-            <div className='flex flex-row justify-between mb-5 px-2 py-3'>
-                <h1 className='text-3xl font-medium'>Create Order</h1>
-            </div>
-
-            <div className='flex flex-row justify-end my-5'>
-                <button
-                    onClick={resetForm}
-                    type="button"
-                    className="px-4 py-2 rounded-md border qb-border bg-gray-200 text-(--color-dark-gray) cursor-pointer"
-                >
-                    Reset
-                </button>
-            </div>
-
-            <form>
-                <p className='text-sm text-red-500 my-2'>{formError}</p>
-
-                <SearchableDropdown
-                  label='User'
-                  important
-                  options={users}
-                  placeholder='Select user...'
-                  value={user}
-                  setValue={setUser}
-                  formError={formError}
-                />
-
-                {orderItems.map((item, i) => (
-                  <div key={i} className="mb-4 border rounded-lg p-4">
-
-                    {/* Product */}
-                    <SearchableDropdown
-                      label={`Product No. ${i + 1}`}
-                      important
-                      options={products}
-                      placeholder="Select product..."
-                      value={item.product}
-                      setValue={(value) => updateItem(i, 'product', value)}
-                      formError={formError}
-                    />
-
-                    {/* Quantity */}
-                    <div className="mt-2">
-                      <label className="block text-sm font-medium mb-1">
-                        Quantity <span className="text-red-500">*</span>
-                      </label>
-
-                      <input
-                        type="number"
-                        min={1}
-                        value={item.quantity}
-                        onChange={(e) =>
-                          updateItem(i, 'quantity', Math.max(1, Number(e.target.value)))
-                        }
-                        className="w-32 border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-dark-green)"
-                      />
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex justify-between mt-3">
-                      {orderItems.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeItem(i)}
-                          className="text-red-500 text-sm hover:underline"
-                        >
-                          Remove
-                        </button>
-                      )}
-
-                      {i === orderItems.length - 1 && (
-                        <button
-                          type="button"
-                          onClick={addItem}
-                          className="text-(--color-dark-green) text-sm hover:underline"
-                        >
-                          + Add Product
-                        </button>
-                      )}
-                    </div>
-
-                  </div>
-                ))}
-
-                <div className="border rounded-lg p-4 mt-6">
-                  <h3 className="text-lg font-semibold mb-4">Shipping Information</h3>
-
-                  {/* Address 1 */}
-                  <div className="mb-3">
-                    <label className="block text-sm font-medium mb-1">
-                      Address 1 <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={shipping.address1}
-                      onChange={(e) =>
-                        setShipping(prev => ({ ...prev, address1: e.target.value }))
-                      }
-                      className="w-full border rounded-md px-3 py-2"
-                    />
-                  </div>
-
-                  {/* Address 2 */}
-                  <div className="mb-3">
-                    <label className="block text-sm font-medium mb-1">
-                      Address 2
-                    </label>
-                    <input
-                      type="text"
-                      value={shipping.address2}
-                      onChange={(e) =>
-                        setShipping(prev => ({ ...prev, address2: e.target.value }))
-                      }
-                      className="w-full border rounded-md px-3 py-2"
-                    />
-                  </div>
-
-                  {/* City + ZIP */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">
-                        City <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={shipping.city}
-                        onChange={(e) =>
-                          setShipping(prev => ({ ...prev, city: e.target.value }))
-                        }
-                        className="w-full border rounded-md px-3 py-2"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-1">
-                        ZIP Code <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={shipping.zip}
-                        onChange={(e) =>
-                          setShipping(prev => ({ ...prev, zip: e.target.value }))
-                        }
-                        className="w-full border rounded-md px-3 py-2"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Country */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium mb-1">
-                      Country <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={shipping.country}
-                      onChange={(e) =>
-                        setShipping(prev => ({ ...prev, country: e.target.value }))
-                      }
-                      className="w-full border rounded-md px-3 py-2"
-                    />
-                  </div>
-
-                  {/* Payment Method */}
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Payment Method <span className="text-red-500">*</span>
-                    </label>
-
-                    <div className="flex flex-col gap-2">
-                      {/* Credit Card */}
-                      <label className="flex items-center gap-2 text-gray-400 cursor-not-allowed">
-                        <input
-                          type="radio"
-                          name="paymentMethod"
-                          value="credit"
-                          disabled
-                        />
-                        Credit Card
-                      </label>
-
-                      {/* PayPal */}
-                      <label className="flex items-center gap-2 text-gray-400 cursor-not-allowed">
-                        <input
-                          type="radio"
-                          name="paymentMethod"
-                          value="paypal"
-                          disabled
-                        />
-                        PayPal
-                      </label>
-
-                      {/* Cash on Delivery */}
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name="paymentMethod"
-                          value="cod"
-                          checked={shipping.paymentMethod === 'cod'}
-                          onChange={() =>
-                            setShipping(prev => ({ ...prev, paymentMethod: 'cod' }))
-                          }
-                        />
-                        Cash on Delivery
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-
-                <div className='flex flex-row justify-between mt-5'>
-                    <div className='flex gap-2'>
-                      <button
-                          type='button'
-                          name='action'
-                          value='create'
-                          onClick={() => setClickedButton('create')}
-                          className={`px-4 py-2 rounded-md border qb-border flex flex-row items-center cursor-pointer ${
-                            (loadingSubmit && clickedButton === 'create')
-                                ? 'bg-(--color-green)/50 cursor-not-allowed'
-                                : 'bg-(--color-green) hover:bg-(--color-green)/80'
-                            }`}
-                          disabled={clickedButton === 'create'}
-                      >
-                          {(loadingSubmit && clickedButton === 'create') && <Loader2 className='w-4 h-4 animate-spin mr-2'/>}
-                          Create
-                      </button>
-                      <button
-                          type='button'
-                          name='action'
-                          value='create_add'
-                          onClick={() => setClickedButton('create_add')}
-                          className={`px-4 py-2 rounded-md border qb-border flex flex-row items-center cursor-pointer ${
-                            (loadingSubmit && clickedButton === 'create_add')
-                                ? 'bg-(--color-green)/50 cursor-not-allowed'
-                                : 'bg-(--color-green) hover:bg-(--color-green)/80'
-                            }`}
-                          disabled={clickedButton === 'create_add'}
-                      >
-                        {(loadingSubmit && clickedButton === 'create_add') && <Loader2 className='w-4 h-4 animate-spin mr-2'/>}
-                        Create & Add Another
-                      </button>
-                    </div>
-
-                    <Link
-                        to={'/orders'}
-                        className="px-4 py-2 rounded-md bg-(--color-light-gray) border qb-border"
-                    >
-                        Cancel
-                    </Link>
-                </div>
-            </form>
-          </div>
+        <CreateForm
+          title='Create Order'
+          inputs={inputs}
+          link={'/orders'}
+          loading={loadingSubmit}
+          formError={formError}
+          handleSubmit={handleSubmit}
+          resetForm={resetForm}
+        />
       )}
     </MainLayout>
   )

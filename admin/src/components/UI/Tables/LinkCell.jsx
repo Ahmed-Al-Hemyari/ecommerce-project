@@ -18,21 +18,20 @@ const LinkCell = ({ item, header }) => {
       let response;
       switch (header.field) {
         case 'category':
-          response = await categoryService.getCategory(item.category._id);
-          setValue(response.data);
+          // response = await categoryService.getCategory(item.category._id);
+          setValue(item.category);
           break;
         case 'brand':
-          response = await brandService.getBrand(item.brand._id);
-          setValue(response.data);
+          // response = await brandService.getBrand(item.brand._id);
+          setValue(item.brand);
           break;
         case 'user':
-          response = await userService.getUser(item.user._id);
-          setValue(response.data);
+          // response = await userService.getUser(item.user._id);
+          setValue(item.user);
           break;
         default:
           break;
       }
-      // const response = await c
     } catch (error) {
       console.error(error);
     }

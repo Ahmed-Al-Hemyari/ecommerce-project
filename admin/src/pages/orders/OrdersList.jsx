@@ -17,7 +17,7 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
   const [search, setSearch] = useState('');
   // Filters
   const [statusFilter, setStatusFilter] = useState(null);
-  const [payedFilter, setPayedFilter] = useState(null);
+  const [paidFilter, setPaidFilter] = useState(null);
   const [userFilter, setUserFilter] = useState(null);
   const [productFilter, setProductFilter] = useState(null);
   // Pagination
@@ -34,33 +34,36 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
     {
       label: 'Status',
       options: [
-        { name: 'Pending', _id: 'Pending' },
-        { name: 'Processing', _id: 'Processing' },
-        { name: 'Shipped', _id: 'Shipped' },
-        { name: 'Delivered', _id: 'Delivered' },
-        { name: 'Cancelled', _id: 'Cancelled' },
+        { name: 'Draft', _id: 'draft' },
+        { name: 'Pending', _id: 'pending' },
+        { name: 'Processing', _id: 'processing' },
+        { name: 'Shipped', _id: 'shipped' },
+        { name: 'Delivered', _id: 'delivered' },
+        { name: 'Cancelled', _id: 'cancelled' },
       ],
       placeholder: 'Choose Status',
       value: statusFilter,
       setValue: setStatusFilter,
     },
     {
-      label: 'Payed',
+      label: 'Paid',
       options: [
-        { name: 'Payed', _id: true },
-        { name: 'Not Payed', _id: false },
+        { name: 'Paid', _id: true },
+        { name: 'Not Paid', _id: false },
       ],
       placeholder: 'Choose...',
-      value: payedFilter,
-      setValue: setPayedFilter,
+      value: paidFilter,
+      setValue: setPaidFilter,
     },
   ];
 
   const headers = [
+    { label: 'ID', field: '_id', type: 'string' },
     { label: 'User', field: 'user', type: 'link', link: 'users' },
     { label: 'Status', field: 'status', type: 'status' },
-    { label: 'Payed', field: 'payed', type: 'bool' },
-    { label: 'Total Price', field: 'totalAmount', type: 'price' },
+    { label: 'Paid', field: 'paid', type: 'bool' },
+    { label: 'Paid At', field: 'paidAt', type: 'string' },
+    { label: 'Total Price', field: 'total', type: 'price' },
   ];
 
   const bulkActions = [
@@ -71,8 +74,8 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
 
     { _id: 'divider' },
 
-    { _id: 'payed', name: 'Mark as Paid' },
-    { _id: 'not-payed', name: 'Mark as Unpaid' },
+    { _id: 'paid', name: 'Mark as Paid' },
+    { _id: 'not-paid', name: 'Mark as Unpaid' },
 
     { _id: 'divider' },
 
@@ -80,11 +83,21 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
     { _id: 'delete', name: 'Delete Orders', color: 'red' },
   ];
 
-  const getOrders = async (search, user, product, status, payed, currentPage, limit) => {
+  const getOrders = async (search, user, product, status, paid, currentPage, limit) => {
     try {
-      const response = await orderService.getOrders({search, user, product, status, payed, page: currentPage, limit});
-      setOrders(response.data.orders);
-      console.log(response.data.orders);
+      const response = await orderService.getOrders({search, user, product, status, paid, page: currentPage, limit});
+      const formatted = response.data.orders.map(order => ({
+        ...order,
+        paidAt:
+          order.paidAt ?
+          new Date(order.paidAt).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        }) : null,
+      }));
+      setOrders(formatted);
+      console.log(formatted);
       setTotalPages(response.data.totalPages);
       setTotalItems(response.data.totalItems);
     } catch (error) {
@@ -96,13 +109,13 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
   };
 
   const refreshOrders = () => 
-    getOrders(search, userFilter, productFilter, statusFilter, payedFilter, currentPage, limit);
+    getOrders(search, userFilter, productFilter, statusFilter, paidFilter, currentPage, limit);
 
   // Fetch orders when search/filter changes
   useEffect(() => {
     setLoading(true);
     refreshOrders();
-  }, [search, userFilter, productFilter, statusFilter, payedFilter, currentPage, limit]);
+  }, [search, userFilter, productFilter, statusFilter, paidFilter, currentPage, limit]);
 
   // Bulk actions useEffect
   useEffect(() => {
@@ -152,11 +165,11 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
           case 'cancelled':
             await orderService.updateToCancelled(selected);
             break;
-          case 'payed':
-            await orderService.updateToPayed(selected);
+          case 'paid':
+            await orderService.updateToPaid(selected);
             break;
-          case 'not-payed':
-            await orderService.updateToNotPayed(selected);
+          case 'not-paid':
+            await orderService.updateToNotPaid(selected);
             break;
           case 'delete':
             await hardDelete(selected, type, setSelected, refreshOrders);
@@ -246,7 +259,7 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
         refreshData={refreshOrders}
         // Actions
         actions={[
-            'hard-delete', 'cancel', 'edit', 'show'
+            'hard-delete', 'show'
           ]}
         // bulk
         bulk={{ selected, setSelected, bulkActions, bulkAction, setBulkAction }}

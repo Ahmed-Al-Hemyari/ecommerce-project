@@ -82,13 +82,15 @@ const CreateForm = ({
                         );
                     }
 
-                    if (input.type === 'dropdown' || input.type === 'searchable') {
+                    if (input.type === 'dropdown') {
                         return (
                             <Dropdown
                                 key={index}
                                 label={input.label}
                                 important={input.important}
                                 options={input.options}
+                                fullWidth={input.fullWidth}
+                                disabled={input.disabled}
                                 placeholder={input.placeholder}
                                 value={input.value}
                                 setValue={input.setValue}

@@ -22,6 +22,11 @@ class Order extends Model
       'paid_at',  
     ];
 
+    protected $casts = [
+        'paid_at' => 'datetime',
+    ];
+
+
     protected static function booted()
     {
         static::saving(function ($order) {
@@ -47,20 +52,23 @@ class Order extends Model
             $q->where(function ($sub) use ($search) {
                 $sub->where('status', 'LIKE', "%$search%")
                     ->orWhereHas('user', fn($q2) => $q2->where('name', 'LIKE', "%$search%"))
-                    ->orWhere('totalAmount', '=', $search);
+                    ->orWhere('total', '=', $search);
             });
         });
 
         $query->when($filters['status'] ?? null, function ($q, $status) {
-            $q->whereHas('status', 'LIKE', "%$status%");
+            $q->where('status', "%$status%");
         });
         
-        $query->when($filters['payed'] ?? null, function ($q, $payed) {
-            $q->whereHas('payed', '=', "%$payed%");
-        });
+        $query->when(
+            array_key_exists('paid', $filters),
+            function ($q) use ($filters) {
+                $paid = filter_var($filters['paid'], FILTER_VALIDATE_BOOLEAN);
+                $q->where('is_paid', $paid);
+            }
+        );
     }
 
-    
     public function recalculateSubtotal()
     {
         $this->subtotal = $this->orderItems()

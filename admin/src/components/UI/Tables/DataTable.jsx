@@ -83,7 +83,7 @@ const DataTable = ({
       </div>
       <div className=" w-full">
 
-        <section className='border rounded-2xl'>
+        <section className='border rounded-2xl overflow-x-scroll'>
           <table className='table-auto w-full max-h-[calc(100vh-16rem)]'>
             <thead className='w-full border-b-2'>
               {
@@ -220,6 +220,7 @@ const DataTable = ({
                       return (
                         <Cell
                           key={header.field}
+                          link={link}
                           item={item}
                           colIndx={colIndx}
                           header={header}

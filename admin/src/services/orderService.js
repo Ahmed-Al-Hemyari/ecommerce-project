@@ -1,13 +1,13 @@
 import api from "./api";
 
 export const orderService = {
-    getOrders: ({search, user, product, status, payed, page, limit}) => {
+    getOrders: ({search, user, product, status, paid, page, limit}) => {
         const params = {};
         if (search) params.search = search;
         if (user) params.user = user;
         if (product) params.product = product;
         if (status !== undefined && status !== null) params.status = status;
-        if (payed !== undefined && payed !== null) params.payed = payed;
+        if (paid !== undefined && paid !== null) params.paid = paid;
         if (page) params.page = page;
         if (limit) params.limit = limit;
 
@@ -27,33 +27,33 @@ export const orderService = {
     // Status
     updateToPending: (data) => api.patch('/orders/bulk-update', {
         ids: data,
-        updates: { status: 'Pending' }
+        updates: { status: 'pending' }
     }),
     updateToProcessing: (data) => api.patch('/orders/bulk-update', {
         ids: data,
-        updates: { status: 'Processing' }
+        updates: { status: 'processing' }
     }),
     updateToShipped: (data) => api.patch('/orders/bulk-update', {
         ids: data,
-        updates: { status: 'Shipped' }
+        updates: { status: 'shipped' }
     }),
     updateToDelivered: (data) => api.patch('/orders/bulk-update', {
         ids: data,
-        updates: { status: 'Delivered' }
+        updates: { status: 'delivered' }
     }),
     updateToCancelled: (data) => api.patch('/orders/bulk-update', {
         ids: data,
-        updates: { status: 'Cancelled' }
+        updates: { status: 'cancelled' }
     }),
     
-    // Payed
-    updateToPayed: (data) => api.patch('/orders/bulk-update', {
+    // Paid
+    updateToPaid: (data) => api.patch('/orders/bulk-update', {
         ids: data,
-        updates: { payed: true }
+        updates: { is_paid: true }
     }),
-    updateToNotPayed: (data) => api.patch('/orders/bulk-update', {
+    updateToNotPaid: (data) => api.patch('/orders/bulk-update', {
         ids: data,
-        updates: { payed: false }
+        updates: { paid: false }
     }),
 }
 
