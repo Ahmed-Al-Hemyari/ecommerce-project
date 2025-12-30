@@ -341,3 +341,63 @@ export const makeDefault = async (id, action) => {
     action && action();
   }
 };
+
+export const markPaid = async (id, action) => {
+  const result = await Swal.fire({
+    title: `Mark as Paid`,
+    text: `Are you sure you want to mark this order as paid?`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Yes, mark it paid',
+    confirmButtonColor: '#1d7451',
+    allowOutsideClick: false,
+    preConfirm: async () => {
+      Swal.showLoading();
+      try {
+        await orderService.updateToPaid(id);
+        return true;
+      } catch (error) {
+        Swal.showValidationMessage(`Request failed: ${error}`);
+        return false;
+      }
+    }
+  });
+
+  if (result.isConfirmed) {
+    enqueueSnackbar(`Order marked as paid successfully`, {
+      variant: 'success',
+    });
+    
+    action && action();
+  }
+};
+
+export const submitOrder = async (id, action) => {
+  const result = await Swal.fire({
+    title: `Submit Order`,
+    text: `Are you sure you want to submit this order?`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Yes, submit it',
+    confirmButtonColor: '#1d7451',
+    allowOutsideClick: false,
+    preConfirm: async () => {
+      Swal.showLoading();
+      try {
+        await orderService.updateToPending(id);
+        return true;
+      } catch (error) {
+        Swal.showValidationMessage(`Request failed: ${error}`);
+        return false;
+      }
+    }
+  });
+
+  if (result.isConfirmed) {
+    enqueueSnackbar(`Order submitted successfully`, {
+      variant: 'success',
+    });
+    
+    action && action();
+  }
+};

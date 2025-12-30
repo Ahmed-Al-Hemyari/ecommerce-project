@@ -1,5 +1,5 @@
-import { Badge, BadgeCheck, Copy, Edit, Eye, Plus, RefreshCcw, Trash, Trash2, X } from "lucide-react";
-import { deleteItem, handleAddStock, handleCancel, hardDelete, makeDefault, restore, softDelete } from "./Functions";
+import { Badge, BadgeCheck, Check, Copy, Edit, Eye, Plus, RefreshCcw, Trash, Trash2, X } from "lucide-react";
+import { deleteItem, handleAddStock, handleCancel, hardDelete, makeDefault, markPaid, restore, softDelete, submitOrder } from "./Functions";
 import ActionButton from "@/components/UI/Tables/ActionButton";
 
 import { useNavigate } from "react-router-dom";
@@ -138,6 +138,30 @@ export const actionButtons = (id, type, link, navigate, refreshAction) => ({
           makeDefault(
             id,
             () => refreshAction(`Shipping address made default successfully`)
+          )
+        }
+      />
+    ),
+    'mark-paid': (
+      <ActionButton
+        Icon={BadgeCheck}
+        size={18}
+        handleClick={() =>
+          markPaid(
+            id,
+            () => refreshAction(`Order marked as paid successfully`)
+          )
+        }
+      />
+    ),
+    'submit-order': (
+      <ActionButton
+        Icon={Check}
+        size={18}
+        handleClick={() =>
+          submitOrder(
+            id,
+            () => refreshAction(`Order submitted successfully`)
           )
         }
       />

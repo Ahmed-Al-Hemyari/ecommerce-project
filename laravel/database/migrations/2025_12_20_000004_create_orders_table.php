@@ -19,7 +19,14 @@ return new class extends Migration
             $table->decimal('subtotal', 10, 2);
             $table->decimal('shipping_cost', 10, 2);
             $table->decimal('total', 10, 2);
-            $table->enum('status', ["draft", "pending", "paid", "shipped", "delivered", "cancelled"])->default("pending");
+            $table->enum('status', [
+                'draft',
+                'pending',
+                'processing',
+                'shipped',
+                'delivered',
+                'cancelled'
+            ])->default("pending");
             $table->boolean('is_paid')->default(false);
             $table->date('paid_at')->nullable()->default(null);
             $table->timestamps();

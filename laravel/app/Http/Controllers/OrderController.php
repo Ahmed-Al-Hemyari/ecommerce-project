@@ -32,7 +32,7 @@ class OrderController extends Controller
 
     public function getOrderById($id) {
 
-        $order = Order::with('user', 'orderItems.product')->find($id);
+        $order = Order::with('user', 'shipping', 'orderItems.product')->find($id);
 
         if (!$order) {
             return response()->json([
@@ -197,13 +197,24 @@ class OrderController extends Controller
 
 
     // Delete functions
-    public function hardDelete(Request $request) {
+    public function hardDelete(Request $request)
+    {
         $ids = $this->validateIds($request);
 
-        $deleted = Order::whereIn('id', $ids)->delete();
+        $blocked = Order::whereIn('id', $ids)
+            ->whereNotIn('status', ['draft', 'cancelled'])
+            ->first();
+
+        if ($blocked) {
+            return response()->json([
+                'message' => "Only draft orders can be deleted. Order id {$blocked->id} has status '{$blocked->status}'."
+            ], 422);
+        }
+
+        Order::whereIn('id', $ids)->delete();
 
         return response()->json([
-            'message' => 'Orders deleted permenantly successfully'
+            'message' => 'Draft orders deleted permanently successfully'
         ]);
     }
 

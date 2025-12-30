@@ -72,6 +72,7 @@ const CreateBrand = () => {
       const response = await brandService.createBrand(formData);
       return true;
     } catch (error) {
+      setFormError(error || "Failed to add brand");
       return false;
     } finally {
       setLoadingSubmit(false);

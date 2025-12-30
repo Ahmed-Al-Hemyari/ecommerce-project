@@ -18,10 +18,10 @@ const ShowOrder = () => {
     setLoading(true);
     try {
       const response = await orderService.getOrder(id);
-      setOrder(response.data);
+      setOrder(response.data.order);
       console.log(response.data);
     } catch (error) {
-      enqueueSnackbar("Failed to load order", { variant: 'error' });
+      enqueueSnackbar(error || "Failed to load order", { variant: 'error' });
     } finally {
       setLoading(false);
     }
@@ -33,19 +33,40 @@ const ShowOrder = () => {
 
   if (!order) return <MainLayout><Spinner/></MainLayout>;
 
-  // Prepare main details
-  const data = [
-    { label: 'User', value: order.user?.name || '-' },
-    { label: 'Total Amount', value: `$${order.totalAmount}` },
-    { label: 'Status', value: order.status },
-    { label: 'Paid', value: order.payed ? 'Yes' : 'No' },
-  ];
-
   const paymentMethod = {
     cod: 'Cash on Delivery',
     credit: 'Credit/Debit Card',
     paypal: 'PayPal',
   }
+
+  const actions = ['ruplicate'];
+  switch (order.status) {
+    case 'draft':
+      actions.push('submit-order', 'edit', 'hard-delete');
+      break;
+    case 'pending':
+      actions.push('mark-paid', 'cancel');
+      break;
+    case 'cancelled':
+      actions.push('hard-delete');
+      break;
+  }
+
+  // Prepare main details
+  const data = [
+    { label: 'User', value: order.user?.name || '-' },
+    { label: 'Subtotal', value: `$${order.subtotal}` },
+    { label: 'Shipping Cost', value: `$${order.shippingCost}` },
+    { label: 'Total Amount', value: `$${order.total}` },
+    { label: 'Status', value: order.status.charAt(0).toUpperCase() + order.status.slice(1) },
+    { label: 'Payment Method', value: paymentMethod[order.paymentMethod] || '-' },
+    { label: 'Paid', value: order.paid ? 'Yes' : 'No' },
+    { label: 'Paid At', value: order.paidAt ? new Date(order.paidAt).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        }) : '-' },
+  ];
 
   // Shipping info
   const shippingData = [
@@ -54,7 +75,6 @@ const ShowOrder = () => {
     { label: 'City', value: order.shipping?.city || '-' },
     { label: 'ZIP', value: order.shipping?.zip || '-' },
     { label: 'Country', value: order.shipping?.country || '-' },
-    { label: 'Payment Method', value: paymentMethod[order.shipping?.paymentMethod] || '-' },
   ];
 
   // Order items as nested data
@@ -76,10 +96,8 @@ const ShowOrder = () => {
           <ShowCard
             title={`Order #${order.orderId || order._id}`}
             data={data}
-            type={'Brand'}
-            actions={[
-                'ruplicate', 'edit', 'cancel', 'hard-delete' 
-            ]}
+            type={'Order'}
+            actions={actions}
             link={'/orders'}
           />
 
@@ -91,13 +109,13 @@ const ShowOrder = () => {
           />
 
           <div className="h-6" />
-          <h1 className="text-2xl font-semibold mb-2">Products</h1>
+          {/* <h1 className="text-2xl font-semibold mb-2">Products</h1>
           {order.orderItems.map(item => (
             <OrderItemCard
               key={item._id}
               item={item}
             />
-          ))}
+          ))} */}
         </div>
       )}
     </MainLayout>
