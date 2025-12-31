@@ -6,8 +6,12 @@ import { shippingService } from '@/services/shippingService';
 import userService from '@/services/userService';
 import { enqueueSnackbar } from 'notistack';
 import React, { useEffect, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const CreateOrder = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  // Loading
   const [loadingFetch, setLoadingFetch] = useState(false);
   const [loadingSubmit, setLoadingSubmit] = useState(false);
   const [formError, setFormError] = useState('');
@@ -50,8 +54,8 @@ const CreateOrder = () => {
       placeholder: 'Select Payment Method...', 
       options: [
         {name: 'Cash on Delivery', _id: 'cod'}, 
-        {name: 'Credit/Debit Card', _id: 'card'}, 
-        {name: 'PayPal', _id: 'paypal'}
+        {name: 'Credit/Debit Card', _id: 'card', disabled: true}, 
+        {name: 'PayPal', _id: 'paypal', disabled: true}
       ],
       value: paymentMethod,
       setValue: setPaymentMethod
@@ -140,6 +144,38 @@ const CreateOrder = () => {
     setLoadingFetch(true);
     getShippings();
   }, [user]);
+
+  // Snackbar listener
+  useEffect(() => {
+    if (location.state?.message) {
+      enqueueSnackbar(location.state.message, {
+        variant: location.state.status,
+      });
+
+      // Clear state to prevent showing again
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+
+    if (location.state?.id) {
+      const id = location.state?.id;
+      setLoadingFetch(true);
+      const fetchOrder = async () => {        
+        try {
+          const response = await orderService.getOrder(id);
+          setUser(response.data.order.user._id);
+          setShipping(response.data.order.shipping._id);
+          setPaymentMethod(response.data.order.paymentMethod);
+          setShippingCost(response.data.order.shippingCost);
+        } catch (error) {
+          enqueueSnackbar(error || "Failed to add brand");
+        } finally {
+          setLoadingFetch(false);
+        }
+      }
+      
+      fetchOrder();
+    }
+  }, [location.state]);
 
 
   return (

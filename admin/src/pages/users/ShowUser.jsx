@@ -92,7 +92,7 @@ const ShowUser = () => {
               link={'/users'}
             />
             <div className="h-4"></div>
-            <ShippingsList shippings={user.shippings} loading={loading} refreshData={refreshUser}/>
+            <ShippingsList shippings={user.shippings} user={user} loading={loading} refreshData={refreshUser}/>
           {/* <OrdersList propLimit={10} inner user={user}/> */}
         </>
       )}

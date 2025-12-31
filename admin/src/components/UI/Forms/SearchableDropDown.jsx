@@ -76,7 +76,7 @@ const SearchableDropdown = ({
                     option.phone ? (
                       <p className="text-sm text-gray-500">{option.phone}</p>
                     ) : option.brand && option.category ? (
-                      <p className="text-sm text-gray-500">{option.brand} • {option.category}</p>
+                      <p className="text-sm text-gray-500">{option.brand.name} • {option.category.name}</p>
                     ) : null
                   }
 

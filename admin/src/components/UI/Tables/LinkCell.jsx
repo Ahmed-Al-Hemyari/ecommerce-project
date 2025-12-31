@@ -11,8 +11,6 @@ const LinkCell = ({ item, header }) => {
   // const [valueType, setValueType] = useState(null);
   const [value, setValue] = useState(null);
 
-
-
   const getValue = async () => {
     try {
       let response;
@@ -24,6 +22,10 @@ const LinkCell = ({ item, header }) => {
         case 'brand':
           // response = await brandService.getBrand(item.brand._id);
           setValue(item.brand);
+          break;
+        case 'product':
+          // response = await userService.getUser(item.user._id);
+          setValue(item.product);
           break;
         case 'user':
           // response = await userService.getUser(item.user._id);

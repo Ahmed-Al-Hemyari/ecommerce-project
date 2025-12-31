@@ -68,25 +68,26 @@ class OrderItemController extends Controller
             ], 201);
         });
     }
-
     
-    // public function updateOrderItem(Request $request, $id) {
-    //     $orderItem = OrderItem::findOrFail($id);
+    public function updateOrderItem(Request $request, $id) {
+        $orderItem = OrderItem::findOrFail($id);
 
-    //     $data = $request->validate([
-    //         'product_id' => ['sometimes', 'exists:products,id'],
-    //         'order_id' => ['sometimes', 'exists:orders,id'],
-    //         'price' => ['sometimes', 'numeric', 'min:0'],
-    //         'quantity' => ['sometimes', 'integer', 'min:0'],
-    //     ]);
+        $data = $request->validate([
+            'product_id' => ['sometimes', 'exists:products,id'],
+            // 'order_id' => ['sometimes', 'exists:orders,id'],
+            // 'price' => ['sometimes', 'numeric', 'min:0'],
+            'quantity' => ['sometimes', 'integer', 'min:0'],
+        ]);
 
-    //     $orderItem->update($data);
+        $product = Product::findOrFail($data['product_id']);
 
-    //     return response()->json([
-    //         'message' => 'Order item updated successfully',
-    //         'orderItem' => new OrderItemResource($orderItem),
-    //     ], 201);
-    // }
+        $orderItem->update($data);
+
+        return response()->json([
+            'message' => 'Order item updated successfully',
+            'orderItem' => new OrderItemResource($orderItem),
+        ], 201);
+    }
 
     // Delete functions
     public function hardDelete(Request $request)

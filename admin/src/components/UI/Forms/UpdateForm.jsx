@@ -44,7 +44,7 @@ const UpdateForm = ({
         } else if (action === 'update_continue') {
             enqueueSnackbar('Updated successfully', { variant: 'success' });
             resetForm();
-            // window.location.reload();
+            setClickedButton('');
         }
     };
 

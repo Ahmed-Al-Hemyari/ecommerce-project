@@ -7,6 +7,7 @@ import { enqueueSnackbar } from 'notistack';
 import { ArrowLeft } from 'lucide-react';
 import OrderItemCard from '@/components/UI/OrderItemCard';
 import Spinner from '@/components/UI/Spinner';
+import OrderItemsList from '../orderItems/OrderItemsList';
 
 const ShowOrder = () => {
   const { id } = useParams();
@@ -26,6 +27,9 @@ const ShowOrder = () => {
       setLoading(false);
     }
   };
+
+  const refreshOrder = () => 
+    getOrder();
   
   useEffect(() => {
     getOrder();
@@ -42,7 +46,7 @@ const ShowOrder = () => {
   const actions = ['ruplicate'];
   switch (order.status) {
     case 'draft':
-      actions.push('submit-order', 'edit', 'hard-delete');
+      actions.push('submit-order', 'hard-delete');
       break;
     case 'pending':
       actions.push('mark-paid', 'cancel');
@@ -77,12 +81,6 @@ const ShowOrder = () => {
     { label: 'Country', value: order.shipping?.country || '-' },
   ];
 
-  // Order items as nested data
-  const itemsData = order.orderItems?.map(item => ({
-    label: `${item.product?.name || 'Unknown'} (x${item.quantity})`,
-    value: `$${item.price * item.quantity}`
-  })) || [];
-
   return (
     <MainLayout>
       {loading ? <Spinner/> : (
@@ -109,13 +107,13 @@ const ShowOrder = () => {
           />
 
           <div className="h-6" />
-          {/* <h1 className="text-2xl font-semibold mb-2">Products</h1>
-          {order.orderItems.map(item => (
-            <OrderItemCard
-              key={item._id}
-              item={item}
-            />
-          ))} */}
+          <OrderItemsList
+            orderItems={order.orderItems}
+            refreshData={refreshOrder}
+            loading={loading}
+            order={order}
+            draft={order.status === 'draft' ? true : false}
+          />
         </div>
       )}
     </MainLayout>

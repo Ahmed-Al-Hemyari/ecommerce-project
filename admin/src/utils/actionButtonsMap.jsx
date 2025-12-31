@@ -2,9 +2,6 @@ import { Badge, BadgeCheck, Check, Copy, Edit, Eye, Plus, RefreshCcw, Trash, Tra
 import { deleteItem, handleAddStock, handleCancel, hardDelete, makeDefault, markPaid, restore, softDelete, submitOrder } from "./Functions";
 import ActionButton from "@/components/UI/Tables/ActionButton";
 
-import { useNavigate } from "react-router-dom";
-import { shippingService } from "@/services/shippingService";
-
 export const actionButtons = (id, type, link, navigate, refreshAction) => ({
     
     'delete': (

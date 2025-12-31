@@ -6,6 +6,7 @@ import brandService from "@/services/brandService";
 import productService from "@/services/productService";
 import orderService from "@/services/orderService";
 import { shippingService } from "@/services/shippingService";
+import { orderItemsService } from "@/services/orderItemsService";
 
 const ENTITY_CONFIG = {
   User: {
@@ -31,6 +32,10 @@ const ENTITY_CONFIG = {
   Order: {
     service: orderService,
     label: "Order",
+  },
+  OrderItem: {
+    service: orderItemsService,
+    label: "Order Item",
   },
 };
 
@@ -354,7 +359,7 @@ export const markPaid = async (id, action) => {
     preConfirm: async () => {
       Swal.showLoading();
       try {
-        await orderService.updateToPaid(id);
+        await orderService.updateToPaid([id]);
         return true;
       } catch (error) {
         Swal.showValidationMessage(`Request failed: ${error}`);
@@ -384,10 +389,11 @@ export const submitOrder = async (id, action) => {
     preConfirm: async () => {
       Swal.showLoading();
       try {
-        await orderService.updateToPending(id);
+        await orderService.updateToPending([id]);
         return true;
       } catch (error) {
         Swal.showValidationMessage(`Request failed: ${error}`);
+        console.error(error);
         return false;
       }
     }

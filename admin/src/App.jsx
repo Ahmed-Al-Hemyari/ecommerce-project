@@ -31,6 +31,8 @@ import ShowUser from './pages/users/ShowUser'
 import ShippingList from './pages/shippings/ShippingsList'
 import CreateShipping from './pages/shippings/CreateShipping'
 import UpdateShipping from './pages/shippings/UpdateShipping'
+import CreateOrderItem from './pages/orderItems/CreateOrderItem'
+import UpdateOrderItem from './pages/orderItems/UpdateOrderItem'
 
 const App = () => {
   const navigate = useNavigate();
@@ -274,7 +276,7 @@ const App = () => {
 
     {/* Shipping */}
     <Route
-      path="/shippings/create"
+      path="/users/:userId/shippings/create"
       element={
         <ProtectRoute>
           <CreateShipping />
@@ -283,10 +285,29 @@ const App = () => {
     />
 
     <Route
-      path="/shippings/update/:id"
+      path="/users/shippings/update/:id"
       element={
         <ProtectRoute>
           <UpdateShipping />
+        </ProtectRoute>
+      }
+    />
+
+    {/* Order Items */}
+    <Route
+      path="/orders/:orderId/items/create"
+      element={
+        <ProtectRoute>
+          <CreateOrderItem />
+        </ProtectRoute>
+      }
+    />
+
+    <Route
+      path="/orders/items/update/:id"
+      element={
+        <ProtectRoute>
+          <UpdateOrderItem />
         </ProtectRoute>
       }
     />

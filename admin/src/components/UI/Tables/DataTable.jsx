@@ -1,19 +1,16 @@
 import React, { useEffect, useState } from 'react'
-import ActionButton from './ActionButton';
-import { Edit, Eye, Plus, RefreshCcw, Search, Square, SquarePlus, Trash, Trash2, X } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import StringCell from './StringCell';
 import BoolCell from './BoolCell';
 import StatusCell from './StatusCell';
 import PriceCell from './PriceCell';
 import LinkCell from './LinkCell';
-import { enqueueSnackbar } from 'notistack';
 import Filters from '../Filters';
 import Pagination from './Pagination';
 import Spinner from '../Spinner';
 import Checkbox from '../Checkbox';
 import Dropdown from '../Forms/Dropdown';
-import { handleAddStock, handleCancel, hardDelete, restore, softDelete } from '@/utils/Functions';
 import { actionButtons } from '@/utils/actionButtonsMap';
 
 const DataTable = ({
@@ -21,6 +18,7 @@ const DataTable = ({
   type = '',
   headers = [], 
   link = '', 
+  createLink,
   data = [],
   loading = true,
   // Pagination
@@ -110,7 +108,10 @@ const DataTable = ({
                       <td colSpan={headers.length + 2}>
                         <div className={`w-full p-5 border-b flex flex-row items-center ${showTableName ? 'justify-between' : 'justify-end'}`}>
                           {showTableName && <h1 className={`text-xl font-bold`}>{tableName}</h1>}
-                          <Link to={`${link}/create`} className='bg-(--color-green) text-(--color-dark-gray) text-lg flex flex-row items-center gap-2 font-medium rounded-md px-3 py-1'>
+                          <Link 
+                            to={createLink ?? `${link}/create`} 
+                            className='bg-(--color-green) text-(--color-dark-gray) text-lg flex flex-row items-center gap-2 font-medium rounded-md px-3 py-1'
+                          >
                             Create
                           </Link>
                         </div>

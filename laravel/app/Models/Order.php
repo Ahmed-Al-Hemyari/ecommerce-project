@@ -57,7 +57,7 @@ class Order extends Model
         });
 
         $query->when($filters['status'] ?? null, function ($q, $status) {
-            $q->where('status', "%$status%");
+            $q->where('status', 'like', "%$status%");
         });
         
         $query->when(

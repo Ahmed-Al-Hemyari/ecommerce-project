@@ -1,7 +1,7 @@
 import DataTable from '@/components/UI/Tables/DataTable'
 import React from 'react'
 
-const ShippingList = ({shippings = [], loading, refreshData}) => {
+const ShippingList = ({shippings = [], user, loading, refreshData}) => {
     const headers = [
         { label: 'ZIP', field: 'zip', type: 'string' },
         { label: 'City', field: 'city', type: 'string' },
@@ -14,7 +14,8 @@ const ShippingList = ({shippings = [], loading, refreshData}) => {
             <DataTable
                 tableName='Shippings'
                 type='Shipping'
-                link='/shippings'
+                link='/users/shippings'
+                createLink={`/users/${user._id}/shippings/create`}
                 headers={headers}
                 data={shippings}
                 loading={loading}

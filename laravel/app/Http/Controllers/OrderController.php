@@ -168,7 +168,7 @@ class OrderController extends Controller
 
         $credentials = $request->validate([
             'updates.status' => ['sometimes', Rule::in([
-                'pending', 'paid', 'shipped', 'delivered', 'cancelled'
+                'pending', 'processing', 'shipped', 'delivered', 'cancelled'
             ])],
             'updates.is_paid' => ['sometimes', 'boolean'],
         ]);

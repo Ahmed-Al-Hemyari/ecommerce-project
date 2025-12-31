@@ -6,12 +6,13 @@ import userService from '@/services/userService';
 import { countries } from '@/utils/countries';
 import { enqueueSnackbar } from 'notistack';
 import React, { useEffect, useState } from 'react'
-import { data, useLocation, useNavigate } from 'react-router-dom';
+import { data, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 const CreateShipping = () => {
     // Essentials
     const navigate = useNavigate();
     const location = useLocation();
+    const { userId } = useParams();
     // data
     const [users, setUsers] = useState([]);
     // Errors
@@ -52,7 +53,7 @@ const CreateShipping = () => {
 
         try {
             const response = await shippingService.createShipping({
-                'user_id': user._id,
+                'user_id': userId,
                 address1, address2, city, country, zip
             });
             return true;
@@ -76,7 +77,7 @@ const CreateShipping = () => {
     }
 
     const inputs = [
-        { label: 'User', type: 'select', options: users, value: user, setValue: setUser, important: true },
+        // { label: 'User', type: 'select', options: users, value: user, setValue: setUser, important: true },
         { label: 'Address Line 1', type: 'text', value: address1, setValue: setAddress1, important: true },
         { label: 'Address Line 2', type: 'text', value: address2, setValue: setAddress2 },
         { label: 'City', type: 'text', value: city, setValue: setCity, important: true },
@@ -105,7 +106,7 @@ const CreateShipping = () => {
                 <CreateForm
                     inputs={inputs}
                     title='Create Shipping'
-                    link='/users'
+                    link={`/users/show/${userId}`}
                     handleSubmit={handleSubmit}
                     loading={loadingSubmit}
                     formError={formError}

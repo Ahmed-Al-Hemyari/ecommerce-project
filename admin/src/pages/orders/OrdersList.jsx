@@ -62,7 +62,8 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
     { label: 'User', field: 'user', type: 'link', link: 'users' },
     { label: 'Status', field: 'status', type: 'status' },
     { label: 'Paid', field: 'paid', type: 'bool' },
-    { label: 'Paid At', field: 'paidAt', type: 'string' },
+    { label: 'Items', field: 'items', type: 'string' },
+    // { label: 'Paid At', field: 'paidAt', type: 'string' },
     { label: 'Total Price', field: 'total', type: 'price' },
   ];
 
@@ -172,7 +173,7 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
             await orderService.updateToNotPaid(selected);
             break;
           case 'delete':
-            await hardDelete(selected, type, setSelected, refreshOrders);
+            await orderService.hardDelete(selected);
             break;
           default:
             return;
@@ -186,7 +187,6 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
         });
 
         setSelected([]);
-        setBulkAction('');
         refreshOrders();
       } catch (err) {
         console.error(err);
@@ -197,6 +197,8 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
           icon: 'error',
           confirmButtonColor: '#d50101',
         });
+      } finally {
+        setBulkAction('');
       }
     };
 

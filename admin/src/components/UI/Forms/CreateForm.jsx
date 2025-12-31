@@ -43,6 +43,7 @@ const CreateForm = ({
             });
         } else if (action === 'create_add') {
             enqueueSnackbar('Added successfully', { variant: 'success' });
+            setClickedButton('');
             resetForm();
         }
     };
