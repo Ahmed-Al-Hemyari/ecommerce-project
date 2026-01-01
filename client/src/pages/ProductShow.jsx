@@ -43,6 +43,13 @@ const ProductShow = ({ onCartChange }) => {
   const handleAddToCart = () => {
     if (!product) return;
 
+    if (product.stock === 0) {
+      enqueueSnackbar("Out of Stock", {
+        variant: 'error'
+      });
+      return;
+    }
+
     const storageItems = readLocalStorageItem('cart') || [];
     const existingItem = storageItems.find(item => item._id === product._id);
 

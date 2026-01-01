@@ -11,35 +11,37 @@ const url = import.meta.env.VITE_IMAGES_BACKEND_URL;
 
 const ProductCard = ({product, onCartChange}) => {
   const handleAddToCart = () => {
+    if (!product) return;
+
     if (product.stock === 0) {
-      enqueueSnackbar("Out of Stock", {
-        variant: 'error'
-      });
+      enqueueSnackbar("Out of Stock", { variant: 'error' });
       return;
     }
-    
-    const storageItems = readLocalStorageItem('cart');
 
-    const existingItem = storageItems.find(item => item._id === product._id);
+    const cart = readLocalStorageItem('cart') || [];
+    const existingItem = cart.find(item => item._id === product._id);
+
     if (existingItem) {
-      console.log(existingItem);
-      existingItem.quantity++;
-      updateLocalStorageItem('cart', existingItem);
+      // Increment quantity
+      const updatedItem = { ...existingItem, quantity: existingItem.quantity + 1 };
+      updateLocalStorageItem('cart', updatedItem);
     } else {
+      // Add new item
       const cartProduct = {
         _id: product._id,
         name: product.name,
         description: product.description,
         price: product.price,
         category: product.category,
+        brand: product.brand,
         image: product.image,
         quantity: 1,
-      }
+      };
       addToLocalStorage('cart', cartProduct);
     }
 
-    enqueueSnackbar("Added to cart", {variant: "success"});
-    onCartChange();
+    enqueueSnackbar('Added to cart', { variant: 'success' });
+    onCartChange?.();
   };
 
   return (
@@ -87,7 +89,7 @@ const ProductCard = ({product, onCartChange}) => {
               ? 'bg-(--color-light-gray) cursor-not-allowed'
               : 'bg-(--color-green) cursor-pointer'
           }`}
-          onClick={() => handleAddToCart(product)}
+          onClick={handleAddToCart}
         >
           Add
         </button>
