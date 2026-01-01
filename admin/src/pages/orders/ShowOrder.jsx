@@ -20,7 +20,6 @@ const ShowOrder = () => {
     try {
       const response = await orderService.getOrder(id);
       setOrder(response.data.order);
-      console.log(response.data);
     } catch (error) {
       enqueueSnackbar(error || "Failed to load order", { variant: 'error' });
     } finally {

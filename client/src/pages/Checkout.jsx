@@ -1,257 +1,171 @@
+// pages/Checkout.jsx
 import React, { useState, useEffect } from "react";
-import MainLayout from '../layouts/MainLayout';
-import { readLocalStorageItem } from "../services/LocalStorageFunctions";
-import { countries } from '../services/countries'
-import { 
-    orderService
- } from "../services/api-calls";
-import Swal from "sweetalert2";
+import MainLayout from "@/layouts/MainLayout";
 import { useNavigate } from "react-router-dom";
 import { useSnackbar } from "notistack";
+import { readLocalStorageItem } from "../services/LocalStorageFunctions";
+import { authService, orderService } from "../services/api-calls";
+import ShippingOption from "../components/ShippingOption";
+import Swal from "sweetalert2";
+import Spinner from "../components/Spinner";
 
 const Checkout = () => {
-  const user = readLocalStorageItem('user');
-  const userId = user?.id;
-
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
+  const user = readLocalStorageItem("user");
 
   const [cart, setCart] = useState([]);
-  const [shippingData, setShippingData] = useState({
-    address1: "",
-    address2: "",
-    city: "",
-    zip: "",
-    country: "",
-    paymentMethod: "cod",
-  });
-
-  // Errors
-  const [formError, setFormError] = useState("");
-  const [zipError, setZipError] = useState("");
+  const [shippings, setShippings] = useState([]);
+  const [selectedShipping, setSelectedShipping] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState("cod");
+  const [loadingFetch, setLoadingFetch] = useState(true);
 
   useEffect(() => {
-    const items = readLocalStorageItem('cart');
-    setCart(items);
+    const loadData = async () => {
+      const items = readLocalStorageItem("cart") || [];
+      setCart(items);
+
+      try {
+        const response = await authService.getProfile();
+        const userShippings = response.data.user.shippings || [];
+        setShippings(userShippings);
+        setSelectedShipping(userShippings.find(s => s.isDefault) || userShippings[0] || null);
+      } catch (error) {
+        console.error("Failed to load profile", error);
+        enqueueSnackbar("Failed to load shipping addresses", { variant: "error" });
+      } finally {
+        setLoadingFetch(false);
+      }
+    };
+
+    loadData();
   }, []);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setShippingData((prev) => ({ ...prev, [name]: value }));
-  };
-
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shipping = subtotal > 0 ? 5 : 0;
-  const total = subtotal + shipping;
+  const shippingCost = subtotal > 0 ? 5 : 0;
+  const total = subtotal + shippingCost;
 
-  const handlePlaceOrder = async (e) => {
-    e.preventDefault();
-    setFormError("");
-    if (
-        !shippingData.address1
-        || !shippingData.city
-        || !shippingData.zip
-        || !shippingData.country
-        || !shippingData.paymentMethod
-    ) {
-        setFormError("Fill all fields with *");
-        return;
+  const handlePlaceOrder = async () => {
+    if (!selectedShipping) {
+      enqueueSnackbar("Please select a shipping address", { variant: "warning" });
+      return;
     }
 
-    const zipRegex = /^[A-Za-z0-9\- ]{3,10}$/;
-    if (!zipRegex.test(shippingData.zip)) {
-        setZipError("Invalid zip code!!");
-        return;
+    if (!cart || cart.length === 0) {
+      enqueueSnackbar("Your cart is empty!", { variant: "warning" });
+      return;
     }
+
+    const cartItems = cart.map(item => ({
+      product_id: item._id,
+      quantity: item.quantity,
+    }));
 
     try {
-        const orderItems = cart.map(item => ({
-            product: item._id,
-            quantity: item.quantity
-        }));
-        console.log(orderItems);
-        const response = await orderService.createOrder({userId: userId, orderItems, shipping: shippingData});
-        localStorage.setItem('cart', JSON.stringify([]));
-        navigate("/", {
-            state: {
-                message: "Order submitted successfully",
-                status: "success"
-            }
-        });
+      Swal.fire({
+        title: "Placing order...",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+      });
+
+      const payload = {
+        user_id: user._id,
+        shipping_id: selectedShipping._id,
+        payment_method: paymentMethod,
+        cart: cartItems,
+      }
+      console.log("Order payload:", payload);
+      await orderService.createOrder(payload);
+
+      Swal.close();
+      localStorage.removeItem("cart");
+      navigate("/", { state: { message: "Order placed successfully!", status: "success" } });
     } catch (error) {
-        console.log("Failed to submit order, error: ", error);
-        enqueueSnackbar(error || "Failed to submit order!", { variant: 'error'});
+      Swal.close();
+      console.error("Order failed", error);
+      enqueueSnackbar(error?.response?.data?.message || "Failed to place order", { variant: "error" });
     }
   };
 
-    return (
+  if (loadingFetch) return <Spinner />;
+
+  return (
     <MainLayout>
-        <div className="min-h-screen bg-gray-100 p-4 md:p-10">
-        <h1 className="text-2xl font-bold mb-6">Checkout</h1>
+      <div className="max-w-6xl mx-auto p-6">
+        <h1 className="text-3xl font-bold mb-6">Checkout</h1>
+        <div className="grid md:grid-cols-2 gap-6">
 
-        <div className="flex flex-col md:flex-row md:gap-6">
-            {/* Left Column: Shipping & Billing */}
-            <div className="flex-1 bg-white p-6 rounded-lg shadow-md mb-6 md:mb-0">
-
-            <h2 className="text-xl font-semibold mb-4">Shipping Information</h2>
-            <p className="text-red-500">{formError}</p>
-            {/* FULL PAGE FORM STARTS HERE */}
-            <form className="space-y-4" onSubmit={handlePlaceOrder}>
-                <label htmlFor="address1" className="flex gap-1 mb-2">
-                    Address Line 1 <span className="text-red-500">*</span>
-                </label>
-                <input
-                    type="text"
-                    name="address1"
-                    placeholder="Address Line 1"
-                    value={shippingData.address1}
-                    onChange={handleChange}
-                    className={`w-full border ${formError && 'border-red-500'} rounded px-3 py-2`}
+          {/* Shipping Selection */}
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-xl font-semibold mb-4">Select Shipping Address</h2>
+            {shippings.length === 0 && (
+              <p className="text-gray-500">No shipping addresses found. Add one in your profile.</p>
+            )}
+            <div className="space-y-3">
+              {shippings.map(shipping => (
+                <ShippingOption
+                  key={shipping._id}
+                  shipping={shipping}
+                  isSelected={selectedShipping?._id === shipping._id}
+                  onSelect={() => setSelectedShipping(shipping)}
                 />
+              ))}
+            </div>
+          </div>
 
-                <label htmlFor="address2" className="flex gap-1 mb-2">
-                    Address Line 2 <span className="text-red-500"></span>
-                </label>
-                <input
-                    type="text"
-                    name="address2"
-                    placeholder="Address Line 2 (Optional)"
-                    value={shippingData.address2}
-                    onChange={handleChange}
-                    className={`w-full border rounded px-3 py-2`}
-                />
-
-                <div className="flex gap-2">
-                    <div className="flex flex-col w-1/2">
-                        <label htmlFor="city" className="flex gap-1 mb-2">
-                            City <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                            type="text"
-                            name="city"
-                            placeholder="City"
-                            value={shippingData.city}
-                            onChange={handleChange}
-                            className={`w-full border ${formError && 'border-red-500'} rounded px-3 py-2`}
-                        />
-                    </div>
-                    <div className="flex flex-col w-1/2">
-                        <label htmlFor="zip" className="flex gap-1 mb-2">
-                            ZIP code <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                            type="text"
-                            name="zip"
-                            placeholder="ZIP Code"
-                            value={shippingData.zip}
-                            onChange={handleChange}
-                            className={`w-full border ${formError || zipError && 'border-red-500'} rounded px-3 py-2`}
-                        />
-                        <p className="text-red-500 text-sm mt-2">{zipError}</p>
-                    </div>
+          {/* Order Summary & Payment */}
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
+            <div className="space-y-2 mb-4">
+              {cart.map(item => (
+                <div key={item._id} className="flex justify-between">
+                  <span>{item.name} x {item.quantity}</span>
+                  <span>${(item.price * item.quantity).toFixed(2)}</span>
                 </div>
-
-                <label htmlFor="country" className="flex gap-1 mb-2">
-                    Country <span className="text-red-500">*</span>
-                </label>
-                <select
-                    name="country"
-                    value={shippingData.country}
-                    onChange={handleChange}
-                    className={`w-full border ${formError && 'border-red-500'} rounded px-3 py-2`}
-                >
-                    <option value="" disabled>Select a country</option>
-                    {countries.map((country) => (
-                        <option key={country} value={country}>
-                        {country}
-                        </option>
-                    ))}
-                </select>
-
-                {/* Right Column stays inside form visually */}
-                <div className="w-full bg-white p-6 rounded-lg shadow-md mt-6 md:mt-0">
-
-                <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
-
-                <div className="space-y-2 mb-4">
-                    {cart.map((item) => (
-                    <div key={item._id} className="flex justify-between">
-                        <span>{item.name} x {item.quantity}</span>
-                        <span>${item.price * item.quantity}</span>
-                    </div>
-                    ))}
-                </div>
-
-                <hr className="my-2" />
-
-                <div className="flex justify-between font-semibold">
-                    <span>Subtotal</span>
-                    <span>${subtotal}</span>
-                </div>
-
-                <div className="flex justify-between font-semibold">
-                    <span>Shipping</span>
-                    <span>${shipping}</span>
-                </div>
-
-                <div className="flex justify-between font-bold text-lg mb-4">
-                    <span>Total</span>
-                    <span>${total}</span>
-                </div>
-
-                <h3 className="font-semibold mb-2">Payment Method</h3>
-
-                <label className="flex items-center gap-2 mb-1">
-                    <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="card"
-                    checked={shippingData.paymentMethod === "card"}
-                    onChange={handleChange}
-                    disabled
-                    />
-                    Credit/Debit Card
-                </label>
-
-                <label className="flex items-center gap-2 mb-1">
-                    <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="paypal"
-                    checked={shippingData.paymentMethod === "paypal"}
-                    onChange={handleChange}
-                    disabled
-                    />
-                    PayPal
-                </label>
-
-                <label className="flex items-center gap-2 mb-4">
-                    <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="cod"
-                    checked={shippingData.paymentMethod === "cod"}
-                    onChange={handleChange}
-                    />
-                    Cash on Delivery
-                </label>
-
-                {/* SUBMIT BUTTON */}
-                <button
-                    type="submit"
-                    className="w-full bg-(--color-green) text-black font-bold py-2 rounded hover:bg-green-700 transition"
-                >
-                    Place Order
-                </button>
-                </div>
-            </form>
-            {/* END OF FORM */}
+              ))}
+            </div>
+            <hr className="my-2" />
+            <div className="flex justify-between font-semibold">
+              <span>Subtotal</span>
+              <span>${subtotal.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between font-semibold">
+              <span>Shipping</span>
+              <span>${shippingCost.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between font-bold text-lg mb-4">
+              <span>Total</span>
+              <span>${total.toFixed(2)}</span>
             </div>
 
+            <h3 className="font-semibold mb-2">Payment Method</h3>
+            <div className="space-y-2 mb-4">
+              <label className="flex items-center gap-2">
+                <input type="radio" value="card" disabled checked={paymentMethod === "card"} onChange={e => setPaymentMethod(e.target.value)} />
+                Credit/Debit Card
+              </label>
+              <label className="flex items-center gap-2">
+                <input type="radio" value="paypal" disabled checked={paymentMethod === "paypal"} onChange={e => setPaymentMethod(e.target.value)} />
+                PayPal
+              </label>
+              <label className="flex items-center gap-2">
+                <input type="radio" value="cod" checked={paymentMethod === "cod"} onChange={e => setPaymentMethod(e.target.value)} />
+                Cash on Delivery
+              </label>
+            </div>
+
+            <button
+              onClick={handlePlaceOrder}
+              className="w-full bg-(--color-dark-green) hover:bg-green-800 text-white font-bold py-3 rounded-xl transition"
+            >
+              Place Order
+            </button>
+          </div>
+
         </div>
-        </div>
+      </div>
     </MainLayout>
-    );
+  );
 };
 
 export default Checkout;

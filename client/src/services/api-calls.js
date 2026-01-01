@@ -5,6 +5,7 @@ export const authService = {
   loginByPhone: (data) => api.post("/auth/login-phone", data),
   loginByEmail: (data) => api.post("/auth/login-email", data),
   getProfile: () => api.get("/auth/profile"),
+  setDefault: (shippingId) => api.patch(`/auth/shippings/${shippingId}/set-default`),
   updateProfile: (data) => api.put("/auth/profile/update", data),
   changePassword: (data) => api.put("/auth/profile/change-password", data),
   checkAuth : () => api.get("/auth/check-auth"),
@@ -38,9 +39,9 @@ export const productService = {
 
 export const orderService = {
     getOrders: () => api.get("/orders/user"),
-    createOrder: (data) => api.post("/orders", data),
-    cancelOrder: (id) => api.put(`/orders/bulk-update`, {
+    createOrder: (data) => api.post("/orders/from-cart", data),
+    cancelOrder: (id) => api.patch(`/orders/bulk-update`, {
         ids: [id],
-        updates: { status: 'Cancelled' }
+        updates: { status: 'cancelled' }
     }),
 }

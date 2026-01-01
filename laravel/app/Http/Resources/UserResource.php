@@ -21,6 +21,7 @@ class UserResource extends JsonResource
             'phone' => $this->phone,
             'role' => $this->role,
             'shippings' => ShippingResource::collection($this->whenLoaded('shippings')),
+            'orders' => OrderResource::collection($this->whenLoaded('orders')),
             'createdAt' => $this->created_at?->toISOString(),
             'updatedAt' => $this->updated_at?->toISOString(),
             // 'deleted' => !is_null($this->deleted_at),

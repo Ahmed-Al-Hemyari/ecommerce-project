@@ -21,7 +21,6 @@ const ChangePassword = () => {
     setLoading(true);
 
     setFormError('');
-    setPasswordConfirmation('');
 
     const trimmedOldPassword = oldPassword.trim();
     const trimmedNewPassword = newPassword.trim();
@@ -56,8 +55,8 @@ const ChangePassword = () => {
         }
         });
     } catch (error) {
-        console.error("Updating error:", error.message);
-        setFormError(error.message || "Something went wrong");
+        console.error("Updating error:", error);
+        setFormError(error || "Something went wrong");
     } finally {
         setLoading(false);
     }

@@ -17,7 +17,7 @@ const StringCell = ({link, item, header}) => {
     >
       <Link 
         className='block w-full h-full p-3 text-wrap text-base text-(--color-dark-gray) tracking-wider' 
-        to={`${link}/show/${item._id}`} key={header.field}>
+        to={link ? `${link}/show/${item._id}` : null} key={header.field}>
         {item[header.field]}
       </Link>
     </td>

@@ -29,6 +29,17 @@ class OrderController extends Controller
             'totalPages' => $orders->lastPage()
         ], 200);
     }
+    
+    public function getOrdersForUser(Request $request) {
+        $user = $request->user();
+
+        $orders = Order::with('shipping', 'orderItems.product')
+            ->where('user_id', $user->id)->whereNot('status', 'draft')->latest()->get();
+
+        return response()->json([
+            'orders' => OrderResource::collection($orders),
+        ], 200);
+    }
 
     public function getOrderById($id) {
 
@@ -123,6 +134,9 @@ class OrderController extends Controller
                 // Decrement stock
                 $product->decrement('stock', $item['quantity']);
             }
+
+            $order->status = 'pending';
+            $order->save();
 
             return response()->json([
                 'message' => 'Order created successfully',

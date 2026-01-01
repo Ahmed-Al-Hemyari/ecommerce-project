@@ -7,7 +7,7 @@ import DataTable from '@/components/UI/Tables/DataTable';
 import Swal from 'sweetalert2';
 import { handleCancel, hardDelete } from '@/utils/Functions';
 
-const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
+const OrdersList = ({ propLimit = 50, inner = false, orders: propOrders = null }) => {
   const location = useLocation();
   const navigate = useNavigate();
   // Type 
@@ -18,8 +18,6 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
   // Filters
   const [statusFilter, setStatusFilter] = useState(null);
   const [paidFilter, setPaidFilter] = useState(null);
-  const [userFilter, setUserFilter] = useState(null);
-  const [productFilter, setProductFilter] = useState(null);
   // Pagination
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -84,9 +82,15 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
     { _id: 'delete', name: 'Delete Orders', color: 'red' },
   ];
 
-  const getOrders = async (search, user, product, status, paid, currentPage, limit) => {
+  const getOrders = async (search, status, paid, currentPage, limit) => {
     try {
-      const response = await orderService.getOrders({search, user, product, status, paid, page: currentPage, limit});
+      if (propOrders) {
+        setOrders(propOrders);
+        setLoading(false);
+        return;
+      }
+
+      const response = await orderService.getOrders({search, status, paid, page: currentPage, limit});
       const formatted = response.data.orders.map(order => ({
         ...order,
         paidAt:
@@ -98,7 +102,6 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
         }) : null,
       }));
       setOrders(formatted);
-      console.log(formatted);
       setTotalPages(response.data.totalPages);
       setTotalItems(response.data.totalItems);
     } catch (error) {
@@ -110,13 +113,13 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
   };
 
   const refreshOrders = () => 
-    getOrders(search, userFilter, productFilter, statusFilter, paidFilter, currentPage, limit);
+    getOrders(search, statusFilter, paidFilter, currentPage, limit);
 
   // Fetch orders when search/filter changes
   useEffect(() => {
     setLoading(true);
     refreshOrders();
-  }, [search, userFilter, productFilter, statusFilter, paidFilter, currentPage, limit]);
+  }, [search, statusFilter, paidFilter, currentPage, limit]);
 
   // Bulk actions useEffect
   useEffect(() => {
@@ -207,10 +210,10 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
 
 
   // Initial useEffect
-  useEffect(() => {
-    if(user) setUserFilter(user._id);
-    if(product) setProductFilter(product._id);
-  }, [user, product]);
+  // useEffect(() => {
+  //   if(user) setUserFilter(user._id);
+  //   if(product) setProductFilter(product._id);
+  // }, [user, product]);
 
 
   // Snackbar listener
@@ -232,8 +235,8 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
       data={orders}
       loading={loading}
       // Pagination
-      pagination={{ currentPage, setCurrentPage, totalPages, totalItems, limit, setLimit }}
-      filters={{ inputs: filters, search, setSearch}}
+      // pagination={{ currentPage, setCurrentPage, totalPages, totalItems, limit, setLimit }}
+      // filters={{ inputs: filters, search, setSearch}}
       // Refresh
       refreshData={refreshOrders}
       // Actions
@@ -243,7 +246,7 @@ const OrdersList = ({ propLimit = 50, inner = false, user, product }) => {
       // bulk
       bulk={{ selected, setSelected, bulkActions, bulkAction, setBulkAction }}
       // Customize
-      customize={{ showTableName: true }}
+      customize={{ showTableName: true, showActions: false, showSearch: false, showFilters: false, showSelect: false, showPagination: false }}
     />
   ) : (
     <MainLayout>

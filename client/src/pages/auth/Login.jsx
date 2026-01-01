@@ -7,6 +7,7 @@ import {
 } from '../../services/api-calls.js'
 import {useSnackbar} from 'notistack'
 import {allCountries} from 'country-telephone-data'
+import { Loader2 } from 'lucide-react'
 
 
 const Login = () => {
@@ -17,6 +18,8 @@ const Login = () => {
 
   // Navigate
   const navigate = useNavigate();
+  // loading
+  const [loading, setLoading] = useState(false);
 
   // Login Method
   const [phoneLogin, setPhoneLogin] = useState(false);
@@ -65,6 +68,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    setLoading(true);
     setFormError("");
     setPhoneError("");
 
@@ -76,7 +80,10 @@ const Login = () => {
       isValid = emailValidation(email, password);
     }
 
-    if (!isValid) return;
+    if (!isValid) {
+      setLoading(false);
+      return; 
+    }
 
     try {
       let response;
@@ -86,8 +93,7 @@ const Login = () => {
       } else {
         response = await authService.loginByEmail({email, password});
       }
-
-      console.log(response);
+      
       localStorage.setItem("token", response.data.token || "");
       localStorage.setItem("user", JSON.stringify(response.data.user || null));
 
@@ -101,6 +107,8 @@ const Login = () => {
     } catch (error) {
       console.error(error);
       setFormError(error || "Login failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
 };
 
@@ -225,20 +233,20 @@ const Login = () => {
             />
           </div>
 
-          {/* <div className="flex justify-between items-center text-sm">
-            <label className="flex items-center gap-2">
-              <input type="checkbox" className="h-4 w-4" />
-              Remember me
-            </label>
-            <button type="button" className="text-(--color-green) hover:underline">
-              Forgot password?
-            </button>
-          </div> */}
-
           <button
             type="submit"
-            className="w-full cursor-pointer py-3 mt-2 rounded-lg bg-(--color-green) text-(--color-dark-gray) font-semibold hover:opacity-90"
+            className={
+              `w-full cursor-pointer flex flex-row items-center justify-center
+              py-3 mt-2 rounded-lg bg-(--color-green) 
+              text-(--color-dark-gray) font-semibold hover:opacity-90 ${
+                loading ? 
+                  'bg-(--color-green)/50 cursor-not-allowed' : 
+                  'bg-(--color-green) hover:opacity-90'
+              }`
+            }
+            disabled={loading}
           >
+            {(loading) && <Loader2 className='w-4 h-4 animate-spin mr-2'/>}
             Login
           </button>
         </form>

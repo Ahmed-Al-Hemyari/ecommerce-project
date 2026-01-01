@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\UserResource;
+use App\Models\Shipping;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -125,6 +126,39 @@ class AuthController extends Controller
             'message' => "Password update successfully", 
             'user' => new UserResource($user->fresh())
         ], 200);
+    }
+
+    public function makeShippingDefault($shippingId) {
+        $shipping = Shipping::findOrFail($shippingId);
+        $user = $shipping->user;
+
+        if ($shipping->user_id != $user->id) {
+            return response()->json([
+                'message' => 'Unauthorized action',
+                'success' => false,
+            ], 403);
+        }
+
+        try {
+            // Unset previous default shipping
+            Shipping::where('user_id', $user->id)
+                ->where('is_default', true)
+                ->update(['is_default' => false]);
+
+            // Set the selected shipping as default
+            $shipping->is_default = true;
+            $shipping->save();
+
+            return response()->json([
+                'message' => 'Default shipping updated successfully',
+                'shipping' => $shipping,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to update default shipping',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function logout(Request $request)

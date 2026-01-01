@@ -4,9 +4,9 @@ export const iconMap = {
   laptops: Ai.AiOutlineLaptop,              // Laptop icon
   mobiles: Ai.AiOutlineMobile,             // Mobile icon
   fashion: Ai.AiOutlineShopping,           // Shopping icon
-  'beauty-care': Ai.AiOutlineHeart,        // Beauty/Personal care
-  'sports-outdoors': Ai.AiOutlineStar,    // Sports/Outdoors
-  'toys-games': Ai.AiOutlineTrophy,       // Toys/Games
+  'beauty-and-care': Ai.AiOutlineHeart,        // Beauty/Personal care
+  'sports-and-outdoors': Ai.AiOutlineStar,    // Sports/Outdoors
+  'toys-and-games': Ai.AiOutlineTrophy,       // Toys/Games
   jewelry: Ai.AiOutlineGift,               // Jewelry
   groceries: Ai.AiOutlineShoppingCart,    // Groceries
   automotive: Ai.AiOutlineCar,             // Automotive

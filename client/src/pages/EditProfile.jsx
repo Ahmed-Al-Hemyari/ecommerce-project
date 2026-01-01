@@ -7,6 +7,7 @@ import { readLocalStorageItem, extractPhoneParts } from '../services/LocalStorag
 import { 
     authService
  } from '../services/api-calls';
+import { Loader2 } from 'lucide-react';
 
 const EditProfile = () => {
     const user = readLocalStorageItem('user');
@@ -22,9 +23,12 @@ const EditProfile = () => {
     // Errors
     const [formError, setFormError] = useState("");
     const [phoneError, setPhoneError] = useState("");
+    // Loading
+    const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
         
         // Clear previous errors
         setFormError("");
@@ -38,6 +42,7 @@ const EditProfile = () => {
         // Required fields check
         if (!trimmedName || !trimmedEmail || !trimmedPhone) {
             setFormError("Please fill all fields with *");
+            setLoading(false);
             return;
         }
     
@@ -47,6 +52,7 @@ const EditProfile = () => {
         // Phone validation (9–15 digits, optional +)
         if (!/^\+?[0-9]{9,15}$/.test(normalizedPhone)) {
             setPhoneError("Invalid phone number");
+            setLoading(false);
             return;
         }
     
@@ -67,6 +73,8 @@ const EditProfile = () => {
         } catch (error) {
             console.error("Updating error:", error.message);
             setFormError(error.message || "Something went wrong");
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -140,10 +148,18 @@ const EditProfile = () => {
                     </div>
 
                     <button
-                    type="submit"
-                    className="w-full cursor-pointer py-3 mt-2 rounded-lg bg-(--color-green) text-(--color-dark-gray) font-semibold hover:opacity-90"
+                        type="submit"
+                        className={`w-full flex flex-row items-center justify-center
+                            cursor-pointer py-3 mt-2 rounded-lg 
+                            text-(--color-dark-gray) font-semibold 
+                             ${
+                                loading ? 
+                                    'bg-(--color-green)/90 cursor-not-allowed' : 
+                                    'bg-(--color-green) hover:opacity-90'
+                        }`}
                     >
-                    Update Profile
+                        {(loading) && <Loader2 className='w-4 h-4 animate-spin mr-2'/>}
+                        Update Profile
                     </button>
                 </form>
             </AuthLayout>

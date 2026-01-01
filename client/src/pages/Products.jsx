@@ -139,6 +139,7 @@ const getBrands = async () => {
         break;
     }
 
+    setLoading(true);
     getProducts(search, category, brand, minPrice, maxPrice, currentPage);
   }, [search, category, brand, priceRange, currentPage])
 

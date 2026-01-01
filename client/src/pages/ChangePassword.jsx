@@ -4,6 +4,7 @@ import MainLayout from '../layouts/MainLayout';
 import AuthLayout from '../layouts/AuthLayout';
 import { authService } from '../services/api-calls';
 import { useNavigate } from 'react-router-dom';
+import { Loader2 } from 'lucide-react'
 
 const ChangePassword = () => {
   const [oldPassword, setOldPassword] = useState("");
@@ -13,13 +14,15 @@ const ChangePassword = () => {
   const [formError, setFormError] = useState("");
   const [passwordConfirmationError, setPasswordConfirmationError] = useState("");
 
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     setFormError('');
-    setPasswordConfirmation('');
 
     const trimmedOldPassword = oldPassword.trim();
     const trimmedNewPassword = newPassword.trim();
@@ -27,12 +30,14 @@ const ChangePassword = () => {
 
     if (!trimmedOldPassword || !trimmedNewPassword || !trimmedPasswordConfirmation) {
       setFormError("Fill all fields with *");
+      setLoading(false);
       return;
     }
 
     // Password confirmation check
     if (trimmedNewPassword !== trimmedPasswordConfirmation) {
       setPasswordConfirmationError("Password confirmation is different than the password!!");
+      setLoading(false);
       return;
     }
 
@@ -42,7 +47,6 @@ const ChangePassword = () => {
             oldPassword: trimmedOldPassword, 
             newPassword: trimmedNewPassword
         });
-        console.log("Password Updated Successfully: ", data);
 
         // Navigate to login page with snackbar message
         navigate("/profile", {
@@ -52,10 +56,13 @@ const ChangePassword = () => {
         }
         });
     } catch (error) {
-        console.error("Updating error:", error.message);
-        setFormError(error.message || "Something went wrong");
+        console.error("Updating error:", error);
+        setFormError(error || "Something went wrong");
+    } finally {
+        setLoading(false);
     }
   }
+
   return (
     <MainLayout>
             <AuthLayout>
@@ -100,10 +107,18 @@ const ChangePassword = () => {
                     </div>
 
                     <button
-                    type="submit"
-                    className="w-full cursor-pointer py-3 mt-2 rounded-lg bg-(--color-green) text-(--color-dark-gray) font-semibold hover:opacity-90"
+                        type="submit"
+                        className={`w-full flex flex-row items-center justify-center
+                            cursor-pointer py-3 mt-2 rounded-lg 
+                            text-(--color-dark-gray) font-semibold 
+                             ${
+                                loading ? 
+                                    'bg-(--color-green)/90 cursor-not-allowed' : 
+                                    'bg-(--color-green) hover:opacity-90'
+                        }`}
                     >
-                    Change Password
+                        {(loading) && <Loader2 className='w-4 h-4 animate-spin mr-2'/>}
+                        Change Password
                     </button>
                 </form>
             </AuthLayout>

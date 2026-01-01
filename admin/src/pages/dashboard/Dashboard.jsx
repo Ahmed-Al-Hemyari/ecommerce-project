@@ -20,10 +20,12 @@ const Dashboard = () => {
     try {
       const response = await dashboardService.getDashboardData();
       setData(response.data);
+      console.log(response.data);
     } catch (error) {
       enqueueSnackbar("Failed to load data", {
         variant: 'error'
       })
+      console.error("Error fetching dashboard data:", error);
     } finally {
       setLoading(false);
     }
@@ -39,6 +41,7 @@ const Dashboard = () => {
         <Spinner/>
       ) : (
         <>
+          <div className="h-3"></div>
           <h2
             className="text-2xl md:text-3xl font-extrabold leading-tight text-(--color-dark-gray)"
           >
@@ -67,7 +70,7 @@ const Dashboard = () => {
             >
               Orders Status
             </h2>
-            <OrderStatusChart orderStatus={data.orderStatus}/>
+            <OrderStatusChart orderStatus={data.ordersStatus}/>
             <div className="h-10"/>
             <h2
               className="text-xl md:text-2xl font-extrabold leading-tight text-(--color-dark-gray)"
@@ -78,8 +81,8 @@ const Dashboard = () => {
               headers={[
                 { label: 'User', field: 'user', type: 'link', link: 'users' },
                 { label: 'Status', field: 'status', type: 'status' },
-                { label: 'Payed', field: 'payed', type: 'bool' },
-                { label: 'Total Price', field: 'totalAmount', type: 'price' },
+                { label: 'Paid', field: 'paid', type: 'bool' },
+                { label: 'Total Price', field: 'total', type: 'price' },
               ]}
               data={data.recentOrders}
               loading={loading}

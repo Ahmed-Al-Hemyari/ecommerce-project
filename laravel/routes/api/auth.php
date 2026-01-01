@@ -16,10 +16,11 @@ Route::middleware('auth:sanctum')->group(function () {
         return response()->json(['authenticated' => true]);
     });
     Route::get('/profile', function (Request $request) {
-        return response()->json(['user' => new UserResource($request->user())]);
+        return response()->json(['user' => new UserResource($request->user()->with('shippings')->first())]);
     });
     Route::put('/profile/update', [AuthController::class, 'updateProfile']);
     Route::put('/profile/change-password', [AuthController::class, 'changePassword']);
+    Route::patch('/shippings/{shippingId}/set-default', [AuthController::class, 'makeShippingDefault']);
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 

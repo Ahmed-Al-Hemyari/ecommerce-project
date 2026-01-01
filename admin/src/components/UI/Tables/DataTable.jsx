@@ -221,7 +221,7 @@ const DataTable = ({
                       return (
                         <Cell
                           key={header.field}
-                          link={link}
+                          link={actions.some(action => ['show'].includes(action)) ? link : null}
                           item={item}
                           colIndx={colIndx}
                           header={header}

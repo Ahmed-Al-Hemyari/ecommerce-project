@@ -6,20 +6,25 @@ import {
   orderService
 } from '../services/api-calls';
 import OrderCard from '../components/OrderCard';
+import Spinner from '../components/Spinner.jsx'
 
 const Orders = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
   const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const fetchOrders = async () => {
     try {
       const user = JSON.parse(localStorage.getItem('user'));
       const response = await orderService.getOrders();
-      setOrders(response.data);
+      setOrders(response.data.orders);
+      console.log(response.data.orders);
     } catch (error) {
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -44,6 +49,7 @@ const Orders = () => {
 
   // Fetch orders
   useEffect(() => {
+    setLoading(true);
     fetchOrders();
   }, []);
 
@@ -53,7 +59,8 @@ const Orders = () => {
         My Orders
       </h3>
       <div className="space-y-6 max-w-5xl mx-auto p-4">
-            {orders.length === 0 ? (
+        {loading ? <Spinner /> : (
+          orders.length === 0 ? (
                 <p className="text-center text-gray-500 mt-8">You have no orders yet.</p>
             ) : (
                 orders.map((o) => (
@@ -63,7 +70,8 @@ const Orders = () => {
                     <OrderCard order={o} onCancel={handleCancel}/>
                 </div>
                 ))
-            )}
+            )
+        )}
       </div>
 
     </MainLayout>

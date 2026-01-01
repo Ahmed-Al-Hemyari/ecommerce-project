@@ -1,11 +1,16 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
+use App\Http\Middleware\IsAdmin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return response()->json(['message' => "Welcome to QuickBuy API"]);
 });
+
+Route::get('/dashboard', [DashboardController::class, 'getDashboardData'])
+    ->middleware(['auth:sanctum', IsAdmin::class]);
 
 Route::prefix('auth')->group(base_path('routes/api/auth.php'));
 Route::prefix('users')->group(base_path('routes/api/users.php'));

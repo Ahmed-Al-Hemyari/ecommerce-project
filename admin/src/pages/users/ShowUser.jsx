@@ -19,7 +19,6 @@ const ShowUser = () => {
     setLoading(true);
     try {
       const response = await userService.getUser(id);
-      console.log(response.data);
       const formatted = {
         ...response.data.user,
         role: response.data.user.role.charAt(0).toUpperCase() + response.data.user.role.slice(1),
@@ -29,6 +28,7 @@ const ShowUser = () => {
           day: "numeric",
         }),
       };
+      console.log(formatted);
       setUser(formatted);
     } catch (error) {
       enqueueSnackbar(error || "Failed to load user", { variant: 'error' });
@@ -93,7 +93,8 @@ const ShowUser = () => {
             />
             <div className="h-4"></div>
             <ShippingsList shippings={user.shippings} user={user} loading={loading} refreshData={refreshUser}/>
-          {/* <OrdersList propLimit={10} inner user={user}/> */}
+            <div className="h-4"></div>
+            <OrdersList inner orders={user.orders}/>
         </>
       )}
     </MainLayout>

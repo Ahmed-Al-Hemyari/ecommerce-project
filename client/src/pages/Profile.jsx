@@ -1,59 +1,117 @@
 import MainLayout from "@/layouts/MainLayout";
 import { useEffect, useState } from "react";
-import { readLocalStorageItem } from "@/services/LocalStorageFunctions";
-import { useLocation, useNavigate } from "react-router-dom";
-import defaultAvatar from "@/assets/default-avatar.png";
+import { useNavigate, useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
-import { useSnackbar } from 'notistack'
+import { useSnackbar } from 'notistack';
+import Spinner from "@/components//Spinner";
+import defaultAvatar from "@/assets/default-avatar.png";
+import { authService } from "@/services/api-calls";
+import ShippingCard from "../components/ShippingCard"; // make sure this exists
 
 const Profile = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { enqueueSnackbar } = useSnackbar();
-  const [user, setUser] = useState(null);
 
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // -----------------------
+  // FETCH PROFILE FROM API
+  // -----------------------
+  const loadProfile = async () => {
+    setLoading(true);
+    try {
+      const data = await authService.getProfile();
+      console.log("Profile data:", data);
+      setUser(data.data.user);
+    } catch (error) {
+      console.error("Failed to fetch profile:", error);
+      enqueueSnackbar("Failed to load profile. Please login again.", { variant: "error" });
+      navigate("/login");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // -----------------------
+  // INITIAL LOAD
+  // -----------------------
   useEffect(() => {
-    const storedUser = readLocalStorageItem("user");
-    if (!storedUser) navigate("/login");
-    setUser(storedUser);
+    loadProfile();
   }, []);
 
+  // -----------------------
   // Snackbar listener
+  // -----------------------
   useEffect(() => {
     if (location.state?.message) {
       enqueueSnackbar(location.state.message, {
         variant: location.state.status,
       });
-
-      // Clear state to prevent showing again
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.state]);
 
-  if (!user) return null;
-
+  // -----------------------
+  // LOGOUT
+  // -----------------------
   const handleLogout = async () => {
-      const result = await Swal.fire({
-        title: "Sure you want to log out?",
-        icon: "question",
-        showCloseButton: true,
-        confirmButtonText: "Yes, log out!",
-        showCancelButton: true,
-        confirmButtonColor: "#82E2BB"
-      });
-  
-      if (!result.isConfirmed) return;
-  
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+    const result = await Swal.fire({
+      title: "Sure you want to log out?",
+      icon: "question",
+      showCloseButton: true,
+      confirmButtonText: "Yes, log out!",
+      showCancelButton: true,
+      confirmButtonColor: "#82E2BB",
+      allowOutsideClick: false,
+      preConfirm: async () => {
+        Swal.showLoading();
+        try {
+          await authService.logout();
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        } catch (error) {
+          Swal.showValidationMessage(`Failed to logout: ${error}`);
+          return false;
+        }
+      }
+    });
 
-      navigate('/', {
+    if (result.isConfirmed) {
+      navigate('/login', {
         state: {
           message: "Logged out successfully",
           status: "success"
         }
       });
-    };
+    }
+  };
+
+  // -----------------------
+  // SET DEFAULT SHIPPING
+  // -----------------------
+  const setDefaultShipping = async (shippingId) => {
+    // Call your API to set default shipping
+    await authService.setDefault(shippingId);
+
+    // Refresh profile after change
+    await loadProfile();
+  };
+
+  // -----------------------
+  // RENDER
+  // -----------------------
+
+  if (loading) return (
+    <MainLayout>
+      <div className="flex justify-center items-center min-h-[70vh]">
+        <Spinner />
+      </div>
+    </MainLayout>
+  );
+
+  if (!user) return null;
 
   return (
     <MainLayout>
@@ -65,11 +123,9 @@ const Profile = () => {
             src={defaultAvatar}
             className="w-32 h-32 rounded-full border-2 border-(--color-light-gray) object-cover"
           />
-
           <h1 className="text-2xl font-semibold text-(--color-dark-gray) mt-3">
             {user.name}
           </h1>
-
           <p className="text-gray-500">{user.email}</p>
         </div>
 
@@ -81,31 +137,35 @@ const Profile = () => {
             <p className="text-sm text-gray-500">Full Name</p>
             <p className="text-(--color-dark-gray) font-medium">{user.name}</p>
           </div>
-
           <div>
             <p className="text-sm text-gray-500">Email</p>
             <p className="text-(--color-dark-gray) font-medium">{user.email}</p>
           </div>
-
           {user.phone && (
             <div>
               <p className="text-sm text-gray-500">Phone</p>
               <p className="text-(--color-dark-gray) font-medium">{user.phone}</p>
             </div>
           )}
-
           <div>
             <p className="text-sm text-gray-500">Joined</p>
             <p className="text-(--color-dark-gray) font-medium">
-              {
-                new Date(user.createdAt).toLocaleDateString('utc', { month: 'long', day: '2-digit', year: 'numeric'})
-              }
+              {new Date(user.createdAt).toLocaleDateString('utc', { month: 'long', day: '2-digit', year: 'numeric' })}
             </p>
           </div>
         </div>
 
-        <div className="mt-8 space-y-4">
+        {/* Shippings */}
+        {user.shippings && user.shippings.length > 0 && (
+          <div className="mt-6 space-y-4">
+            <h2 className="text-xl font-semibold text-(--color-dark-gray)">Saved Shippings</h2>
+            {user.shippings.map(shipping => (
+              <ShippingCard key={shipping._id} shipping={shipping} onSetDefault={setDefaultShipping}/>
+            ))}
+          </div>
+        )}
 
+        <div className="mt-8 space-y-4">
           {/* Edit Profile */}
           <button
             onClick={() => navigate("/profile/edit")}
@@ -139,7 +199,6 @@ const Profile = () => {
             Logout
           </button>
         </div>
-
       </div>
     </MainLayout>
   );

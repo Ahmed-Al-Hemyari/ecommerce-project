@@ -18,33 +18,35 @@ const MainLayout = ({ page, children }) => {
 
   const handleLogout = async () => {
     const result = await Swal.fire({
-      title: "Sure you want to log out?",
-      icon: "question",
-      showCloseButton: true,
-      confirmButtonText: "Yes, log out!",
-      showCancelButton: true,
-      confirmButtonColor: "#82E2BB"
+    title: "Sure you want to log out?",
+    icon: "question",
+    showCloseButton: true,
+    confirmButtonText: "Yes, log out!",
+    showCancelButton: true,
+    confirmButtonColor: "#82E2BB",
+    allowOutsideClick: false,
+    preConfirm: async () => {
+        Swal.showLoading();
+        try {
+        await authService.logout();
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        } catch (error) {
+        Swal.showValidationMessage(`Failed to logout: ${error}`);
+        return false;
+        }
+    }
     });
 
-    try {
-      const response = await authService.logout();
-    } catch (error) {
-      enqueueSnackbar("Failed to logout", {
-        variant: 'error'
-      });
-      return;
+    if (result.isConfirmed) {
+    navigate('/login', {
+        state: {
+        message: "Logged out successfully",
+        status: "success"
+        }
+    });
     }
-
-    if (!result.isConfirmed) return;
-
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setIsAuthenticated(false);
-    setUser(null);
-
-    enqueueSnackbar("Logged out successfully", { variant: 'success' });
-    navigate('/'); // redirect to home
-  };
+};
 
   const checkAuth = async () => {
     // 1. Check if token exists
@@ -55,19 +57,19 @@ const MainLayout = ({ page, children }) => {
       return;
     }
 
-    try {
-      const response = await authService.checkAuth();
-      if(!response)
-      {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        return;
-      }
-    } catch (error) {
-      console.error('failed to check authenication');
-      enqueueSnackbar("Authenication Error");
-      return;
-    }
+    // try {
+    //   const response = await authService.checkAuth();
+    //   if(!response)
+    //   {
+    //     localStorage.removeItem('token');
+    //     localStorage.removeItem('user');
+    //     return;
+    //   }
+    // } catch (error) {
+    //   console.error('failed to check authenication');
+    //   enqueueSnackbar("Authenication Error");
+    //   return;
+    // }
 
     // 2. Load user from localStorage
     const storedUser = readLocalStorageItem('user');

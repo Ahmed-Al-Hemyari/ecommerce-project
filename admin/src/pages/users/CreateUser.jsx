@@ -165,6 +165,7 @@ const CreateUser = () => {
       label: 'Role', 
       important: true, 
       type: 'dropdown',
+      fullWidth: true,
       options: [
         { name: 'User', _id: 'user' },
         { name: 'Admin', _id: 'admin' },

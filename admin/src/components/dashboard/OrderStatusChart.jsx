@@ -8,11 +8,12 @@ import {
 } from 'recharts'
 
 const STATUS_COLORS = {
-  Pending: '#9CA3AF',
-  Processing: '#60A5FA',
-  Shipped: '#A78BFA',
-  Delivered: '#4ADE80',
-  Cancelled: '#F87171',
+  draft: '#FBBF24',
+  pending: '#9CA3AF',
+  processing: '#60A5FA',
+  shipped: '#A78BFA',
+  delivered: '#4ADE80',
+  cancelled: '#F87171',
 };
 
 const OrderStatusChart = ({ orderStatus = [] }) => {

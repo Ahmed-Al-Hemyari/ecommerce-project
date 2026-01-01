@@ -35,7 +35,7 @@ const Filters = ({ inputs = [] }) => {
                 />
             </div>
           ))}
-          <div className='h-2'/>
+          {/* <div className='h-2'/> */}
           <div className='px-4 w-full'>
             <button 
               className='bg-(--color-green) w-full text-(--color-dark-gray) text-lg text-center font-medium rounded-md px-3 py-1'

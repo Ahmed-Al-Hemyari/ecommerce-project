@@ -36,7 +36,7 @@ const Dropdown = ({
   }, []);
 
   return (
-    <div className={`relative my-5 ${fullWidth ? 'w-full' : 'w-52 min-w-fit'}`} ref={ref}>
+    <div className={`relative my-1 ${fullWidth ? 'w-full' : 'w-52 min-w-fit'}`} ref={ref}>
       <label className="block mb-1 font-medium">
         {label} {important && <span className="text-red-500">*</span>}
       </label>

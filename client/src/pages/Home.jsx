@@ -16,11 +16,14 @@ import { useSnackbar } from 'notistack';
 import BrandCard from '../components/BrandCard';
 
 const Home = () => {
-  const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [brands, setBrands] = useState([]);
+  const [products, setProducts] = useState(null);
+  const [categories, setCategories] = useState(null);
+  const [brands, setBrands] = useState(null);
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // loading
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [loadingBrands, setLoadingBrands] = useState(true);
   const [isCartEmpty, setIsCartEmpty] = useState(true);
   // Limits
   const [categoryLimit, setCategoryLimit] = useState(4);
@@ -36,32 +39,41 @@ const Home = () => {
   };
 
   const getBrands = async () => {
+    setLoadingBrands(true);
     try {
       const response = await brandService.getBrands();
       setBrands(response.data.brands);
     } catch (error) {
       console.error(error);
       enqueueSnackbar("Failed to load brands", { variant: 'error' });
+    } finally {
+      setLoadingBrands(false);
     }
   }
 
   const getCategories = async () => {
+    setLoadingCategories(true);
     try {
       const response = await categoryService.getCategories();
       setCategories(response.data.categories);
     } catch (error) {
       console.error(error);
       enqueueSnackbar("Failed to load categories", { variant: 'error' });
+    } finally {
+      setLoadingCategories(false);
     }
   }
 
   const getProducts = async () => {
+    setLoadingProducts(true);
     try {
       const response = await productService.getProducts();
       setProducts(response.data.products);
     } catch (error) {
       console.error(error);
       enqueueSnackbar("Failed to load products", { variant: 'error' });
+    } finally {
+      setLoadingProducts(false);
     }
   }
 
@@ -88,8 +100,6 @@ const Home = () => {
   // Initial load
   useEffect(() => {
     const load = async () => {
-      setLoading(true);
-      
       getBrands();
       getCategories();
       getProducts();
@@ -100,8 +110,6 @@ const Home = () => {
 
       // Cart
       handleCartChange();
-
-      setLoading(false);
     };
 
     load();
@@ -134,9 +142,19 @@ const Home = () => {
           <button className="text-sm cursor-pointer" onClick={toggleBrand}>{brandLimit === 4 ? 'View all' : 'View less'}</button>
         </div>
         <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-          {brands.slice(0, brandLimit).map(brand => (
-            <BrandCard key={brand._id} brand={brand} />
-          ))}
+          {loadingBrands ? (
+            <div className="flex w-full col-span-2 md:col-span-4 p-6 justify-center items-center">
+              <Spinner />
+            </div>
+          ) : (
+             brands.length === 0 ? (
+              <h1 className="text-lg">No Brands Found</h1>
+            ) : (
+              brands.slice(0, brandLimit).map(brand => (
+                <BrandCard key={brand._id} brand={brand} />
+              ))
+            )
+          )}
         </div>
       </section>
 
@@ -149,9 +167,19 @@ const Home = () => {
           <button className="text-sm cursor-pointer" onClick={toggleCategory}>{categoryLimit === 4 ? 'View all' : 'View Less'}</button>
         </div>
         <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-          {categories.slice(0, categoryLimit).map(category => (
-            <CategoryCard key={category._id} category={category} />
-          ))}
+          {loadingCategories ? (
+            <div className="flex w-full col-span-2 md:col-span-4 p-6 justify-center items-center">
+              <Spinner />
+            </div>
+          ) : (
+            categories.length === 0 ? (
+              <h1 className="text-lg">No Categories Found</h1>
+            ) : (
+              categories.slice(0, categoryLimit).map(category => (
+                <CategoryCard key={category._id} category={category} />
+              ))
+            )
+          )}
         </div>
       </section>
 
@@ -165,18 +193,22 @@ const Home = () => {
         </div>
 
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-          {loading ? (
-            <Spinner />
-          ) : products.length === 0 ? (
-            <h1 className="text-lg">No Products Found</h1>
+          {loadingProducts ? (
+            <div className="flex w-full col-span-2 md:col-span-4 p-6 justify-center items-center">
+              <Spinner />
+            </div>
           ) : (
-            products.slice(0, 4).map(product => (
-              <ProductCard
-                key={product._id}
-                product={product}
-                onCartChange={handleCartChange}
-              />
-            ))
+            products.length === 0 ? (
+              <h1 className="text-lg">No Products Found</h1>
+            ) : (
+              products.slice(0, 4).map(product => (
+                <ProductCard
+                  key={product._id}
+                  product={product}
+                  onCartChange={handleCartChange}
+                />
+              ))
+            )
           )}
         </div>
       </section>
