@@ -5,8 +5,10 @@ import Swal from "sweetalert2";
 import { useSnackbar } from 'notistack';
 import Spinner from "@/components//Spinner";
 import defaultAvatar from "@/assets/default-avatar.png";
-import { authService } from "@/services/api-calls";
+import { authService, shippingService } from "../services/api-calls";
 import ShippingCard from "../components/ShippingCard"; // make sure this exists
+import ActionButton from "../components/ActionButton";
+import { PlusSquare } from "lucide-react";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -98,6 +100,16 @@ const Profile = () => {
     // Refresh profile after change
     await loadProfile();
   };
+  
+  // -----------------------
+  // DELETE SHIPPING
+  // -----------------------
+  const deleteShipping = async (shippingId) => {
+    // Call your API to delete shipping
+    await shippingService.deleteShipping(shippingId);
+    // Refresh profile after change
+    await loadProfile();
+  };
 
   // -----------------------
   // RENDER
@@ -127,6 +139,13 @@ const Profile = () => {
             {user.name}
           </h1>
           <p className="text-gray-500">{user.email}</p>
+          <p className="text-gray-500">Joined at: {' '}
+            {
+              <span className="font-bold">
+                {new Date(user.createdAt).toLocaleDateString('utc', { month: 'long', day: '2-digit', year: 'numeric' })}
+              </span>
+            }
+          </p>
         </div>
 
         <div className="my-6 border-t border-(--color-light-gray)/40"></div>
@@ -137,31 +156,55 @@ const Profile = () => {
             <p className="text-sm text-gray-500">Full Name</p>
             <p className="text-(--color-dark-gray) font-medium">{user.name}</p>
           </div>
-          <div>
-            <p className="text-sm text-gray-500">Email</p>
-            <p className="text-(--color-dark-gray) font-medium">{user.email}</p>
-          </div>
-          {user.phone && (
-            <div>
-              <p className="text-sm text-gray-500">Phone</p>
-              <p className="text-(--color-dark-gray) font-medium">{user.phone}</p>
+          <div className="w-full grid grid-cols-2 gap-4">
+            <div className="flex-col">
+              <p className="text-sm text-gray-500">Email</p>
+              <p className="text-(--color-dark-gray) font-medium">{user.email}</p>
             </div>
-          )}
-          <div>
-            <p className="text-sm text-gray-500">Joined</p>
-            <p className="text-(--color-dark-gray) font-medium">
-              {new Date(user.createdAt).toLocaleDateString('utc', { month: 'long', day: '2-digit', year: 'numeric' })}
-            </p>
+            {user.phone && (
+              <div className="flex flex-col">
+                <p className="text-sm text-gray-500">Phone</p>
+                <p className="text-(--color-dark-gray) font-medium">{user.phone}</p>
+              </div>
+            )}
           </div>
         </div>
+        <div className="my-6 border-t border-(--color-light-gray)/40"></div>
 
         {/* Shippings */}
         {user.shippings && user.shippings.length > 0 && (
           <div className="mt-6 space-y-4">
-            <h2 className="text-xl font-semibold text-(--color-dark-gray)">Saved Shippings</h2>
+            <div className="flex w-full justify-between">
+              <h2 className="text-xl font-semibold text-(--color-dark-gray)">Saved Shippings</h2>
+              {user.shippings.length <= 5 ? (
+                <ActionButton
+                  Icon={PlusSquare}
+                  tooltip={'Add Shipping'}
+                  size={22}
+                  color="#333333"
+                  handleClick={() => navigate(`/profile/shippings/create`)}
+                />
+              ) : null}
+            </div>
             {user.shippings.map(shipping => (
-              <ShippingCard key={shipping._id} shipping={shipping} onSetDefault={setDefaultShipping}/>
+              <ShippingCard 
+                key={shipping._id} 
+                shipping={shipping} 
+                onSetDefault={setDefaultShipping}
+                onDelete={deleteShipping}
+              />
             ))}
+            {
+              user.shippings.length <= 5 ? 
+              <button
+                onClick={() => navigate("/profile/shippings/create")}
+                className="w-full py-1 rounded-xl border border-(--color-dark-gray)/30 
+                          text-(--color-dark-gray) font-medium hover:bg-(--color-light-gray)/10"
+              >
+                + Add New Shipping
+              </button>
+              : null
+            }
           </div>
         )}
 

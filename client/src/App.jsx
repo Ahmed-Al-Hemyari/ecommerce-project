@@ -14,6 +14,8 @@ import Orders from '@/pages/Orders'
 import EditProfile from './pages/EditProfile'
 import ChangePassword from './pages/ChangePassword'
 import ProductShow from './pages/ProductShow'
+import CreateShipping from './pages/CreateShipping'
+import UpdateShipping from './pages/UpdateShipping'
 
 const App = () => {
   return (
@@ -34,6 +36,16 @@ const App = () => {
       <Route path="/profile/edit" element={
         <ProtectedRoute>
           <EditProfile/>
+        </ProtectedRoute>
+      } />
+      <Route path="/profile/shippings/create" element={
+        <ProtectedRoute>
+          <CreateShipping/>
+        </ProtectedRoute>
+      } />
+      <Route path="/profile/shippings/edit/:id" element={
+        <ProtectedRoute>
+          <UpdateShipping/>
         </ProtectedRoute>
       } />
       <Route path="/profile/change-password" element={

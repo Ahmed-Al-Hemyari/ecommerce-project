@@ -48,7 +48,7 @@ const Dropdown = ({
         onClick={() => setOpen(v => !v)}
         className={`
           w-full flex items-center justify-between
-          px-4 py-2 rounded-lg border border-(--color-light-gray) bg-white
+          px-4 py-2 rounded-lg border bg-white
           hover:border-gray-400 transition
           ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
         `}
@@ -64,7 +64,7 @@ const Dropdown = ({
 
       {/* Menu */}
       {open && (
-        <div className="absolute z-50 mt-2 w-full bg-white border  border-(--color-light-gray) rounded-xl shadow-lg overflow-y-auto max-h-60">
+        <div className="absolute z-50 mt-2 w-full bg-white border rounded-xl shadow-lg overflow-y-auto max-h-60">
           {options.map((option) => (
             <button
               key={option._id}

@@ -5,82 +5,78 @@ import { useSnackbar } from 'notistack';
 import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router-dom';
 import { readLocalStorageItem } from '../services/LocalStorageFunctions';
-import {
-  authService
-} from '../services/api-calls.js'
+import { authService } from '../services/api-calls';
 
 const MainLayout = ({ page, children }) => {
   const { enqueueSnackbar } = useSnackbar();
   const navigate = useNavigate();
 
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
   const [user, setUser] = useState(null);
 
+  /* ---------------- LOGOUT ---------------- */
   const handleLogout = async () => {
     const result = await Swal.fire({
-    title: "Sure you want to log out?",
-    icon: "question",
-    showCloseButton: true,
-    confirmButtonText: "Yes, log out!",
-    showCancelButton: true,
-    confirmButtonColor: "#82E2BB",
-    allowOutsideClick: false,
-    preConfirm: async () => {
+      title: "Sure you want to log out?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Yes, log out!",
+      confirmButtonColor: "#82E2BB",
+      allowOutsideClick: false,
+      preConfirm: async () => {
         Swal.showLoading();
         try {
-        await authService.logout();
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+          await authService.logout();
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
         } catch (error) {
-        Swal.showValidationMessage(`Failed to logout: ${error}`);
-        return false;
+          Swal.showValidationMessage("Logout failed");
+          return false;
         }
-    }
+      }
     });
 
     if (result.isConfirmed) {
-    navigate('/login', {
-        state: {
-        message: "Logged out successfully",
-        status: "success"
-        }
-    });
-    }
-};
-
-  const checkAuth = async () => {
-    // 1. Check if token exists
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setIsAuthenticated(false);
       setUser(null);
+      navigate('/login', {
+        state: { message: "Logged out successfully", status: "success" }
+      });
+    }
+  };
+
+  /* ---------------- AUTH CHECK ---------------- */
+  const checkAuth = async () => {
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      setUser(null);
+      setAuthLoading(false);
       return;
     }
 
-    // try {
-    //   const response = await authService.checkAuth();
-    //   if(!response)
-    //   {
-    //     localStorage.removeItem('token');
-    //     localStorage.removeItem('user');
-    //     return;
-    //   }
-    // } catch (error) {
-    //   console.error('failed to check authenication');
-    //   enqueueSnackbar("Authenication Error");
-    //   return;
-    // }
+    try {
+      const response = await authService.checkAuth();
 
-    // 2. Load user from localStorage
-    const storedUser = readLocalStorageItem('user');
-    if (storedUser) {
-      setUser(storedUser);
-      setIsAuthenticated(true);
-    } else {
+      // OPTIONAL but recommended:
+      // if backend returns user → use it
+      if (response?.user) {
+        setUser(response.user);
+        localStorage.setItem('user', JSON.stringify(response.user));
+      } else {
+        // fallback to localStorage
+        const storedUser = readLocalStorageItem('user');
+        setUser(storedUser ?? null);
+      }
+    } catch (error) {
+      console.error("Auth check failed");
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
       setUser(null);
-      setIsAuthenticated(false);
+      enqueueSnackbar("Session expired", { variant: "warning" });
+    } finally {
+      setAuthLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     checkAuth();
@@ -88,7 +84,13 @@ const MainLayout = ({ page, children }) => {
 
   return (
     <div>
-      <Navbar page={page} user={user} logout={handleLogout} />
+      <Navbar
+        page={page}
+        user={user}
+        isLoading={authLoading}
+        logout={handleLogout}
+      />
+
       <div className="bg-gray-50 text-gray-800 min-h-[calc(100vh-2rem)]">
         {children}
       </div>

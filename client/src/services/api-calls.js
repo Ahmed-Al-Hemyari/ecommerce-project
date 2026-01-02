@@ -12,6 +12,13 @@ export const authService = {
   logout : () => api.post("/auth/logout"),
 };
 
+export const shippingService = {
+    getShipping: (id) => api.get(`/shippings/${id}`),
+    createShipping: (data) => api.post("/shippings", data),
+    updateShipping: (id, data) => api.put(`/shippings/${id}`, data),
+    deleteShipping: (id) => api.delete(`/shippings/${id}`),
+}
+
 export const brandService = {
     getBrands : () => api.get("/brands"),
 }

@@ -97,11 +97,11 @@ class ShippingController extends Controller
             ], 422);
         }
 
-        // if ($shipping->is_default) {
-        //     return response()->json([
-        //         'message' => 'Cannot delete default shipping address'
-        //     ], 422);
-        // }
+        if ($shipping->is_default) {
+            return response()->json([
+                'message' => 'Cannot delete default shipping address'
+            ], 422);
+        }
 
         $shipping->delete();
 

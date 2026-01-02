@@ -1,14 +1,26 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import logo from "@/assets/quickbuylogo.svg";
 import { Link } from "react-router-dom";
 import { HiOutlineMenu, HiOutlineX } from "react-icons/hi";
 import { FaUserCircle } from "react-icons/fa";
 
-const Navbar = ({ page, user, logout }) => {
+const Navbar = ({ page, user, logout, isLoading }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
-  const toggleMenu = () => setIsOpen(!isOpen);
+  /* ------------------ IMPORTANT FIX ------------------ */
+  if (isLoading) return null;
+  /* --------------------------------------------------- */
+
+  const toggleMenu = () => {
+    setIsOpen(!isOpen);
+    setShowUserMenu(false);
+  };
+
+  const closeAllMenus = () => {
+    setIsOpen(false);
+    setShowUserMenu(false);
+  };
 
   const linkBase = "text-lg font-semibold transition-all duration-300";
   const activeColor = "text-(--color-green)";
@@ -21,9 +33,9 @@ const Navbar = ({ page, user, logout }) => {
   ];
 
   return (
-    <nav className="w-full bg-(--color-dark-gray) flex items-center justify-between px-6 md:px-10 h-20 relative">
+    <nav className="w-full bg-(--color-dark-gray) flex items-center justify-between px-6 md:px-10 h-20 relative z-40">
       {/* Logo */}
-      <Link to="/">
+      <Link to="/" onClick={closeAllMenus}>
         <img src={logo} alt="QuickBuy Logo" className="w-36 md:w-40" />
       </Link>
 
@@ -52,7 +64,10 @@ const Navbar = ({ page, user, logout }) => {
             >
               Login
             </Link>
-            <Link to="/cart" className="px-4 py-2 rounded-md bg-(--color-green)">
+            <Link
+              to="/cart"
+              className="px-4 py-2 rounded-md bg-(--color-green)"
+            >
               Cart
             </Link>
           </>
@@ -60,7 +75,7 @@ const Navbar = ({ page, user, logout }) => {
           <div className="relative">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="text-white flex items-center gap-2 cursor-pointer"
+              className="text-white flex items-center gap-2"
             >
               <FaUserCircle size={28} />
               <span className="font-semibold">{user.name}</span>
@@ -70,24 +85,30 @@ const Navbar = ({ page, user, logout }) => {
               <div className="absolute right-0 mt-3 bg-white rounded-lg shadow-lg w-44 py-2 z-50">
                 <Link
                   to="/profile"
+                  onClick={closeAllMenus}
                   className="block px-4 py-2 hover:bg-gray-100"
                 >
                   Profile
                 </Link>
                 <Link
                   to="/orders"
+                  onClick={closeAllMenus}
                   className="block px-4 py-2 hover:bg-gray-100"
                 >
                   My Orders
                 </Link>
                 <Link
                   to="/cart"
+                  onClick={closeAllMenus}
                   className="block px-4 py-2 hover:bg-gray-100"
                 >
                   Cart
                 </Link>
                 <button
-                  onClick={logout}
+                  onClick={() => {
+                    logout();
+                    closeAllMenus();
+                  }}
                   className="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600"
                 >
                   Logout
@@ -100,8 +121,7 @@ const Navbar = ({ page, user, logout }) => {
 
       {/* Mobile Right Side */}
       {!user ? (
-        // Guest: show hamburger toggle
-        <div className="md:hidden flex items-center">
+        <div className="md:hidden">
           <button onClick={toggleMenu}>
             {isOpen ? (
               <HiOutlineX size={28} className="text-white" />
@@ -111,11 +131,10 @@ const Navbar = ({ page, user, logout }) => {
           </button>
         </div>
       ) : (
-        // Auth: show avatar + name directly (no toggle)
-        <div className="md:hidden flex items-center relative">
+        <div className="md:hidden relative">
           <button
             onClick={() => setShowUserMenu(!showUserMenu)}
-            className="text-white flex items-center gap-2 cursor-pointer"
+            className="text-white flex items-center gap-2"
           >
             <FaUserCircle size={28} />
             <span className="font-semibold">{user.name}</span>
@@ -125,21 +144,21 @@ const Navbar = ({ page, user, logout }) => {
             <div className="absolute top-12 right-0 bg-white rounded-lg shadow-lg w-44 py-2 z-50">
               <Link
                 to="/profile"
-                onClick={() => setShowUserMenu(false)}
+                onClick={closeAllMenus}
                 className="block px-4 py-2 hover:bg-gray-100"
               >
                 Profile
               </Link>
               <Link
                 to="/orders"
-                onClick={() => setShowUserMenu(false)}
+                onClick={closeAllMenus}
                 className="block px-4 py-2 hover:bg-gray-100"
               >
                 My Orders
               </Link>
               <Link
                 to="/cart"
-                onClick={() => setShowUserMenu(false)}
+                onClick={closeAllMenus}
                 className="block px-4 py-2 hover:bg-gray-100"
               >
                 Cart
@@ -147,7 +166,7 @@ const Navbar = ({ page, user, logout }) => {
               <button
                 onClick={() => {
                   logout();
-                  setShowUserMenu(false);
+                  closeAllMenus();
                 }}
                 className="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600"
               >
@@ -158,14 +177,14 @@ const Navbar = ({ page, user, logout }) => {
         </div>
       )}
 
-      {/* Mobile Menu for Guest */}
+      {/* Mobile Guest Menu */}
       {isOpen && !user && (
         <div className="absolute top-20 left-0 w-full bg-(--color-dark-gray) flex flex-col items-center py-6 space-y-4 md:hidden z-50">
           {links.map((link) => (
             <Link
               key={link.key}
               to={link.to}
-              onClick={() => setIsOpen(false)}
+              onClick={closeAllMenus}
               className={`${linkBase} ${
                 page === link.key ? activeColor : inactiveColor
               }`}
@@ -176,14 +195,15 @@ const Navbar = ({ page, user, logout }) => {
 
           <Link
             to="/login"
-            onClick={() => setIsOpen(false)}
+            onClick={closeAllMenus}
             className="text-(--color-dark-gray) bg-(--color-light-gray) text-lg font-semibold py-2 px-6 rounded-full w-3/4 text-center"
           >
             Login
           </Link>
+
           <Link
             to="/cart"
-            onClick={() => setIsOpen(false)}
+            onClick={closeAllMenus}
             className="text-(--color-dark-gray) bg-(--color-green) text-lg font-semibold py-2 px-6 rounded-full w-3/4 text-center"
           >
             Cart
