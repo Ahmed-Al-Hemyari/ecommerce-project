@@ -56,7 +56,7 @@ const UpdateBrand = () => {
 
     const formData = new FormData();
     formData.append('name', name);
-    if(logo) formData.append('file', logo);
+    if(logo) formData.append('logo', logo);
 
     try {
       const response = await brandService.updateBrand(id, formData);

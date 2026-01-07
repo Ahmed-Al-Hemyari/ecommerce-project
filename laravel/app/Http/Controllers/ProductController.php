@@ -47,8 +47,8 @@ class ProductController extends Controller
     public function createProduct(StoreProductRequest $request) {
         $credentials = $request->validated();
 
-        if ($request->hasFile('file')) {
-            $file = $request->file('file');
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
             $filename = time() . '_' . Str::slug($credentials['name']) . '.' . $file->getClientOriginalExtension();
             $file->storeAs('products', $filename, 'public');
             $credentials['image'] = $filename;
@@ -67,12 +67,12 @@ class ProductController extends Controller
         $product = Product::findOrFail($id);
         $data = $request->validated();
 
-        if ($request->hasFile('file')) {
+        if ($request->hasFile('image')) {
             if ($product->image && Storage::exists('public/products/' . $product->image)) {
                 Storage::delete('public/products/' . $product->image);
             }
 
-            $file = $request->file('file');
+            $file = $request->file('image');
             $filename = time() . '_' . Str::slug($data['name'] ?? $product->name) . '.' . $file->getClientOriginalExtension();
             $file->storeAs('products', $filename, 'public');
             $data['image'] = $filename;
@@ -129,9 +129,22 @@ class ProductController extends Controller
     public function hardDelete(Request $request) {
         $ids = $this->validateIds($request);
 
-        $deleted = Product::withTrashed()
-            ->whereIn('id', $ids)
-            ->forceDelete();
+        foreach ($ids as $id) {
+            $product = Product::withTrashed()->findOrFail($id);
+
+            if ($product->orderItems->isNotEmpty()) {
+                return response()->json([
+                    'message' => "Can't delete products with orders"
+                ], 422);
+            }
+            
+            // Delete old image if exists
+            if ($product->image && Storage::exists('public/products/' . $product->image)) {
+                Storage::delete('public/products/' . $product->image);
+            }
+
+            $product->forceDelete();
+        }
 
         return response()->json([
             'message' => 'Products deleted permenantly successfully'

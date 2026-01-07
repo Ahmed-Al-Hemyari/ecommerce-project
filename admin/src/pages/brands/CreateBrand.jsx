@@ -66,7 +66,7 @@ const CreateBrand = () => {
 
     const formData = new FormData();
     formData.append('name', name);
-    formData.append('file', logo);
+    formData.append('logo', logo);
 
     try {
       const response = await brandService.createBrand(formData);

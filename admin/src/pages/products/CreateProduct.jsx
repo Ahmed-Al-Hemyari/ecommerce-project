@@ -125,7 +125,7 @@ const CreateProduct = () => {
       formData.append('stock', stock);
       formData.append('price', price);
       formData.append('description', description);
-      if (image) formData.append('file', image); // MUST MATCH multer field name
+      if (image) formData.append('image', image); // MUST MATCH multer field name
 
       const response = await productService.createProduct(formData);
       return true;

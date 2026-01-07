@@ -233,7 +233,7 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
       // bulk
       bulk={{ selected, setSelected, bulkActions, bulkAction, setBulkAction }}
       // Customize
-      customize={{ showTableName: true }}
+      customize={{ showTableName: true, showSearch: false, showFilters: false, showSelect: false, showPagination: false }}
     />
   ) : (
       <MainLayout>

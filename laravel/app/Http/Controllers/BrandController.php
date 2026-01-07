@@ -43,11 +43,11 @@ class BrandController extends Controller
     public function createBrand(Request $request) {
         $credentials = $request->validate([
             'name' => ['required', 'string'],
-            'file' => ['required', 'image', 'mimes:jpg,jpeg,png,webp'],
+            'logo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp'],
         ]);
 
-        if ($request->hasFile('file')) {
-            $file = $request->file('file');
+        if ($request->hasFile('logo')) {
+            $file = $request->file('logo');
             $filename = time() . '_' . Str::slug($credentials['name']) . '.' . $file->getClientOriginalExtension();
             $file->storeAs('brands', $filename, 'public');
             $credentials['logo'] = $filename;
@@ -69,16 +69,16 @@ class BrandController extends Controller
 
         $credentials = $request->validate([
             'name' => ['sometimes', 'string'],
-            'file' => ['sometimes', 'image', 'mimes:jpg,jpeg,png,webp'],
+            'logo' => ['sometimes', 'image', 'mimes:jpg,jpeg,png,webp'],
         ]);
 
-        if ($request->hasFile('file')) {
+        if ($request->hasFile('logo')) {
             // Delete old logo if exists
             if ($brand->logo && Storage::exists('public/brands/' . $brand->logo)) {
                 Storage::delete('public/brands/' . $brand->logo);
             }
 
-            $file = $request->file('file');
+            $file = $request->file('logo');
             $filename = time() . '_' . $request->input('name') . '.' . $file->getClientOriginalExtension();
             $file->storeAs('brands', $filename, 'public');
 
@@ -119,9 +119,22 @@ class BrandController extends Controller
     public function hardDelete(Request $request) {
         $ids = $this->validateIds($request);
 
-        $deleted = Brand::withTrashed()
-            ->whereIn('id', $ids)
-            ->forceDelete();
+        foreach ($ids as $id) {
+            $brand = Brand::withTrashed()->findOrFail($id);
+
+            if ($brand->products()->isNotEmpty()) {
+                return response()->json([
+                    'message' => "Can't delete brands with products"
+                ], 422);
+            }
+            
+            // Delete old logo if exists
+            if ($brand->logo && Storage::exists('public/brands/' . $brand->logo)) {
+                Storage::delete('public/brands/' . $brand->logo);
+            }
+
+            $brand->forceDelete();
+        }
 
         return response()->json([
             'message' => 'Brands deleted permenantly successfully'
