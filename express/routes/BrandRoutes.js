@@ -30,9 +30,9 @@ brandRoutes.get('/', getAllBrands);
 brandRoutes.get('/:id', getBrandById);
 
 // Create a new brand
-brandRoutes.post('/', requireAdmin, uploadBrand.single("file"), createBrand);
+brandRoutes.post('/', requireAdmin, uploadBrand.single("logo"), createBrand);
 
 // Update an existing brand
-brandRoutes.put('/:id', requireAdmin, uploadBrand.single("file"), updateBrand);
+brandRoutes.put('/:id', requireAdmin, uploadBrand.single("logo"), updateBrand);
 
 export default brandRoutes;

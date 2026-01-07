@@ -1,5 +1,6 @@
 import User from "../models/User.js";
 import Order from '../models/Order.js'
+import Shipping from '../models/Shipping.js'
 
 // Get all users
 export const getAllUsers = async (req, res) => {
@@ -53,7 +54,16 @@ export const getUserById = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
-        res.status(200).json(user);
+        const shippings = await Shipping.find({ "user._id" : user._id})
+        
+         const userWithShippings = {
+            ...user.toObject(), // convert mongoose doc to plain JS object
+            shippings: shippings
+        };
+
+        res.status(200).json({
+          user: userWithShippings
+        });
     } catch (error) {
         res.status(500).json({ message: "Error fetching user", error });
     }
@@ -92,9 +102,9 @@ export const updateUser = async (req, res) => {
             { new: true }
         ).select('-password');
         if (!user) {
-            return res.status(404).json({ message: "User not found" });
-          }
-          res.status(200).json({ message: "User updated successfully", user });
+          return res.status(404).json({ message: "User not found" });
+        }
+        res.status(200).json({ message: "User updated successfully", user });
         } catch (error) {
           res.status(500).json({ message: "Error updating user", error });
         }

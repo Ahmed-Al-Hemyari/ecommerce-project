@@ -4,7 +4,7 @@ import User from "../models/User.js";
 // Get all orders
 export const getAllOrders = async (req, res) => {
   try {
-    let { search, user, product, status, payed, page, limit } = req.query;
+    let { search, user, product, status, paid, page, limit } = req.query;
 
     const query = {};
     
@@ -35,7 +35,7 @@ export const getAllOrders = async (req, res) => {
     if (user) query['user._id'] = user;
     if (product) query['orderItems.product._id'] = product;
 
-    if(payed !== undefined) query.payed = payed;
+    if(paid !== undefined) query.paid = paid;
 
     const totalItems = await Order.countDocuments(query);
 

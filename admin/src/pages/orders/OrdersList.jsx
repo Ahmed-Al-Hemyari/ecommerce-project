@@ -93,6 +93,7 @@ const OrdersList = ({ propLimit = 50, inner = false, orders: propOrders = null }
       const response = await orderService.getOrders({search, status, paid, page: currentPage, limit});
       const formatted = response.data.orders.map(order => ({
         ...order,
+        _id: order.orderId ?? order._id,
         paidAt:
           order.paidAt ?
           new Date(order.paidAt).toLocaleDateString("en-US", {

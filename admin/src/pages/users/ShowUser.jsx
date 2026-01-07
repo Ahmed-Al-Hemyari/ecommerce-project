@@ -80,7 +80,7 @@ const ShowUser = () => {
           <ShowCard
               title={`${user.name} Details`}
               data={data}
-              type={'Category'}
+              type={'User'}
               actions={
                 user.deleted ? [
                   'edit', 'restore', 'hard-delete' 

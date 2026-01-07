@@ -114,7 +114,6 @@ export const createProduct = async (req, res) => {
     }
 
     const imageUrl = req.file ? `/uploads/products/${req.file.filename}` : '';
-    // const imageUrl = `/uploads/products/${req.file.filename}`;
 
     // Create Product
     const newProduct = Product({

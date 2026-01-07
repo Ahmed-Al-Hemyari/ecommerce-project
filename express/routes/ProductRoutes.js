@@ -30,10 +30,10 @@ productRoutes.get('/', getAllProducts);
 productRoutes.get('/:id', getProductById);
 
 // Create a new product
-productRoutes.post('/', requireAdmin, uploadProduct.single("file") , createProduct);
+productRoutes.post('/', requireAdmin, uploadProduct.single("image") , createProduct);
 
 // Update an existing product
-productRoutes.put('/:id', requireAdmin, uploadProduct.single("file") , updateProduct);
+productRoutes.put('/:id', requireAdmin, uploadProduct.single("image") , updateProduct);
 
 // Add stock to a product
 productRoutes.patch('/add-stock/:id', requireAdmin , addStock);
