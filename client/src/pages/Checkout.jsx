@@ -57,7 +57,7 @@ const Checkout = () => {
     }
 
     const cartItems = cart.map(item => ({
-      product_id: item._id,
+      product: item._id,
       quantity: item.quantity,
     }));
 
@@ -69,9 +69,9 @@ const Checkout = () => {
       });
 
       const payload = {
-        user_id: user._id,
-        shipping_id: selectedShipping._id,
-        payment_method: paymentMethod,
+        user: user._id,
+        shipping: selectedShipping._id,
+        paymentMethod: paymentMethod,
         cart: cartItems,
       }
       console.log("Order payload:", payload);

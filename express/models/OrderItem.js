@@ -3,14 +3,8 @@ const { ObjectId } = mongoose.Schema.Types;
 
 const orderItemSchema = new mongoose.Schema({
     
-    product: {
-        _id: { type: ObjectId, ref: "Product", required: true },
-        name: { type: String, required: true }
-    },
-    order: {
-        _id: { type: ObjectId, ref: "Order", required: true },
-        name: { type: String, required: true }
-    },
+    product: { type: ObjectId, ref: "Product", required: true },
+    order: { type: ObjectId, ref: "Order", required: true },
     price: { type: Number, required: true },
     quantity: { type: BigInt, required: true },
 

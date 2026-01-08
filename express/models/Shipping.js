@@ -3,10 +3,7 @@ const { ObjectId } = mongoose.Schema.Types;
 
 const shippingSchema = new mongoose.Schema({
     
-    user: {
-        _id: { type: ObjectId, ref: "User", required: true },
-        name: { type: String, required: true }
-    },
+    user: { type: ObjectId, ref: "User", required: true },
     address1: { type: String, required: true },
     address2: { type: String, required: false },
     city: { type: String, required: true },

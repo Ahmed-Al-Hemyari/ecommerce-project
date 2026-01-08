@@ -72,6 +72,7 @@ const CreateOrder = () => {
   const getUsers = async () => {
     try {
       const response = await userService.getUsers();
+      console.log(response.data)
       setUsers(response.data.users);
     } catch (error) {
       enqueueSnackbar('Failed to fetch users', { variant: 'error' });
@@ -85,6 +86,7 @@ const CreateOrder = () => {
     try {
       const response = await shippingService.getShippingsForUser(user);
       setShippings(response.data.shippings);
+      response.data.shippings.map(s => s.isDefault ? setShipping(s._id) : null);
     } catch (error) {
       enqueueSnackbar('Failed to fetch shippings', { variant: 'error' });
       console.error(error);
@@ -105,10 +107,10 @@ const CreateOrder = () => {
 
     try {
       const payload = {
-        'user_id': user,
-        'shipping_id': shipping,
-        'payment_method': paymentMethod,
-        'shipping_cost': shippingCost
+        user,
+        shipping,
+        paymentMethod,
+        shippingCost
       }
       const response = await orderService.createOrder(payload);
       return true;

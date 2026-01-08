@@ -11,7 +11,7 @@ export const getDashboardData = async (req, res) => {
         const [
             stats,
             salesByDay,
-            orderStatus,
+            ordersStatus,
             recentOrders,
             lowStockProducts
         ] = await Promise.all([
@@ -25,7 +25,7 @@ export const getDashboardData = async (req, res) => {
         res.status(200).json({
             stats,
             salesByDay,
-            orderStatus,
+            ordersStatus,
             recentOrders,
             lowStockProducts,
         });

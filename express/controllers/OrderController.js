@@ -1,5 +1,7 @@
 import Order from "../models/Order.js";
+import OrderItem from "../models/OrderItem.js";
 import Product from "../models/Product.js";
+import Shipping from "../models/Shipping.js";
 import User from "../models/User.js";
 // Get all orders
 export const getAllOrders = async (req, res) => {
@@ -42,7 +44,9 @@ export const getAllOrders = async (req, res) => {
     // Find orders and populate user info
     const orders = await Order.find(query)
       .skip(skip)
-      .limit(limit); // optional: latest first
+      .limit(limit)
+      .populate({ path: 'user', select: '-password' })
+      .populate({ path: 'orderItems', populate: { path: 'product'}});
 
     res.status(200).json({
       orders,
@@ -61,8 +65,8 @@ export const getAllOrders = async (req, res) => {
 export const getOrdersForUser = async (req, res) => {
     try {
       const userId = req.user._id;
-      const orders = await Order.find({ "user._id" : userId});
-          // .populate('orderItems.product', "title");
+      const orders = await Order.find({ "user._id" : userId})
+          .populate({ path: 'orderItems', populate: { path: 'product' }});
       res.status(200).json(orders);
     } catch (error) {
       console.error(error);
@@ -73,11 +77,16 @@ export const getOrdersForUser = async (req, res) => {
 // Get order by ID
 export const getOrderById = async (req, res) => {
     try {
-        const order = await Order.findById(req.params.id);
+        const order = await Order.findById(req.params.id)
+          .populate({ path: 'user', select: '-password'})       
+          .populate('shipping');       
         if (!order) {
             return res.status(404).json({ message: 'Order not found' });
         }
-        res.status(200).json(order);
+        const orderItems = await OrderItem.find({'order': order._id});
+        res.status(200).json({
+          order
+        });
     } catch (error) {
         res.status(500).json({ message: 'Error fetching order', error });
     }
@@ -85,222 +94,202 @@ export const getOrderById = async (req, res) => {
 
 export const createOrder = async (req, res) => {
   try {
-    const { userId, orderItems, shipping } = req.body;
-
-    // 🔐 Basic validation
-    if (!Array.isArray(orderItems) || orderItems.length === 0) {
-      return res.status(400).json({ message: "Invalid order data" });
+    if (!req.body.user || !req.body.shipping || !req.body.shippingCost || !req.body.paymentMethod) {
+      return res.status(400).json({ message: 'Please fill all required fields!' });
     }
 
-    if (
-      !shipping?.address1 ||
-      !shipping?.city ||
-      !shipping?.zip ||
-      !shipping?.country ||
-      !shipping?.paymentMethod
-    ) {
-      return res.status(400).json({ message: "Incomplete shipping data" });
+    const user = await User.findById(req.body.user);
+    if (!user) {
+      return res.status(400).json({ message: 'User not found' });
     }
 
-    // 👤 Validate user
-    const existingUser = await User.findById(userId);
-    if (!existingUser) {
-      return res.status(400).json({ message: "User not found" });
+    const shipping = await Shipping.findById(req.body.shipping).populate('user');
+    if (!shipping) {
+      return res.status(400).json({ message: 'Shipping not found' });
+    }
+    if (!shipping.user._id.equals(user._id)) {
+      return res.status(400).json({ message: "Shipping does not belong to this user!" });
     }
 
-    let totalAmount = 0;
-    const itemsSnapshot = [];
-
-    for (const item of orderItems) {
-      const productId = item.product?._id || item.product;
-
-      const product = await Product.findById(productId);
-      if (!product) {
-        return res.status(400).json({ message: "Invalid product in order" });
-      }
-      
-      const quantity = Number(item.quantity) || 0;
-      const price = Number(product.price) || 0;
-      
-      if (quantity <= 0) {
-        return res.status(400).json({ message: "Invalid quantity" });
-      }
-
-      if (product.stock < quantity) {
-        return res.status(400).json({ message: "Not enough stock" });
-      }
-
-      product.stock -= quantity;
-      await product.save();
-
-      totalAmount += price * quantity;
-
-      itemsSnapshot.push({
-        product: {
-          _id: product._id,
-          name: product.name,
-        },
-        quantity,
-        price,
-      });
-    }
-
-    totalAmount += 5; // shipping fee
 
     const order = await Order.create({
-      user: {
-        _id: existingUser._id,
-        name: existingUser.name,
-      },
-      orderItems: itemsSnapshot,
-      shipping,
-      totalAmount,
+      user: user._id,
+      shipping: shipping._id,
+      paymentMethod: req.body.paymentMethod,
+      shippingCost: req.body.shippingCost,
+      subtotal: 0,
+      status: 'draft'
     });
 
-    res.status(201).json(order);
-
+    return res.status(201).json({
+      message: 'Order created successfully',
+      order: order
+    });
   } catch (error) {
-    console.error("CREATE ORDER ERROR:", error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      message: "Failed to create order"
+    });
   }
 };
 
 // Update an existing order
 export const updateOrder = async (req, res) => {
   try {
-    const { userId, orderItems, shipping, payed } = req.body;
-
-    if (!Array.isArray(orderItems) || orderItems.length === 0) {
-      return res.status(400).json({ message: "Invalid order data" });
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
     }
 
-    if (
-      !shipping?.address1 ||
-      !shipping?.city ||
-      !shipping?.zip ||
-      !shipping?.country ||
-      !shipping?.paymentMethod
-    ) {
-      return res.status(400).json({ message: "Incomplete shipping data" });
+    // Change user (admin only, usually)
+    if (req.body.user) {
+      const user = await User.findById(req.body.user);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      order.user = user._id;
     }
 
-    const existingUser = await User.findById(userId);
-    if (!existingUser) {
-      return res.status(400).json({ message: "User not found" });
-    }
-
-    const existingOrder = await Order.findById(req.params.id);
-    if (!existingOrder) {
-      return res.status(404).json({ message: "Order not found" });
-    }
-
-    let totalAmount = 0;
-    const itemsSnapshot = [];
-
-    for (const item of orderItems) {
-      const productId = item.product?._id || item.product;
-      const product = await Product.findById(productId);
-      if (!product) {
-        return res.status(400).json({ message: `Invalid product: ${productId}` });
+    // Change shipping
+    if (req.body.shipping) {
+      const shipping = await Shipping.findById(req.body.shipping);
+      if (!shipping) {
+        return res.status(404).json({ message: 'Shipping not found' });
       }
 
-      const newQty = Number(item.quantity) || 0;
-      if (newQty <= 0) {
-        return res.status(400).json({ message: "Invalid quantity" });
+      // Ownership check
+      if (!shipping.user.equals(order.user)) {
+        return res.status(400).json({
+          message: 'Shipping does not belong to this user'
+        });
       }
 
-      // Get old quantity in the existing order
-      const oldItem = existingOrder.orderItems.find(i => i.product._id.toString() === productId.toString());
-      const oldQty = oldItem ? oldItem.quantity : 0;
-
-      const diff = newQty - oldQty; // positive → increase, negative → decrease
-
-      if (diff > 0 && product.stock < diff) {
-        return res.status(400).json({ message: `Not enough stock for product ${product.name}` });
-      }
-
-      // Update stock
-      product.stock -= diff; // diff can be negative → returns stock
-      await product.save();
-
-      totalAmount += product.price * newQty;
-
-      itemsSnapshot.push({
-        product: {
-          _id: product._id,
-          name: product.name,
-        },
-        quantity: newQty,
-        price: product.price,
-      });
+      order.shipping = shipping._id;
     }
 
-    totalAmount += 5; // shipping fee
+    if (req.body.paymentMethod) {
+      order.paymentMethod = req.body.paymentMethod;
+    }
 
-    const updatedOrder = await Order.findByIdAndUpdate(
-      req.params.id,
-      {
-        user: { _id: existingUser._id, name: existingUser.name },
-        orderItems: itemsSnapshot,
-        shipping,
-        totalAmount,
-        payed: !!payed,
-      },
-      { new: true }
-    );
+    if (req.body.shippingCost) {
+      order.shippingCost = req.body.shippingCost;
+    }
 
-    res.status(200).json(updatedOrder);
+    await order.save();
 
+    return res.status(200).json({
+      message: 'Order updated successfully',
+      order
+    });
   } catch (error) {
-    console.error("UPDATE ORDER ERROR:", error);
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({
+      message: 'Failed to update order',
+      error: error.message
+    });
   }
 };
 
-// Update many
 export const updateMany = async (req, res) => {
-    try {
-        const { ids, updates } = req.body;
+  try {
+    const { ids, updates } = req.body;
 
-        if (!Array.isArray(ids) || ids.length === 0) {
-            return res.status(400).json({ message: "No IDs provided" });
-        }
-
-        if (!updates || typeof updates !== 'object') {
-            return res.status(400).json({ message: "No update data provided" });
-        }
-
-        const result = await Order.updateMany(
-            { _id: { $in: ids }},
-            { $set: updates }
-        );
-
-        res.status(200).json({
-            message: "Orders updated successfully",
-            // matched: result.matchedCount,
-            // modified: result.modifiedCount,
-        });
-        
-    } catch (error) {
-        res.status(500).json({message: error.message });
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: "No IDs provided" });
     }
-}
+
+    if (!updates || typeof updates !== "object") {
+      return res.status(400).json({ message: "No update data provided" });
+    }
+
+    // ✅ Whitelist allowed fields
+    const allowedFields = ["status", "paid"];
+    const sanitizedUpdates = {};
+
+    for (const key of allowedFields) {
+      if (key in updates) {
+        sanitizedUpdates[key] = updates[key];
+      }
+    }
+
+    if (Object.keys(sanitizedUpdates).length === 0) {
+      return res.status(400).json({ message: "No valid fields to update" });
+    }
+
+    // 1️⃣ Fetch orders
+    const orders = await Order.find({ _id: { $in: ids } });
+
+    if (orders.length !== ids.length) {
+      return res.status(404).json({
+        message: "One or more orders not found",
+      });
+    }
+
+    // 2️⃣ Validate business rules
+    const invalidOrder = orders.find(
+      order =>
+        !["draft", "preparing", "pending", "processing"].includes(order.status)
+    );
+
+    if (invalidOrder) {
+      return res.status(422).json({
+        message: "One or more orders cannot be updated in their current status",
+      });
+    }
+
+    // 3️⃣ Paid logic
+    if ("paid" in sanitizedUpdates) {
+      sanitizedUpdates.paidAt = sanitizedUpdates.paid ? new Date() : null;
+    }
+
+    // 4️⃣ Update
+    const result = await Order.updateMany(
+      { _id: { $in: ids } },
+      { $set: sanitizedUpdates }
+    );
+
+    return res.status(200).json({
+      message: "Orders updated successfully",
+      updated: result.modifiedCount,
+    });
+
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
 
 // Delete an order
 export const deleteOrders = async (req, res) => {
   try {
     const { ids } = req.body;
-    
+
     if (!Array.isArray(ids) || ids.length === 0) {
       return res.status(400).json({ message: "No IDs provided" });
     }
-    
-    await Order.deleteMany(
-      { _id: { $in: ids }}
+
+    // 1️⃣ Fetch orders once
+    const orders = await Order.find({ _id: { $in: ids } });
+
+    // 2️⃣ Validate all orders
+    const invalidOrder = orders.find(
+      order => order.status !== 'draft' && order.status !== 'cancelled'
     );
 
-    res.status(200).json({ message: "Order deleted successfully" });
+    if (invalidOrder) {
+      return res.status(422).json({
+        message: "Only draft or cancelled orders can be deleted",
+      });
+    }
+
+    // 3️⃣ Delete
+    const result = await Order.deleteMany({
+      _id: { $in: ids },
+    });
+
+    return res.status(200).json({
+      message: "Orders deleted successfully",
+      deleted: result.deletedCount,
+    });
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };

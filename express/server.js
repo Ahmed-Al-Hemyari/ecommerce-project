@@ -7,6 +7,7 @@ import dotenv from 'dotenv'
 // Routes Imports
 import authRoutes from './routes/AuthRoutes.js';
 import userRoutes from './routes/UserRoutes.js';
+import shippingRoutes from './routes/ShippingRoutes.js'
 import categoryRoutes from './routes/CategoryRoutes.js';
 import brandRoutes from './routes/BrandRoutes.js';
 import productRoutes from './routes/ProductRoutes.js';
@@ -38,7 +39,7 @@ mongoose.connect(uri)
 
 // // Routes
 app.get('/', (req, res) => {
-    res.json('This is ecommerce project api');
+    res.json('This is QuickBuy API');
 });
 
 // Auth Routes
@@ -47,6 +48,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api', dashboardRoutes);
 // User Routes
 app.use('/api/users', userRoutes);
+// Shipping Routes
+app.use('/api/shippings', shippingRoutes);
 // Category Routes
 app.use('/api/categories', categoryRoutes);
 // Category Routes

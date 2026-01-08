@@ -19,7 +19,7 @@ class OrderResource extends JsonResource
             'user' => new UserResource($this->whenLoaded('user')),
             'shipping' => new ShippingResource($this->whenLoaded('shipping')),
             'orderItems' => OrderItemResource::collection($this->whenLoaded('orderItems')),
-            'items' => $this->whenLoaded('orderItems') ? $this->orderItems->count() : 0,
+            // 'items' => $this->whenLoaded('orderItems') ? $this->orderItems->count() : 0,
             'paymentMethod' => $this->payment_method,
             'subtotal' => $this->subtotal,
             'shippingCost' => $this->shipping_cost,

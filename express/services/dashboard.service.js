@@ -37,7 +37,7 @@ export const getSalesByDay = async () => {
     const sales = await Order.aggregate([
             {
                 $match: {
-                    payed: true,
+                    paid: true,
                     createdAt: {
                         $gte: last7DaysDate
                     }

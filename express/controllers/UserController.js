@@ -54,9 +54,9 @@ export const getUserById = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
-        const shippings = await Shipping.find({ "user._id" : user._id})
+        const shippings = await Shipping.find({ "user" : user._id})
         
-         const userWithShippings = {
+        const userWithShippings = {
             ...user.toObject(), // convert mongoose doc to plain JS object
             shippings: shippings
         };

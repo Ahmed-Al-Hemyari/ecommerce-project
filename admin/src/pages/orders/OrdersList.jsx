@@ -93,7 +93,8 @@ const OrdersList = ({ propLimit = 50, inner = false, orders: propOrders = null }
       const response = await orderService.getOrders({search, status, paid, page: currentPage, limit});
       const formatted = response.data.orders.map(order => ({
         ...order,
-        _id: order.orderId ?? order._id,
+        // _id: order._id,
+        items: order.orderItems.length,
         paidAt:
           order.paidAt ?
           new Date(order.paidAt).toLocaleDateString("en-US", {
@@ -102,6 +103,7 @@ const OrdersList = ({ propLimit = 50, inner = false, orders: propOrders = null }
           day: "numeric",
         }) : null,
       }));
+      console.log(formatted);
       setOrders(formatted);
       setTotalPages(response.data.totalPages);
       setTotalItems(response.data.totalItems);
@@ -242,7 +244,7 @@ const OrdersList = ({ propLimit = 50, inner = false, orders: propOrders = null }
       refreshData={refreshOrders}
       // Actions
       actions={[
-          'hard-delete', 'cancel', 'edit', 'show'
+          'hard-delete', 'cancel', 'show'
         ]}
       // bulk
       bulk={{ selected, setSelected, bulkActions, bulkAction, setBulkAction }}

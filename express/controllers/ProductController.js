@@ -132,7 +132,10 @@ export const createProduct = async (req, res) => {
       image: imageUrl,
     });
     const product = await Product.create(newProduct);
-    res.status(201).json(product);
+    res.status(201).json({
+      message: "Product created successfully",
+      product: product
+    });
   } catch (error) {
     console.error('Error creating product:', error);
     res.status(500).json({ message: 'Server error' });

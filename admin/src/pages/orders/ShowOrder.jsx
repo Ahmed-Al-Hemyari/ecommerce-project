@@ -19,6 +19,7 @@ const ShowOrder = () => {
     setLoading(true);
     try {
       const response = await orderService.getOrder(id);
+      console.log(response.data.order)
       setOrder(response.data.order);
     } catch (error) {
       enqueueSnackbar(error || "Failed to load order", { variant: 'error' });
@@ -45,7 +46,7 @@ const ShowOrder = () => {
   const actions = ['ruplicate'];
   switch (order.status) {
     case 'draft':
-      actions.push('submit-order', 'hard-delete');
+      actions.push('submit-order', 'edit', 'hard-delete');
       break;
     case 'pending':
       actions.push('mark-paid', 'cancel');

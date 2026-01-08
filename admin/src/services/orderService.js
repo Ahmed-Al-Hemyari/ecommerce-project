@@ -49,11 +49,11 @@ export const orderService = {
     // Paid
     updateToPaid: (data) => api.patch('/orders/bulk-update', {
         ids: data,
-        updates: { is_paid: true, status: 'processing' }
+        updates: { paid: true, status: 'processing' }
     }),
     updateToNotPaid: (data) => api.patch('/orders/bulk-update', {
         ids: data,
-        updates: { is_paid: false, paid_at: null }
+        updates: { paid: false, paid_at: null }
     }),
 }
 

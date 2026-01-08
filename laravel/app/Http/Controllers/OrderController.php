@@ -59,22 +59,29 @@ class OrderController extends Controller
     public function createOrder(Request $request)
     {
         $data = $request->validate([
-            'user_id' => ['required', 'exists:users,id'],
-            'shipping_id' => ['required', 'exists:shippings,id'],
-            'payment_method' => ['required', Rule::in(['credit', 'paypal', 'cod'])],
-            'shipping_cost' => ['required', 'numeric', 'min:0'],
+            'user' => ['required', 'exists:users,id'],
+            'shipping' => ['required', 'exists:shippings,id'],
+            'paymentMethod' => ['required', Rule::in(['credit', 'paypal', 'cod'])],
+            'shippingCost' => ['required', 'numeric', 'min:0'],
         ]);
 
+        $formattedData = [
+            'user_id' => $data['user'],
+            'shipping_id' => $data['shipping'],
+            'payment_method' => $data['paymentMethod'],
+            'shipping_cost' => $data['shippingCost']
+        ];
+
         // Ensure shipping belongs to user
-        $shipping = Shipping::where('id', $data['shipping_id'])
-            ->where('user_id', $data['user_id'])
+        $shipping = Shipping::where('id', $formattedData['shipping_id'])
+            ->where('user_id', $formattedData['user_id'])
             ->firstOrFail();
 
         $order = Order::create([
-            'user_id' => $data['user_id'],
+            'user_id' => $formattedData['user_id'],
             'shipping_id' => $shipping->id,
-            'payment_method' => $data['payment_method'],
-            'shipping_cost' => $data['shipping_cost'],
+            'payment_method' => $formattedData['payment_method'],
+            'shipping_cost' => $formattedData['shipping_cost'],
             'subtotal' => 0,
             'status' => 'draft',
         ]);
@@ -96,19 +103,28 @@ class OrderController extends Controller
             'cart.*.quantity' => ['required', 'integer', 'min:1'],
         ]);
 
-        return DB::transaction(function () use ($data) {
+        $formattedData = [
+            'user_id' => $data['user'],
+            'shipping_id' => $data['shipping'],
+            'payment_method' => $data['paymentMethod'],
+            'cart' => $data['cart'],
+            'cart.*.product_id' => $data['cart.*.product'],
+            'cart.*.quantity' => $data['cart.*.quantity'],
+        ];
+
+        return DB::transaction(function () use ($formattedData) {
 
             // Create draft order
             $order = Order::create([
-                'user_id' => $data['user_id'],
-                'shipping_id' => $data['shipping_id'],
-                'payment_method' => $data['payment_method'],
+                'user_id' => $formattedData['user_id'],
+                'shipping_id' => $formattedData['shipping_id'],
+                'payment_method' => $formattedData['payment_method'],
                 'subtotal' => 0,
                 'shipping_cost' => 0,
                 'status' => 'draft',
             ]);
 
-            foreach ($data['cart'] as $item) {
+            foreach ($formattedData['cart'] as $item) {
                 $product = Product::find($item['product_id']);
 
                 if (!$product || $item['quantity'] > $product->stock) {
@@ -156,19 +172,29 @@ class OrderController extends Controller
         }
 
         $data = $request->validate([
-            'shipping_id' => ['sometimes', 'exists:shippings,id'],
-            'payment_method' => ['sometimes', Rule::in(['credit', 'paypal', 'cod'])],
-            'shipping_cost' => ['sometimes', 'numeric', 'min:0'],
+            'user' => ['sometimes', 'exists:users,id'],
+            'shipping' => ['sometimes', 'exists:shippings,id'],
+            'paymentMethod' => ['sometimes', Rule::in(['credit', 'paypal', 'cod'])],
+            'shippingCost' => ['sometimes', 'numeric', 'min:0'],
         ]);
 
+        $formattedData = [
+            'user_id' => $data['user'],
+            'shipping_id' => $data['shipping'],
+            'payment_method' => $data['paymentMethod'],
+            'shipping_cost' => $data['shippingCost']
+        ];
+
+        $newUserId = $formattedData['user_id'] ?? $order->user_id;
+
         // If shipping is being changed, verify ownership
-        if (isset($data['shipping_id'])) {
-            Shipping::where('id', $data['shipping_id'])
-                ->where('user_id', $order->user_id)
+        if (isset($formattedData['shipping_id'])) {
+            Shipping::where('id', $formattedData['shipping_id'])
+                ->where('user_id', $newUserId)
                 ->firstOrFail();
         }
 
-        $order->update($data);
+        $order->update($formattedData);
 
         return response()->json([
             'message' => 'Order updated successfully',
@@ -196,8 +222,8 @@ class OrderController extends Controller
         }
 
         // Handle paid_at explicitly
-        if (array_key_exists('is_paid', $updates)) {
-            $updates['paid_at'] = $updates['is_paid']
+        if (array_key_exists('paid', $updates)) {
+            $updates['paid_at'] = $updates['paid']
                 ? now()
                 : null;
         }
