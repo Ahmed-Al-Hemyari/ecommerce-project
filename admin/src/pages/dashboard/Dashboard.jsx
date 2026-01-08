@@ -62,16 +62,24 @@ const Dashboard = () => {
             >
               Sales
             </h2>
-            <div className="h-10"/>
-            <SalesLineChart salesByDay={data.salesByDay} />
-            <div className="h-20"/>
+            { data.salesByDay.length > 0 ? (
+              <>
+                <div className="h-10"/>
+                <SalesLineChart salesByDay={data.salesByDay} />
+                <div className="h-20"/>
+              </>
+            ) : (<h1 className='mt-3 mb-6 ml-2'>No data available</h1>)}
             <h2
               className="text-xl md:text-2xl font-extrabold leading-tight text-(--color-dark-gray)"
             >
               Orders Status
             </h2>
-            <OrderStatusChart orderStatus={data.ordersStatus}/>
-            <div className="h-10"/>
+            { data.ordersStatus.length > 0 ? (
+              <>
+                <OrderStatusChart orderStatus={data.ordersStatus}/>
+                <div className="h-10"/>
+              </>
+            ) : (<h1 className='mt-3 mb-6 ml-2'>No data available</h1>)}
             <h2
               className="text-xl md:text-2xl font-extrabold leading-tight text-(--color-dark-gray)"
             >

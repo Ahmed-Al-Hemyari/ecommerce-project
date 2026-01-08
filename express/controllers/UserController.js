@@ -50,19 +50,14 @@ export const getAllUsers = async (req, res) => {
 // Get user by ID
 export const getUserById = async (req, res) => {
     try {
-        const user = await User.findById(req.params.id).select('-password');
+        const user = await User.findById(req.params.id).select('-password')
+          .populate('shippings').populate({path: 'orders', populate: [{ path: 'user' }, { path: 'orderItems' }]});
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
-        const shippings = await Shipping.find({ "user" : user._id})
-        
-        const userWithShippings = {
-            ...user.toObject(), // convert mongoose doc to plain JS object
-            shippings: shippings
-        };
 
         res.status(200).json({
-          user: userWithShippings
+          user: user
         });
     } catch (error) {
         res.status(500).json({ message: "Error fetching user", error });
@@ -201,7 +196,7 @@ export const hardDelete = async (req, res) => {
       return res.status(400).json({ message: "No IDs provided" });
     }
     
-    const orders = await Order.find({ "user._id": { $in: ids } });
+    const orders = await Order.find({ "user": { $in: ids } });
 
     if (orders.length > 0) {
       return res.status(400).json({ message: "Can't delete user with orders" });

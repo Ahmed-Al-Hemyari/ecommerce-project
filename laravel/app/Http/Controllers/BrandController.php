@@ -15,7 +15,7 @@ class BrandController extends Controller
         // Pagination
         $limit = min($request->input('limit', 50), 150);
 
-        $brands = Brand::filter($filters)->paginate($limit);
+        $brands = Brand::with(['products.brand', 'products.category'])->filter($filters)->paginate($limit);
 
         return response()->json([
             'brands' => BrandResource::collection($brands),
@@ -27,7 +27,7 @@ class BrandController extends Controller
 
     public function getBrandById($id) {
 
-        $brand = Brand::withTrashed()->find($id);
+        $brand = Brand::withTrashed()->with(['products.brand', 'products.category'])->find($id);
 
         if (!$brand) {
             return response()->json([

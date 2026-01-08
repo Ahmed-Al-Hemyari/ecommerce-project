@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\Shipping;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
@@ -20,7 +21,11 @@ class OrderController extends Controller
         // Pagination
         $limit = min($request->input('limit', 50), 150);
 
-        $orders = Order::with('user', 'shipping', 'orderItems')->filter($filters)->paginate($limit);
+        $orders = Order::with([
+            'user' => function ($q) { $q->withTrashed(); },
+            'shipping',
+            'orderItems.product' => function ($q) { $q->withTrashed(); }
+        ])->filter($filters)->paginate($limit);
 
         return response()->json([
             'orders' => OrderResource::collection($orders),
@@ -33,7 +38,7 @@ class OrderController extends Controller
     public function getOrdersForUser(Request $request) {
         $user = $request->user();
 
-        $orders = Order::with('shipping', 'orderItems.product')
+        $orders = Order::with(['shipping', 'orderItems.product'])
             ->where('user_id', $user->id)->whereNot('status', 'draft')->latest()->get();
 
         return response()->json([
@@ -43,7 +48,7 @@ class OrderController extends Controller
 
     public function getOrderById($id) {
 
-        $order = Order::with('user', 'shipping', 'orderItems.product')->find($id);
+        $order = Order::with(['user', 'shipping', 'orderItems.product'])->find($id);
 
         if (!$order) {
             return response()->json([
@@ -210,10 +215,16 @@ class OrderController extends Controller
             'updates.status' => ['sometimes', Rule::in([
                 'pending', 'processing', 'shipped', 'delivered', 'cancelled'
             ])],
-            'updates.is_paid' => ['sometimes', 'boolean'],
+            'updates.paid' => ['sometimes', 'boolean'],
         ]);
 
-        $updates = $credentials['updates'] ?? [];
+        $updates = [
+            'status' => Arr::get($credentials, 'updates.status'),
+            'is_paid' => Arr::get($credentials, 'updates.paid')
+        ];
+
+        // remove nulls
+        $updates = array_filter($updates, fn($value) => !is_null($value));
 
         if (empty($updates)) {
             return response()->json([
@@ -221,11 +232,8 @@ class OrderController extends Controller
             ], 422);
         }
 
-        // Handle paid_at explicitly
-        if (array_key_exists('paid', $updates)) {
-            $updates['paid_at'] = $updates['paid']
-                ? now()
-                : null;
+        if (array_key_exists('is_paid', $updates)) {
+            $updates['paid_at'] = $updates['is_paid'] ? now() : null;
         }
 
         Order::whereIn('id', $ids)->update($updates);
@@ -234,7 +242,6 @@ class OrderController extends Controller
             'message' => 'Orders updated successfully',
         ]);
     }
-
 
     // Delete functions
     public function hardDelete(Request $request)

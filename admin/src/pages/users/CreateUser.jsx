@@ -20,6 +20,7 @@ const CreateUser = () => {
   const [user, setUser] = useState();
   // Errors
   const [formError, setFormError] = useState('');
+  const [phoneError, setPhoneError] = useState('');
   // Loading
   const [loadingSubmit, setLoadingSubmit] = useState(false);
   const [loadingFetch, setLoadingFetch] = useState(false);
@@ -158,6 +159,7 @@ const CreateUser = () => {
       formError: formError,
       countryCode: countryCode,
       setCountryCode: setCountryCode,
+      phoneError: phoneError,
       phone: phone,
       setPhone: setPhone,
     },

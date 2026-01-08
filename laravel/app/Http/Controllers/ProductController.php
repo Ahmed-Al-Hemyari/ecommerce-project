@@ -19,7 +19,7 @@ class ProductController extends Controller
         // Pagination
         $limit = min($request->input('limit', 50), 150);
 
-        $products = Product::with(['category', 'brand'])->filter($filters)->paginate($limit);
+        $products = Product::with(['category' => function ($q) { $q->withTrashed(); }, 'brand' => function ($q) { $q->withTrashed(); }])->filter($filters)->paginate($limit);
 
         return response()->json([
             'products' => ProductResource::collection($products),

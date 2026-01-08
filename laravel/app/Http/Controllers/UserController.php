@@ -26,7 +26,7 @@ class UserController extends Controller
 
     public function getUserById($id) {
 
-        $user = User::withTrashed()->with('shippings', 'orders.user')->find($id);
+        $user = User::withTrashed()->with(['shippings', 'orders.user', 'orders.orderItems'])->find($id);
 
         if (!$user) {
             return response()->json([

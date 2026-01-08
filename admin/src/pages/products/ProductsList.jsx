@@ -9,7 +9,7 @@ import categoryService from '@/services/categoryService'
 import brandService from '@/services/brandService'
 import { handleAddStock, hardDelete, restore, softDelete } from '@/utils/Functions'
 
-const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
+const ProductsList = ({ propLimit = 50, inner = false, propProducts = null }) => {
   // Essentials
   const location = useLocation();
   const navigate = useNavigate();
@@ -93,9 +93,15 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
 
   const getProducts = async (search, category, brand, stock, deleted, currentPage, limit) => {
     setLoading(true);
+    if (propProducts) {
+      setProducts(propProducts);
+      setLoading(false);
+      return;
+    }
     try {
       const response = await productService.getProducts(search, category, brand, stock, deleted, currentPage, limit);
       setProducts(response.data.products);
+      console.log(response.data)
       setTotalPages(response.data.totalPages);
       setTotalItems(response.data.totalItems);
     } catch (error) {
@@ -111,45 +117,41 @@ const ProductsList = ({ propLimit = 50, inner = false, category, brand }) => {
   const refreshProducts = () =>
     getProducts(search, categoryFilter, brandFilter, stockFilter, deletedFilter, currentPage, limit);
 
-  const getCategories = async () => {
-    setLoading(true);
-    try {
-      const response = await categoryService.getCategories();
-      setCategories(response.data.categories || []);
-    } catch (error) {
-      enqueueSnackbar(error || "Failed to load categories", {
-        variant: 'error'
-      });
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  }
+  // const getCategories = async () => {
+  //   setLoading(true);
+  //   try {
+  //     const response = await categoryService.getCategories();
+  //     setCategories(response.data.categories || []);
+  //   } catch (error) {
+  //     enqueueSnackbar(error || "Failed to load categories", {
+  //       variant: 'error'
+  //     });
+  //     console.error(error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }
 
-  const getBrands = async () => {
-    setLoading(true);
-    try {
-      const response = await brandService.getBrands();
-      setBrands(response.data.brands || []);
-    } catch (error) {
-      enqueueSnackbar(error || "Failed to load brands", {
-        variant: 'error'
-      });
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  }
+  // const getBrands = async () => {
+  //   setLoading(true);
+  //   try {
+  //     const response = await brandService.getBrands();
+  //     setBrands(response.data.brands || []);
+  //   } catch (error) {
+  //     enqueueSnackbar(error || "Failed to load brands", {
+  //       variant: 'error'
+  //     });
+  //     console.error(error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }
 
   // Initial useEffect
-  useEffect(() => {
-    if (category) setCategoryFilter(category);
-    if (brand) setBrandFilter(brand);
-
-    getCategories();
-    getBrands();
-  }, [category, brand]);
-
+  // useEffect(() => {
+  //   getCategories();
+  //   getBrands();
+  // }, []);
 
   // Filter, pagination useEffect
   useEffect(() => {

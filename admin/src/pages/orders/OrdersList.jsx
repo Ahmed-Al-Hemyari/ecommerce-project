@@ -85,7 +85,19 @@ const OrdersList = ({ propLimit = 50, inner = false, orders: propOrders = null }
   const getOrders = async (search, status, paid, currentPage, limit) => {
     try {
       if (propOrders) {
-        setOrders(propOrders);
+        const formatted = propOrders.map(order => ({
+          ...order,
+          // _id: order._id,
+          items: order.orderItems.length,
+          paidAt:
+          order.paidAt ?
+          new Date(order.paidAt).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          }) : null,
+        }));
+        setOrders(formatted);
         setLoading(false);
         return;
       }
@@ -103,7 +115,6 @@ const OrdersList = ({ propLimit = 50, inner = false, orders: propOrders = null }
           day: "numeric",
         }) : null,
       }));
-      console.log(formatted);
       setOrders(formatted);
       setTotalPages(response.data.totalPages);
       setTotalItems(response.data.totalItems);
@@ -198,8 +209,8 @@ const OrdersList = ({ propLimit = 50, inner = false, orders: propOrders = null }
         console.error(err);
 
         Swal.fire({
-          title: 'Error',
-          text: 'Bulk update failed',
+          title: 'Bulk update failed',
+          text: err,
           icon: 'error',
           confirmButtonColor: '#d50101',
         });

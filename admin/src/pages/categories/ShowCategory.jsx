@@ -70,7 +70,7 @@ const ShowCategory = () => {
               link={'/categories'}
             />
             <div className='h-15'/>
-            <ProductsList propLimit={10} inner category={category._id}/>
+            <ProductsList propLimit={10} inner propProducts={category.products}/>
           </>
         )
       }

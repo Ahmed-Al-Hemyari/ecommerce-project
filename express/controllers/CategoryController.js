@@ -49,7 +49,8 @@ export const getAllCategories = async (req, res) => {
 // Get a single product by ID
 export const getCategoryById = async (req, res) => {
   try {
-    const category = await Category.findById(req.params.id);
+    const category = await Category.findById(req.params.id)
+      .populate({ path: 'products', populate: [ { path: 'category' }, { path: 'brand'}]});
     if (!category) {
       return res.status(404).json({ message: 'Category not found' });
     }

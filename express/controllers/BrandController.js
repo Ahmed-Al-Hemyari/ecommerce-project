@@ -50,7 +50,8 @@ export const getAllBrands = async (req, res) => {
 // Get a single product by ID
 export const getBrandById = async (req, res) => {
   try {
-    const brand = await Brand.findById(req.params.id);
+    const brand = await Brand.findById(req.params.id)
+      .populate({ path: 'products', populate: [{ path: 'brand'}, { path: 'category'}]});
     if (!brand) {
       return res.status(404).json({ message: 'Brand not found' });
     }

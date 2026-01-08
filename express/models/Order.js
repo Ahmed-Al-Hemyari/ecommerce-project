@@ -34,7 +34,6 @@ const orderSchema = new mongoose.Schema({
     ],
     default: "pending",
   },
-  orderItems: [{ type: ObjectId, ref: 'OrderItem'}],
   paid: { type: Boolean, default: false },
   paidAt: { type: Date, required: false, default: null}
 }, { timestamps: true });
@@ -42,6 +41,16 @@ const orderSchema = new mongoose.Schema({
 orderSchema.pre("save", async function () {
     this.total = this.subtotal + this.shippingCost;
 });
+
+// Belongings
+orderSchema.virtual("orderItems", {
+  ref: "OrderItem",
+  localField: "_id",
+  foreignField: "order",
+});
+
+orderSchema.set("toJSON", { virtuals: true });
+orderSchema.set("toObject", { virtuals: true });
 
 const Order = mongoose.model("Order", orderSchema);
 export default Order;

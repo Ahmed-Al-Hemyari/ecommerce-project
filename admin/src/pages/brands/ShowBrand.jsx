@@ -20,8 +20,8 @@ const ShowBrand = () => {
     setLoading(true);
     try {
       const response = await brandService.getBrand(id);
+      console.log(response.data)
       setBrand(response.data);
-      console.log(response.data);
     } catch (error) {
       enqueueSnackbar("Failed to load brand", { variant: 'error' });
     } finally {
@@ -66,7 +66,7 @@ const ShowBrand = () => {
             link={'/brands'}
           />
           <div className='h-15'/>
-          <ProductsList propLimit={10} inner brand={brand._id}/>
+          <ProductsList propLimit={10} propProducts={brand.products} inner brand={brand._id}/>
         </>
       )}
     </MainLayout>

@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
+const { ObjectId } = mongoose.Schema.Types;
+
 const userSchema = new mongoose.Schema({
     name: { type: String, required: true },
     email: { type: String, unique: true },
@@ -23,6 +25,22 @@ userSchema.pre("save", async function () {
 userSchema.methods.comparePassword = async function(candidatePassword) {
     return await bcrypt.compare(candidatePassword, this.password);
 };
+
+// Belongings
+userSchema.virtual("shippings", {
+  ref: "Shipping",
+  localField: "_id",
+  foreignField: "user",
+});
+
+userSchema.virtual("orders", {
+  ref: "Order",
+  localField: "_id",
+  foreignField: "user",
+});
+
+userSchema.set("toJSON", { virtuals: true });
+userSchema.set("toObject", { virtuals: true });
 
 const User = mongoose.model("User", userSchema);
 export default User;

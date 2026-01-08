@@ -13,7 +13,7 @@ class CategoryController extends Controller
         // Pagination
         $limit = min($request->input('limit', 50), 150);
 
-        $categories = Category::filter($filters)->paginate($limit);
+        $categories = Category::with(['products.brand', 'products.category'])->filter($filters)->paginate($limit);
 
         return response()->json([
             'categories' => CategoryResource::collection($categories),
@@ -25,7 +25,7 @@ class CategoryController extends Controller
 
     public function getCategoryById($id) {
 
-        $category = Category::withTrashed()->find($id);
+        $category = Category::withTrashed()->with(['products.brand', 'products.category'])->find($id);
 
         if (!$category) {
             return response()->json([

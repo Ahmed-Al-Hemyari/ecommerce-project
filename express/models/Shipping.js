@@ -9,6 +9,7 @@ const shippingSchema = new mongoose.Schema({
     city: { type: String, required: true },
     zip: { type: String, required: true },
     country: { type: String, required: true },
+    orders: { type: ObjectId, ref: 'Order'},
     isDefault: { type: Boolean, default: false }
 
 }, { timestamps: true });
