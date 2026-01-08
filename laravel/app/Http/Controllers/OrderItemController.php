@@ -22,25 +22,31 @@ class OrderItemController extends Controller
     public function createOrderItem(Request $request)
     {
         $data = $request->validate([
-            'product_id' => ['required', 'exists:products,id'],
-            'order_id' => ['required', 'exists:orders,id'],
+            'product' => ['required', 'exists:products,id'],
+            'order' => ['required', 'exists:orders,id'],
             'quantity' => ['required', 'integer', 'min:1'],
         ]);
 
-        return DB::transaction(function () use ($data) {
-            $product = Product::findOrFail($data['product_id']);
-            $order = Order::with('orderItems')->findOrFail($data['order_id']);
+        $formattedData = [
+            'product_id' => $data['product'],
+            'order_id' => $data['order'],
+            'quantity' => $data['quantity'],
+        ];
+
+        return DB::transaction(function () use ($formattedData) {
+            $product = Product::findOrFail($formattedData['product_id']);
+            $order = Order::with('orderItems')->findOrFail($formattedData['order_id']);
 
             if ($order->status !== 'draft') {
                 return response()->json(['message' => 'Cannot add items to a finalized order'], 422);
             }
 
-            if ($data['quantity'] > $product->stock) {
+            if ($formattedData['quantity'] > $product->stock) {
                 return response()->json(['message' => 'Insufficient stock'], 422);
             }
 
             $existingItem = $order->orderItems()
-                ->where('product_id', $data['product_id'])
+                ->where('product_id', $formattedData['product_id'])
                 ->first();
 
             if ($existingItem) {
@@ -54,11 +60,11 @@ class OrderItemController extends Controller
             $orderItem = OrderItem::create([
                 'order_id' => $order->id,
                 'product_id' => $product->id,
-                'quantity' => $data['quantity'],
+                'quantity' => $formattedData['quantity'],
                 'price' => $product->price,
             ]);
             // Decrease stock
-            $product->decrement('stock', $data['quantity']);
+            $product->decrement('stock', $formattedData['quantity']);
 
             return response()->json([
                 'message' => 'Order item created successfully',
@@ -69,25 +75,59 @@ class OrderItemController extends Controller
         });
     }
     
-    public function updateOrderItem(Request $request, $id) {
-        $orderItem = OrderItem::findOrFail($id);
+    public function updateOrderItem(Request $request, $id)
+    {
+        $orderItem = OrderItem::with('order')->findOrFail($id);
+
+        // 🔒 Only draft orders can be edited
+        if ($orderItem->order->status !== 'draft') {
+            return response()->json([
+                'message' => 'Cannot modify items of a finalized order'
+            ], 422);
+        }
 
         $data = $request->validate([
-            'product_id' => ['sometimes', 'exists:products,id'],
-            // 'order_id' => ['sometimes', 'exists:orders,id'],
-            // 'price' => ['sometimes', 'numeric', 'min:0'],
-            'quantity' => ['sometimes', 'integer', 'min:0'],
+            'product'  => ['sometimes', 'exists:products,id'],
+            'quantity' => ['sometimes', 'integer', 'min:1'],
         ]);
 
-        $product = Product::findOrFail($data['product_id']);
+        $oldProduct   = Product::findOrFail($orderItem->product_id);
+        $newProductId = $data['product'] ?? $orderItem->product_id;
+        $newQuantity  = $data['quantity'] ?? $orderItem->quantity;
 
-        $orderItem->update($data);
+        // Load new product (if changed)
+        $newProduct = Product::findOrFail($newProductId);
+
+        // Restore stock to old product if product changed
+        if ($newProductId !== $orderItem->product_id) {
+            $oldProduct->increment('stock', $orderItem->quantity);
+        }
+
+        // Calculate quantity difference
+        $quantityDiff = $newQuantity - $orderItem->quantity;
+
+        // Check stock availability
+        if ($quantityDiff > 0 && $quantityDiff > $newProduct->stock) {
+            return response()->json([
+                'message' => 'Insufficient stock'
+            ], 422);
+        }
+
+        // Deduct stock
+        $newProduct->decrement('stock', $quantityDiff);
+
+        // Update order item
+        $orderItem->update([
+            'product_id' => $newProductId,
+            'quantity'   => $newQuantity,
+        ]);
 
         return response()->json([
-            'message' => 'Order item updated successfully',
-            'orderItem' => new OrderItemResource($orderItem),
-        ], 201);
+            'message'   => 'Order item updated successfully',
+            'orderItem' => new OrderItemResource($orderItem->fresh()),
+        ], 200);
     }
+
 
     // Delete functions
     public function hardDelete(Request $request)

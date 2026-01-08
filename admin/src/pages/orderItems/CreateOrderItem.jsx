@@ -74,8 +74,8 @@ const CreateOrderItem = () => {
 
         try {
             const payload = {
-                'product_id': product,
-                'order_id': orderId,
+                'product': product,
+                'order': orderId,
                 'quantity': quantity
             }
             const response = await orderItemsService.createOrderItem(payload);

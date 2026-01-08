@@ -85,7 +85,7 @@ const UpdateOrderItem = () => {
 
         try {
             const payload = {
-                'product_id': product,
+                'product': product,
                 'quantity': quantity
             }
             const response = await orderItemsService.updateOrderItem(id, payload);
