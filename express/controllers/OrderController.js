@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Order from "../models/Order.js";
 import OrderItem from "../models/OrderItem.js";
 import Product from "../models/Product.js";
@@ -136,8 +137,110 @@ export const createOrder = async (req, res) => {
 };
 
 export const createOrderFromCart = async (req, res) => {
-  
-}
+  const session = await mongoose.startSession();
+
+  try {
+    const { user_id, shipping_id, payment_method, cart } = req.body;
+
+    // ---------- Validation ----------
+    if (!user_id || !shipping_id || !payment_method || !Array.isArray(cart)) {
+      return res.status(400).json({ message: "Invalid request data" });
+    }
+
+    if (!["credit", "paypal", "cod"].includes(payment_method)) {
+      return res.status(422).json({ message: "Invalid payment method" });
+    }
+
+    for (const item of cart) {
+      if (!item.product_id || !Number.isInteger(item.quantity) || item.quantity < 1) {
+        return res.status(422).json({ message: "Invalid cart items" });
+      }
+    }
+
+    // ---------- Transaction ----------
+    await session.withTransaction(async () => {
+      // Create draft order
+      const order = await Order.create(
+        [
+          {
+            user: user_id,
+            shipping: shipping_id,
+            payment_method,
+            subtotal: 0,
+            shipping_cost: 0,
+            status: "draft",
+          },
+        ],
+        { session }
+      );
+
+      const createdOrder = order[0];
+
+      for (const item of cart) {
+        const product = await Product.findById(item.product_id).session(session);
+
+        if (!product || item.quantity > product.stock) {
+          // Skip item (same as Laravel `continue`)
+          continue;
+        }
+
+        // Check existing order item
+        const existingItem = await OrderItem.findOne({
+          order: createdOrder._id,
+          product: product._id,
+        }).session(session);
+
+        if (existingItem) {
+          // Restore stock
+          product.stock += existingItem.quantity;
+          await product.save({ session });
+
+          await existingItem.deleteOne({ session });
+        }
+
+        // Create new order item
+        await OrderItem.create(
+          [
+            {
+              order: createdOrder._id,
+              product: product._id,
+              quantity: item.quantity,
+              price: product.price,
+            },
+          ],
+          { session }
+        );
+
+        // Decrement stock
+        product.stock -= item.quantity;
+        await product.save({ session });
+      }
+
+      // Move order to pending
+      createdOrder.status = "pending";
+      await createdOrder.save({ session });
+
+      // Populate response
+      await createdOrder.populate({
+        path: "orderItems",
+        populate: { path: "product" },
+      });
+
+      res.status(201).json({
+        message: "Order created successfully",
+        order: createdOrder,
+      });
+    });
+  } catch (error) {
+    console.error("createOrderFromCart error:", error);
+    res.status(500).json({
+      message: "Failed to create order",
+      error: error.message,
+    });
+  } finally {
+    session.endSession();
+  }
+};
 
 // Update an existing order
 export const updateOrder = async (req, res) => {

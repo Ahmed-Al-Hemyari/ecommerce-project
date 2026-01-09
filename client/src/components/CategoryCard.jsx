@@ -21,7 +21,9 @@ const CategoryCard = ({ category }) => {
             className="p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition transform hover:-translate-y-1 cursor-pointer flex flex-col items-center"
         >
             <div className="text-3xl mb-3">
+              {Icon ? (
                 <Icon size={28} className="text-green" />
+              ): ''}
             </div>
 
             <div className="font-medium text-center">{category.name}</div>
