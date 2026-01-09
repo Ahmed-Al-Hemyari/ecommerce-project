@@ -37,6 +37,7 @@ const UpdateOrderItem = () => {
             label: 'Quantity',
             important: true,
             type: 'number',
+            min: 1,
             value: quantity,
             setValue: setQuantity
         }
@@ -68,9 +69,10 @@ const UpdateOrderItem = () => {
         }
     }
 
-    const resetForm = () => {
-        setProduct('');
-        setQuantity(1);
+    const resetForm = async () => {
+        setLoadingFetch(true);
+        getOrderItem();
+        setLoadingFetch(false);
     }
 
     const handleSubmit = async () => {
@@ -121,6 +123,7 @@ const UpdateOrderItem = () => {
                     formError={formError}
                     handleSubmit={handleSubmit}
                     resetForm={resetForm}
+                    showUpdateAndContinue={false}
                 />
             )}
         </MainLayout>

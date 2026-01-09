@@ -16,6 +16,7 @@ const UpdateForm = ({
     formError,
     handleSubmit,
     resetForm,
+    showUpdateAndContinue = true,
 }) => {
 
     const navigate = useNavigate();
@@ -142,6 +143,8 @@ const UpdateForm = ({
                             disabled={input.disabled}
                             formError={formError}
                             showPreview={input.showPreview}
+                            // Number
+                            min={input.min}
                         />
                     );
                 })}
@@ -162,20 +165,22 @@ const UpdateForm = ({
                             {(loading && clickedButton === 'update') && <Loader2 className='w-4 h-4 animate-spin mr-2'/>}
                             Update
                         </button>
-                        <button
-                            type='submit'
-                            name='action'
-                            value='update_continue'
-                            className={`px-4 py-2 rounded-md border qb-border flex flex-row items-center cursor-pointer ${
-                            (loading && clickedButton === 'update_continue')
-                                ? 'bg-(--color-green)/50 cursor-not-allowed'
-                                : 'bg-(--color-green) hover:bg-(--color-green)/80'
-                            }`}
-                            disabled={clickedButton === 'update_continue'}
-                        >
-                            {(loading && clickedButton === 'update_continue') && <Loader2 className='w-4 h-4 animate-spin mr-2'/>}
-                            Update & Continue Editing
-                        </button>
+                        { showUpdateAndContinue && (
+                            <button
+                                type='submit'
+                                name='action'
+                                value='update_continue'
+                                className={`px-4 py-2 rounded-md border qb-border flex flex-row items-center cursor-pointer ${
+                                (loading && clickedButton === 'update_continue')
+                                    ? 'bg-(--color-green)/50 cursor-not-allowed'
+                                    : 'bg-(--color-green) hover:bg-(--color-green)/80'
+                                }`}
+                                disabled={clickedButton === 'update_continue'}
+                            >
+                                {(loading && clickedButton === 'update_continue') && <Loader2 className='w-4 h-4 animate-spin mr-2'/>}
+                                Update & Continue Editing
+                            </button>
+                        )}
                     </div>
                     <Link
                         to={link}

@@ -180,6 +180,7 @@ const CreateProduct = () => {
       label: 'Stock', 
       important: true, 
       type: 'number', 
+      min: 1,
       placeholder: 'Stock', 
       value: stock, 
       setValue: setStock 
@@ -188,6 +189,7 @@ const CreateProduct = () => {
       label: 'Price', 
       important: true, 
       type: 'number', 
+      min: 0,
       placeholder: 'Product price', 
       value: price, 
       setValue: setPrice 

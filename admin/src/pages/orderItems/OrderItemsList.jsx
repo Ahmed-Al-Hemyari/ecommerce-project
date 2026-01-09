@@ -3,7 +3,7 @@ import React from 'react'
 
 const OrderItemsList = ({orderItems = [], order, loading, refreshData, draft = true}) => {
     const headers = [
-        { label: 'ID', field: '_id', type: 'string' },
+        // { label: 'ID', field: '_id', type: 'string' },
         { label: 'Product', field: 'product', type: 'link', link: 'products' },
         { label: 'Price', field: 'price', type: 'string' },
         { label: 'Quantity', field: 'quantity', type: 'string' },

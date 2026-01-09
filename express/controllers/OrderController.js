@@ -78,8 +78,11 @@ export const getOrdersForUser = async (req, res) => {
 export const getOrderById = async (req, res) => {
     try {
         const order = await Order.findById(req.params.id)
-          .populate({ path: 'user', select: '-password'})       
-          .populate('shipping');       
+          .populate([
+            { path: 'user', select: '-password'},
+            { path: 'shipping' },
+            { path: 'orderItems', populate: { path: 'product'}}
+          ]);       
         if (!order) {
             return res.status(404).json({ message: 'Order not found' });
         }
@@ -131,6 +134,10 @@ export const createOrder = async (req, res) => {
     });
   }
 };
+
+export const createOrderFromCart = async (req, res) => {
+  
+}
 
 // Update an existing order
 export const updateOrder = async (req, res) => {
