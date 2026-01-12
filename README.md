@@ -1,6 +1,6 @@
 # QuickBuy - E-Commerce Platform 🛒
 
-![QuickBuy Main](images/main.png)
+![QuickBuy Main](screenshots/main.png)
 
 QuickBuy is a modern e-commerce platform with separate client and admin apps, providing a seamless shopping experience for customers and a powerful management dashboard for admins. The project uses both Express.js and Laravel backends.
 
@@ -40,31 +40,31 @@ QuickBuy is a modern e-commerce platform with separate client and admin apps, pr
 
 ### Home Page
 
-![Home Page](images/home-page.png)
+![Home Page](screenshots/home-page.png)
 
 ### Shop Page
 
-![Shop Page](images/shop-page.png)
+![Shop Page](screenshots/shop-page.png)
 
 ### Cart Page
 
-![Cart Page](images/cart-page.png)
+![Cart Page](screenshots/cart-page.png)
 
 ### Admin Dashboard
 
-![Dashboard](images/dashboard.png)
+![Dashboard](screenshots/dashboard.png)
 
 ### Orders Table
 
-![Orders Table](images/orders-table.png)
+![Orders Table](screenshots/orders-table.png)
 
 ### Products Table
 
-![Products Table](images/products-table.png)
+![Products Table](screenshots/products-table.png)
 
 ### Show Order Details
 
-![Show Order](images/show-order.png)
+![Show Order](screenshots/show-order.png)
 
 ---
 
