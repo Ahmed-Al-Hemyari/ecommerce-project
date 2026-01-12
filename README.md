@@ -75,8 +75,6 @@ QuickBuy is a modern e-commerce platform with separate client and admin apps, pr
 * Database: MongoDB (Express), MySQL/PostgreSQL (Laravel)
 * Authentication: JWT for Express, auth-sanctum for Laravel
 * File Storage: Local
-* Deployment: Vercel / Render / Any PHP hosting
-* Payment Integration (optional): Stripe / PayPal
 
 ---
 
@@ -85,7 +83,7 @@ QuickBuy is a modern e-commerce platform with separate client and admin apps, pr
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/quickbuy.git
+git clone https://github.com/Ahmed-Al-Hemyari/ecommerce-project.git
 cd quickbuy
 ```
 
@@ -172,7 +170,7 @@ quickbuy/
 ├─ client/            # Client frontend (React + Tailwind)
 ├─ express/           # Node.js + Express + MongoDB backend
 ├─ laravel/           # Laravel backend
-├─ images/            # Screenshots and assets for README
+├─ screenshots/            # Screenshots and assets for README
 └─ README.md
 ```
 
