@@ -33,7 +33,14 @@ export const loginByEmail = async (req, res) => {
             return res.status(400).json({ message: "Invalid email or password" });
         }
         const token = generateToken(user._id, user.role);
-        res.status(200).json({ message: "Login successful", user: { id: user._id, name: user.name, email: user.email, phone: user.phone, role: user.role, createdAt: user.createdAt }, token });
+        res.status(200).json({ 
+          message: "Login successful", 
+          user: user.populate([
+                {path: 'orders', populate: [{ path: 'user' }, { path: 'orderItems' }]},
+                {path: 'shippings'}
+            ]).select('-password'), 
+          token 
+        });
     } catch (error) {
         res.status(500).json({ message: "Error logging in", error });
     }
@@ -54,7 +61,11 @@ export const loginByPhone = async (req, res) => {
             return res.status(400).json({ message: "Invalid phone or password" });
         }
         const token = generateToken(user._id, user.role);
-        res.status(200).json({ message: "Login successful", user: { id: user._id, name: user.name, email: user.email, phone: user.phone, role: user.role, createdAt: user.createdAt }, token });
+        res.status(200).json({ message: "Login successful", 
+          user: user.populate([
+              {path: 'orders', populate: [{ path: 'user' }, { path: 'orderItems' }]},
+              {path: 'shippings'}
+          ]).select('-password'), token });
     } catch (error) {
         res.status(500).json({ message: "Error logging in", error });
     }
@@ -71,7 +82,10 @@ export const updateProfile = async (req, res) => {
       userId,
       { name, email, phone },
       { new: true }
-    ).select("-password");
+    ).select("-password").populate([
+        {path: 'orders', populate: [{ path: 'user' }, { path: 'orderItems' }]},
+        {path: 'shippings'}
+    ]);
 
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found" });
@@ -110,13 +124,10 @@ export const changePassword = async (req, res) => {
 
     return res.status(200).json({
       message: "Password updated successfully",
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        createdAt: user.createdAt
-      },
+      user: user.populate([
+            {path: 'orders', populate: [{ path: 'user' }, { path: 'orderItems' }]},
+            {path: 'shippings'}
+        ]).select('-password'),
     });
   } catch (error) {
     return res.status(500).json({

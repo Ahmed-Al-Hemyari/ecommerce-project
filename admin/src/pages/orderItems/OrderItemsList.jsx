@@ -5,7 +5,7 @@ const OrderItemsList = ({orderItems = [], order, loading, refreshData, draft = t
     const headers = [
         // { label: 'ID', field: '_id', type: 'string' },
         { label: 'Product', field: 'product', type: 'link', link: 'products' },
-        { label: 'Price', field: 'price', type: 'string' },
+        { label: 'Price', field: 'price', type: 'price' },
         { label: 'Quantity', field: 'quantity', type: 'string' },
     ];
 
@@ -20,13 +20,15 @@ const OrderItemsList = ({orderItems = [], order, loading, refreshData, draft = t
                 data={orderItems}
                 loading={loading}
                 refreshData={refreshData}
-                actions={['delete', 'edit']}
+                actions={['delete']}
                 customize={{ 
                     showPagination: false, 
                     showSearch: false, 
                     showTableName: true, 
                     showSelect: false,
+                    showHeader: draft,
                     showActions: draft
+                    // showCreate:
                 }}
             />
         </div>

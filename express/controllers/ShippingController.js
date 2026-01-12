@@ -116,46 +116,58 @@ export const updateShipping = async (req, res) => {
 }
 
 export const deleteShipping = async (req, res) => {
-    const shipping = await Shipping.findById(req.params.id);
-    if (!shipping) {
-        return res.status(404).json({message: 'Shipping not found!'});
+    try {
+        const shipping = await Shipping.findById(req.params.id);
+        if (!shipping) {
+            return res.status(404).json({message: 'Shipping not found!'});
+        }
+    
+        const orders = await Order.find({'shipping._id': shipping._id});
+        if (orders.length > 0) {
+            return res.status(422).json({message: 'Cannot delete shipping address with existing orders!'});
+        }
+    
+        if (shipping.isDefault) {
+            return res.status(422).json({message: 'Cannot delete default shipping address!'});
+        }
+    
+        await shipping.deleteOne();
+    
+        return res.status(200).json({
+            message: 'Shipping deleted successfully'
+        });
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Faild to delete shippings'
+        });
     }
-
-    const orders = await Order.find({'shipping._id': shipping._id});
-    if (orders.length > 0) {
-        return res.status(422).json({message: 'Cannot delete shipping address with existing orders!'});
-    }
-
-    if (shipping.isDefault) {
-        return res.status(422).json({message: 'Cannot delete default shipping address!'});
-    }
-
-    await shipping.deleteOne();
-
-    return res.status(200).json({
-        message: 'Shipping deleted successfully'
-    });
 }
 
 export const makeDefault = async (req, res) => {
-    const shipping = await Shipping.findById(req.params.id);
-    if (!shipping) {
-        return res.status(404).json({message: 'Shipping not found!'});
+    try {
+        const shipping = await Shipping.findById(req.params.id);
+        if (!shipping) {
+            return res.status(404).json({message: 'Shipping not found!'});
+        }
+    
+        const user = await User.findById(shipping.user)
+        if (!user) {
+            return res.status(404).json({message: 'User not found!'});
+        }
+    
+        await Shipping.updateMany(
+            { user: user._id },
+            { isDefault: false }
+        );
+        await shipping.updateOne({'isDefault': true});
+    
+        return res.status(200).json({
+            message: 'Default shipping updated',
+            shipping
+        });
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Faild to set shipping as default'
+        });
     }
-
-    const user = await User.findById(shipping.user)
-    if (!user) {
-        return res.status(404).json({message: 'User not found!'});
-    }
-
-    await Shipping.updateMany(
-        { user: user._id },
-        { isDefault: false }
-    );
-    await shipping.updateOne({'isDefault': true});
-
-    return res.status(200).json({
-        message: 'Default shipping updated',
-        shipping
-    });
 }

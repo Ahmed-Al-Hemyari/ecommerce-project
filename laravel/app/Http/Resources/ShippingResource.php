@@ -16,7 +16,10 @@ class ShippingResource extends JsonResource
     {
         return [
             '_id' => (string) $this->id,
-            'user' => new UserResource($this->whenLoaded('user')),
+            'user' => $this->when(
+                $this->additional['includeUser'] ?? true,
+                new UserResource($this->whenLoaded('user')),
+            ),
             'name' => $this->address1.' - '.$this->city.', '.$this->country,
             'address1' => $this->address1,
             'address2' => $this->address2,

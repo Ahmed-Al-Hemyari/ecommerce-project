@@ -94,7 +94,7 @@ const Login = () => {
         data = await authService.loginByEmail({email, password});
       }
 
-      // console.log(data);
+      console.log(data);
       localStorage.setItem("token", data.data.token);
       localStorage.setItem("user", JSON.stringify(data.data.user));
       resetForm();

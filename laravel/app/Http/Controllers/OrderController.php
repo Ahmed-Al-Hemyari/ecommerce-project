@@ -100,70 +100,68 @@ class OrderController extends Controller
     public function createOrderFromCart(Request $request)
     {
         $data = $request->validate([
-            'user_id' => ['required', 'exists:users,id'],
-            'shipping_id' => ['required', 'exists:shippings,id'],
-            'payment_method' => ['required', Rule::in(['credit', 'paypal', 'cod'])],
+            'user' => ['required', 'exists:users,id'],
+            'shipping' => ['required', 'exists:shippings,id'],
+            'paymentMethod' => ['required', Rule::in(['credit', 'paypal', 'cod'])],
             'cart' => ['required', 'array'],
-            'cart.*.product_id' => ['required', 'exists:products,id'],
+            'cart.*.product' => ['required', 'exists:products,id'],
             'cart.*.quantity' => ['required', 'integer', 'min:1'],
         ]);
 
-        $formattedData = [
-            'user_id' => $data['user'],
-            'shipping_id' => $data['shipping'],
-            'payment_method' => $data['paymentMethod'],
-            'cart' => $data['cart'],
-            'cart.*.product_id' => $data['cart.*.product'],
-            'cart.*.quantity' => $data['cart.*.quantity'],
-        ];
+        return DB::transaction(function () use ($data) {
 
-        return DB::transaction(function () use ($formattedData) {
-
-            // Create draft order
             $order = Order::create([
-                'user_id' => $formattedData['user_id'],
-                'shipping_id' => $formattedData['shipping_id'],
-                'payment_method' => $formattedData['payment_method'],
+                'user_id' => $data['user'],
+                'shipping_id' => $data['shipping'],
+                'payment_method' => $data['paymentMethod'],
                 'subtotal' => 0,
-                'shipping_cost' => 0,
+                'shipping_cost' => 5,
                 'status' => 'draft',
             ]);
 
-            foreach ($formattedData['cart'] as $item) {
-                $product = Product::find($item['product_id']);
+            foreach ($data['cart'] as $item) {
+
+                $product = Product::find($item['product']);
 
                 if (!$product || $item['quantity'] > $product->stock) {
-                    // Skip item if product missing or stock insufficient
                     continue;
                 }
 
-                // Replace existing item if present
-                $existingItem = $order->orderItems()->where('product_id', $product->id)->first();
+                $existingItem = $order->orderItems()
+                    ->where('product_id', $product->id)
+                    ->first();
+
                 if ($existingItem) {
                     $existingItem->product->increment('stock', $existingItem->quantity);
                     $existingItem->delete();
                 }
 
-                // Create new order item
-                $orderItem = OrderItem::create([
+                OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $product->id,
                     'quantity' => $item['quantity'],
                     'price' => $product->price,
                 ]);
 
-                // Decrement stock
                 $product->decrement('stock', $item['quantity']);
+
+                $order->subtotal += $item['quantity'] * $product->price;
             }
 
-            $order->status = 'pending';
-            $order->save();
+            $order->update(['status' => 'pending']);
 
             return response()->json([
                 'message' => 'Order created successfully',
-                'order' => new OrderResource($order->load('orderItems.product')),
+                'order' => new OrderResource(
+                    $order->load([
+                        'orderItems.product',
+                        'shipping',
+                        'user',
+                    ])
+                ),
             ], 201);
         });
+
     }
 
     public function updateOrder(Request $request, $id)
@@ -220,30 +218,54 @@ class OrderController extends Controller
 
         $updates = [
             'status' => Arr::get($credentials, 'updates.status'),
-            'is_paid' => Arr::get($credentials, 'updates.paid')
+            'is_paid' => Arr::get($credentials, 'updates.paid'),
         ];
 
         // remove nulls
-        $updates = array_filter($updates, fn($value) => !is_null($value));
+        $updates = array_filter($updates, fn ($value) => !is_null($value));
 
         if (empty($updates)) {
             return response()->json([
-                'message' => 'No data provided for update'
+                'message' => 'No data provided for update',
             ], 422);
         }
 
-        if (array_key_exists('is_paid', $updates)) {
-            $updates['paid_at'] = $updates['is_paid'] ? now() : null;
-        }
+        return DB::transaction(function () use ($ids, $updates) {
 
-        Order::whereIn('id', $ids)->update($updates);
+            $orders = Order::with('orderItems.product')
+                ->whereIn('id', $ids)
+                ->lockForUpdate()
+                ->get();
 
-        return response()->json([
-            'message' => 'Orders updated successfully',
-        ]);
+            foreach ($orders as $order) {
+
+                // ✅ Restore stock ONLY when cancelling
+                if (
+                    array_key_exists('status', $updates) &&
+                    $updates['status'] === 'cancelled' &&
+                    $order->status !== 'cancelled' &&
+                    $order->status !== 'shipped'
+                ) {
+                    foreach ($order->orderItems as $item) {
+                        $item->product->increment('stock', $item->quantity);
+                    }
+                }
+
+                // Handle paid_at automatically
+                if (array_key_exists('is_paid', $updates)) {
+                    $order->paid_at = $updates['is_paid'] ? now() : null;
+                }
+
+                $order->update($updates);
+            }
+
+            return response()->json([
+                'message' => 'Orders updated successfully',
+            ]);
+        });
     }
 
-    // Delete functions
+
     public function hardDelete(Request $request)
     {
         $ids = $this->validateIds($request);
@@ -254,16 +276,36 @@ class OrderController extends Controller
 
         if ($blocked) {
             return response()->json([
-                'message' => "Only draft orders can be deleted. Order id {$blocked->id} has status '{$blocked->status}'."
+                'message' => "Only draft or cancelled orders can be deleted. Order id {$blocked->id} has status '{$blocked->status}'."
             ], 422);
         }
 
-        Order::whereIn('id', $ids)->delete();
+        return DB::transaction(function () use ($ids) {
 
-        return response()->json([
-            'message' => 'Draft orders deleted permanently successfully'
-        ]);
+            $orders = Order::with('orderItems.product')
+                ->whereIn('id', $ids)
+                ->lockForUpdate()
+                ->get();
+
+            foreach ($orders as $order) {
+
+                // ✅ Restore stock ONLY for draft orders
+                if ($order->status === 'draft') {
+                    foreach ($order->orderItems as $item) {
+                        $item->product->increment('stock', $item->quantity);
+                    }
+                }
+
+                // Delete order (orderItems deleted via cascade or model events)
+                $order->delete();
+            }
+
+            return response()->json([
+                'message' => 'Orders deleted permanently successfully',
+            ]);
+        });
     }
+
 
 
     // Validate ids

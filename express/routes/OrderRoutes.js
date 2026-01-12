@@ -7,6 +7,7 @@ import {
     getOrdersForUser,
     updateMany,
     deleteOrders,
+    createOrderFromCart,
  } from "../controllers/OrderController.js";
 import { requireAuth } from '../middlewares/auth.js'
 import { requireAdmin } from '../middlewares/admin.js'
@@ -24,6 +25,8 @@ orderRoutes.get('/user', requireAuth , getOrdersForUser);
 orderRoutes.get('/:id', requireAdmin , getOrderById);
 // Create new order
 orderRoutes.post('/', requireAuth , createOrder);
+// Create new order from cart
+orderRoutes.post('/from-cart', requireAuth , createOrderFromCart);
 // Update order
 orderRoutes.put('/:id', requireAdmin , updateOrder);
 

@@ -16,10 +16,12 @@ class OrderResource extends JsonResource
     {
         return [
             '_id' => (string) $this->id,
-            'user' => new UserResource($this->whenLoaded('user')),
-            'shipping' => new ShippingResource($this->whenLoaded('shipping')),
+            'user' => $this->when(
+                $this->additional['includeUser'] ?? true,
+                new UserResource($this->whenLoaded('user')),
+            ),
+            'shipping' => new ShippingResource($this->whenLoaded('shipping'), ['includeUser' => false]),
             'orderItems' => OrderItemResource::collection($this->whenLoaded('orderItems')),
-            // 'items' => $this->whenLoaded('orderItems') ? $this->orderItems->count() : 0,
             'paymentMethod' => $this->payment_method,
             'subtotal' => $this->subtotal,
             'shippingCost' => $this->shipping_cost,
