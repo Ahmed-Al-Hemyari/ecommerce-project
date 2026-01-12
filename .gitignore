@@ -1,2 +1,17 @@
-.env
+# Node.js
 node_modules/
+.env
+npm-debug.log
+
+# Laravel
+/vendor
+/node_modules
+.env
+.phpunit.result.cache
+/storage/*.key
+/public/hot
+/public/storage
+
+# Mac / VSCode
+.DS_Store
+.vscode/

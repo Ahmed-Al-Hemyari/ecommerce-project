@@ -35,7 +35,7 @@ const ShowOrder = () => {
     getOrder();
   }, [id]);
 
-  if (!order) return <MainLayout><Spinner/></MainLayout>;
+  if (!order) return <MainLayout><p className='w-full text-center'>Order not found!!</p></MainLayout>;
 
   const paymentMethod = {
     cod: 'Cash on Delivery',

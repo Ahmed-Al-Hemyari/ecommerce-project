@@ -8,6 +8,7 @@ import {
 } from "../controllers/AuthController.js";
 import { requireAuth } from '../middlewares/auth.js';
 import { requireAdmin } from '../middlewares/admin.js';
+import User from '../models/User.js';
 
 const authRoutes = express.Router();
 
@@ -25,8 +26,12 @@ authRoutes.get('/check-admin', requireAdmin, (req, res) => {
     res.json({authenticated: true, isAdmin: true});
 });
 // Get Profile
-authRoutes.get('/profile', requireAuth, (req, res) => {
-    res.json({ user: req.user });
+authRoutes.get('/profile', requireAuth, async (req, res) => {
+    const user = await User.findById(req.user._id).populate([
+        {path: 'orders', populate: [{ path: 'user' }, { path: 'orderItems' }]},
+        {path: 'shippings'}
+    ]).select('-password');
+    res.json({ user: user });
 });
 // Update Profile
 authRoutes.put('/profile/update', requireAuth, updateProfile);

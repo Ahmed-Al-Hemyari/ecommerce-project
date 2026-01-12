@@ -75,6 +75,9 @@ export const createOrderItem = async (req, res) => {
       });
     }
 
+    fetchedOrder.subtotal = (orderItem.price * orderItem.quantity);
+    await fetchedOrder.save();
+
     return res.status(201).json({
       message: "Order item saved successfully",
       orderItem,
@@ -88,87 +91,87 @@ export const createOrderItem = async (req, res) => {
   }
 };
 
-export const updateOrderItem = async (req, res) => {
-  try {
-    const { quantity, product } = req.body;
+// export const updateOrderItem = async (req, res) => {
+//   try {
+//     const { quantity, product } = req.body;
 
-    const orderItem = await OrderItem.findById(req.params.id);
-    if (!orderItem) {
-      return res.status(404).json({ message: "Order item not found!" });
-    }
+//     const orderItem = await OrderItem.findById(req.params.id);
+//     if (!orderItem) {
+//       return res.status(404).json({ message: "Order item not found!" });
+//     }
 
-    const newQty =
-      quantity !== undefined ? Number(quantity) : orderItem.quantity;
+//     const newQty =
+//       quantity !== undefined ? Number(quantity) : orderItem.quantity;
 
-    if (!Number.isInteger(newQty) || newQty <= 0) {
-      return res.status(422).json({ message: "Quantity must be greater than zero" });
-    }
+//     if (!Number.isInteger(newQty) || newQty <= 0) {
+//       return res.status(422).json({ message: "Quantity must be greater than zero" });
+//     }
 
-    const order = await Order.findById(orderItem.order);
-    if (!order || order.status !== "draft") {
-      return res.status(422).json({
-        message: "Cannot modify items of a finalized order",
-      });
-    }
+//     const order = await Order.findById(orderItem.order);
+//     if (!order || order.status !== "draft") {
+//       return res.status(422).json({
+//         message: "Cannot modify items of a finalized order",
+//       });
+//     }
 
-    const oldProduct = await Product.findById(orderItem.product);
-    if (!oldProduct) {
-      return res.status(404).json({ message: "Old product not found!" });
-    }
+//     const oldProduct = await Product.findById(orderItem.product);
+//     if (!oldProduct) {
+//       return res.status(404).json({ message: "Old product not found!" });
+//     }
 
-    const newProduct = product
-      ? await Product.findById(product)
-      : oldProduct;
+//     const newProduct = product
+//       ? await Product.findById(product)
+//       : oldProduct;
 
-    if (!newProduct) {
-      return res.status(404).json({ message: "Product not found!" });
-    }
+//     if (!newProduct) {
+//       return res.status(404).json({ message: "Product not found!" });
+//     }
 
-    // ----- Stock logic -----
-    if (oldProduct._id.equals(newProduct._id)) {
-      // Same product, quantity change only
-      const stock = calculateStock(
-        orderItem.quantity,
-        newQty,
-        oldProduct.stock
-      );
+//     // ----- Stock logic -----
+//     if (oldProduct._id.equals(newProduct._id)) {
+//       // Same product, quantity change only
+//       const stock = calculateStock(
+//         orderItem.quantity,
+//         newQty,
+//         oldProduct.stock
+//       );
 
-      if (stock < 0) {
-        return res.status(422).json({ message: "Insufficient stock!" });
-      }
+//       if (stock < 0) {
+//         return res.status(422).json({ message: "Insufficient stock!" });
+//       }
 
-      oldProduct.stock = stock;
-      await oldProduct.save();
-    } else {
-      // Product changed
-      oldProduct.stock += orderItem.quantity;
+//       oldProduct.stock = stock;
+//       await oldProduct.save();
+//     } else {
+//       // Product changed
+//       oldProduct.stock += orderItem.quantity;
 
-      if (newProduct.stock < newQty) {
-        return res.status(422).json({ message: "Insufficient stock!" });
-      }
+//       if (newProduct.stock < newQty) {
+//         return res.status(422).json({ message: "Insufficient stock!" });
+//       }
 
-      newProduct.stock -= newQty;
+//       newProduct.stock -= newQty;
 
-      await oldProduct.save();
-      await newProduct.save();
-    }
+//       await oldProduct.save();
+//       await newProduct.save();
+//     }
 
-    orderItem.product = newProduct._id;
-    orderItem.quantity = newQty;
-    await orderItem.save();
+//     orderItem.product = newProduct._id;
+//     orderItem.quantity = newQty;
+//     await orderItem.save();
 
-    return res.status(200).json({
-      message: "Order item updated successfully",
-      orderItem,
-    });
-  } catch (error) {
-    console.error("updateOrderItem error:", error);
-    return res.status(500).json({
-      message: "Failed to update order item",
-      error: error.message,
-    });
-  }
-};
+//     return res.status(200).json({
+//       message: "Order item updated successfully",
+//       orderItem,
+//     });
+//   } catch (error) {
+//     console.error("updateOrderItem error:", error);
+//     return res.status(500).json({
+//       message: "Failed to update order item",
+//       error: error.message,
+//     });
+//   }
+// };
 
 export const deleteOrderItem = async (req, res) => {
   try {
@@ -196,6 +199,15 @@ export const deleteOrderItem = async (req, res) => {
         { _id: item.product._id },
         { $inc: { stock: item.quantity } }
       );
+
+      const order = await Order.findById(item.order._id);
+      if (!order) {
+        return res.status(422).json({
+          message: "Order not found!",
+        });
+      };
+      order.subtotal -= (item.price * item.quantity);
+      await order.save();
 
       // Hard delete
       await OrderItem.deleteOne({ _id: item._id });

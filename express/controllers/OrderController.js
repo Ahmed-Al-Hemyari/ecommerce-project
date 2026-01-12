@@ -66,9 +66,14 @@ export const getAllOrders = async (req, res) => {
 export const getOrdersForUser = async (req, res) => {
     try {
       const userId = req.user._id;
-      const orders = await Order.find({ "user._id" : userId})
-          .populate({ path: 'orderItems', populate: { path: 'product' }});
-      res.status(200).json(orders);
+      const orders = await Order.find({ user : userId, status: { $ne: 'draft' }})
+          .populate([
+            { path: 'orderItems', populate: { path: 'product' }},
+            { path: 'shipping' }
+          ]);
+      res.status(200).json({
+        orders: orders
+      });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: 'Error fetching orders', error });
@@ -137,108 +142,106 @@ export const createOrder = async (req, res) => {
 };
 
 export const createOrderFromCart = async (req, res) => {
-  const session = await mongoose.startSession();
-
   try {
-    const { user_id, shipping_id, payment_method, cart } = req.body;
+    const { shipping, paymentMethod, cart } = req.body;
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized!!" });
+    }
 
     // ---------- Validation ----------
-    if (!user_id || !shipping_id || !payment_method || !Array.isArray(cart)) {
+    if (!shipping || !paymentMethod || !Array.isArray(cart)) {
       return res.status(400).json({ message: "Invalid request data" });
     }
 
-    if (!["credit", "paypal", "cod"].includes(payment_method)) {
+    if (!["credit", "paypal", "cod"].includes(paymentMethod)) {
       return res.status(422).json({ message: "Invalid payment method" });
     }
 
+    const fetchedShipping = await Shipping.findById(shipping);
+    if (!fetchedShipping) {
+      return res.status(422).json({ message: "Invalid shipping" });
+    }
+
     for (const item of cart) {
-      if (!item.product_id || !Number.isInteger(item.quantity) || item.quantity < 1) {
+      const product = await Product.findById(item.product);
+
+      if (
+        !product ||
+        !Number.isInteger(item.quantity) ||
+        item.quantity < 1
+      ) {
         return res.status(422).json({ message: "Invalid cart items" });
       }
     }
 
-    // ---------- Transaction ----------
-    await session.withTransaction(async () => {
-      // Create draft order
-      const order = await Order.create(
-        [
-          {
-            user: user_id,
-            shipping: shipping_id,
-            payment_method,
-            subtotal: 0,
-            shipping_cost: 0,
-            status: "draft",
-          },
-        ],
-        { session }
-      );
+    // ---------- Create draft order ----------
+    const order = await Order.create({
+      user: user._id,
+      shipping: shipping,
+      paymentMethod: paymentMethod,
+      subtotal: 0,
+      shippingCost: 5,
+      status: "draft",
+    });
 
-      const createdOrder = order[0];
+    // ---------- Order items ----------
+    for (const item of cart) {
+      const product = await Product.findById(item.product);
+      if (!product) continue;
 
-      for (const item of cart) {
-        const product = await Product.findById(item.product_id).session(session);
+      // Check existing order item
+      const existingItem = await OrderItem.findOne({
+        order: order._id,
+        product: product._id,
+      });
 
-        if (!product || item.quantity > product.stock) {
-          // Skip item (same as Laravel `continue`)
-          continue;
-        }
+      if (existingItem) {
+        // Restore stock
+        product.stock += existingItem.quantity;
+        await product.save();
 
-        // Check existing order item
-        const existingItem = await OrderItem.findOne({
-          order: createdOrder._id,
-          product: product._id,
-        }).session(session);
-
-        if (existingItem) {
-          // Restore stock
-          product.stock += existingItem.quantity;
-          await product.save({ session });
-
-          await existingItem.deleteOne({ session });
-        }
-
-        // Create new order item
-        await OrderItem.create(
-          [
-            {
-              order: createdOrder._id,
-              product: product._id,
-              quantity: item.quantity,
-              price: product.price,
-            },
-          ],
-          { session }
-        );
-
-        // Decrement stock
-        product.stock -= item.quantity;
-        await product.save({ session });
+        await existingItem.deleteOne();
       }
 
-      // Move order to pending
-      createdOrder.status = "pending";
-      await createdOrder.save({ session });
-
-      // Populate response
-      await createdOrder.populate({
-        path: "orderItems",
-        populate: { path: "product" },
+      // Create new order item
+      await OrderItem.create({
+        order: order._id,
+        product: product._id,
+        quantity: item.quantity,
+        price: product.price,
       });
 
-      res.status(201).json({
-        message: "Order created successfully",
-        order: createdOrder,
-      });
+      // Decrement stock
+      product.stock -= item.quantity;
+      await product.save();
+
+      order.subtotal += (Number(item.quantity) * Number(product.price));
+      await order.save();
+    }
+
+    // ---------- Move order to pending ----------
+    order.status = "pending";
+    await order.save();
+
+    // ---------- Populate response ----------
+    await order.populate({
+      path: "orderItems",
+      populate: { path: "product" },
     });
+
+    return res.status(201).json({
+      message: "Order created successfully",
+      order,
+    });
+
   } catch (error) {
     console.error("createOrderFromCart error:", error);
-    res.status(500).json({
+    return res.status(500).json({
       message: "Failed to create order",
       error: error.message,
     });
-  } finally {
-    session.endSession();
   }
 };
 

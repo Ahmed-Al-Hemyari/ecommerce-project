@@ -27,17 +27,17 @@ const Cart = () => {
     // ---------------------
     // AUTH CHECK
     // ---------------------
-    const checkAuth = async () => {
-        try {
-            const profile = await authService.getProfile();
-            setUser(profile);
-        } catch (err) {
-            console.warn('Auth check failed:', err);
-            setUser(null);
-            enqueueSnackbar("You need to login first", { variant: 'warning' });
-            navigate('/login'); // redirect if not authenticated
-        }
-    };
+    // const checkAuth = async () => {
+    //     try {
+    //         const profile = await authService.getProfile();
+    //         setUser(profile);
+    //     } catch (err) {
+    //         console.warn('Auth check failed:', err);
+    //         setUser(null);
+    //         enqueueSnackbar("You need to login first", { variant: 'warning' });
+    //         navigate('/login'); // redirect if not authenticated
+    //     }
+    // };
 
     // ---------------------
     // LOAD CART ITEMS
@@ -126,7 +126,7 @@ const Cart = () => {
 
         const init = async () => {
             setLoading(true); // start spinner
-            await checkAuth(); // check user
+            // await checkAuth(); // check user
             await loadCart();  // load cart items
             setLoading(false); // stop spinner after both complete
         };
@@ -170,11 +170,11 @@ const Cart = () => {
                                     <div key={item._id} className="flex items-center bg-white p-4 rounded-lg shadow-sm">
                                         <img 
                                             src={item.image ? `${url}${item.image}` : defaultProductImage} 
-                                            alt={item.title} 
+                                            alt={item.name} 
                                             className="w-24 h-24 object-cover rounded" 
                                         />
                                         <div className="ml-4 flex-1">   
-                                            <h2 className="font-medium text-(--color-dark-gray)">{item.title}</h2>
+                                            <h2 className="font-medium text-(--color-dark-gray)">{item.name}</h2>
                                             <p className="text-gray-500">${Number(item.price || 0).toFixed(2)}</p>
                                             <div className="flex items-center mt-2 gap-2">
                                                 <button className="px-2 py-1 border border-(--color-light-gray) rounded" onClick={() => handleQuantity(item._id, 'dec')}>-</button>

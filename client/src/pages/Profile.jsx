@@ -25,7 +25,6 @@ const Profile = () => {
     setLoading(true);
     try {
       const data = await authService.getProfile();
-      console.log("Profile data:", data);
       setUser(data.data.user);
     } catch (error) {
       console.error("Failed to fetch profile:", error);
@@ -95,7 +94,7 @@ const Profile = () => {
   // -----------------------
   const setDefaultShipping = async (shippingId) => {
     // Call your API to set default shipping
-    await authService.setDefault(shippingId);
+    await shippingService.setDefault(shippingId);
 
     // Refresh profile after change
     await loadProfile();

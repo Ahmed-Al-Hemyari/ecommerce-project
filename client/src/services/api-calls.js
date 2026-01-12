@@ -5,7 +5,6 @@ export const authService = {
   loginByPhone: (data) => api.post("/auth/login-phone", data),
   loginByEmail: (data) => api.post("/auth/login-email", data),
   getProfile: () => api.get("/auth/profile"),
-  setDefault: (shippingId) => api.patch(`/auth/shippings/${shippingId}/set-default`),
   updateProfile: (data) => api.put("/auth/profile/update", data),
   changePassword: (data) => api.put("/auth/profile/change-password", data),
   checkAuth : () => api.get("/auth/check-auth"),
@@ -16,6 +15,7 @@ export const shippingService = {
     getShipping: (id) => api.get(`/shippings/${id}`),
     createShipping: (data) => api.post("/shippings", data),
     updateShipping: (id, data) => api.put(`/shippings/${id}`, data),
+    setDefault: (shippingId) => api.patch(`/shippings/${shippingId}/set-default`),
     deleteShipping: (id) => api.delete(`/shippings/${id}`),
 }
 

@@ -21,7 +21,7 @@ shippingRoutes.post('/', requireAuth, createShipping);
 // Update
 shippingRoutes.put('/:id', requireAuth, updateShipping);
 // Make Default
-shippingRoutes.patch('/:id', requireAuth, makeDefault);
+shippingRoutes.patch('/:id/set-default', requireAuth, makeDefault);
 // Delete
 shippingRoutes.delete('/:id', requireAuth, deleteShipping);
 
