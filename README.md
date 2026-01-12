@@ -13,8 +13,6 @@ QuickBuy is a modern e-commerce platform with separate client and admin apps, pr
 * Tech Stack
 * Installation
 * Folder Structure
-* Contributing
-* License
 
 ---
 
@@ -126,7 +124,6 @@ php artisan key:generate
 ```
 PORT=8000
 MONGO_URI=mongodb://127.0.0.1:27017/quickbuy_db
-JWT_SECRET=your_jwt_secret
 ```
 
 * Laravel (`laravel/.env`):
@@ -173,12 +170,6 @@ quickbuy/
 ├─ screenshots/            # Screenshots and assets for README
 └─ README.md
 ```
-
----
-
-## License
-
-This project is licensed under the MIT License.
 
 ---
 
